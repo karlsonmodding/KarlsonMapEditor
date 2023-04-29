@@ -24,8 +24,8 @@ namespace KarlsonMapEditor
         {
             if(_initd) return;
             _initd = true;
-            wid = new int[]{ ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId() };
-            wir = new Rect[7];
+            wid = new int[]{ ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId() };
+            wir = new Rect[9];
             wir[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
             wir[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
             wir[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
@@ -33,6 +33,8 @@ namespace KarlsonMapEditor
             wir[(int)WindowId.TexPick] = new Rect((Screen.width - 800) / 2, (Screen.height - 400) / 2, 800, 400);
             wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
             wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 500);
+            wir[(int)WindowId.ObjectGroup] = new Rect(Screen.width - 510, 745, 200, 65);
+            wir[(int)WindowId.ObjectGroupManip] = new Rect(Screen.width - 510, 815, 200, 125);
 
             multiPick = new GUIStyle();
             Texture2D orange = new Texture2D(1,1);
@@ -56,6 +58,8 @@ namespace KarlsonMapEditor
             TexPick,
             LevelBrowser,
             ObjectManip,
+            ObjectGroup,
+            ObjectGroupManip,
         }
 
         private static GUIStyle multiPick;
@@ -78,6 +82,8 @@ namespace KarlsonMapEditor
         static Vector3 gizmoMovePos;
         static Vector3 gizmoMoveDirection = Vector3.zero;
         static float oldGizmoDistance;
+
+        static string targetGroup = "";
         private static void InitEditor(Scene arg0, LoadSceneMode arg1)
         {
             SceneManager.sceneLoaded -= InitEditor;
@@ -141,6 +147,8 @@ namespace KarlsonMapEditor
             clickGizmo = new List<GameObject> { go1, go2, go3, go4 };
             
             gizmoCamera = UnityEngine.Object.Instantiate(Camera.main);
+            UnityEngine.Object.Destroy(gizmoCamera.transform.Find("GunCam").gameObject);
+            UnityEngine.Object.Destroy(gizmoCamera.transform.Find("Particle System").gameObject);
             gizmoCamera.transform.parent = Camera.main.transform;
             gizmoCamera.clearFlags = CameraClearFlags.Depth;
             gizmoCamera.cullingMask = (1 << 19); // layer 19
@@ -356,7 +364,11 @@ namespace KarlsonMapEditor
                         Coroutines.StartCoroutine(identifyObject(obj.go));
                     }
                     if (GUI.Button(new Rect(25, 0, 20, 20), "^")) { PlayerMovement.Instance.gameObject.transform.position = obj.go.transform.position + Camera.main.transform.forward * -5f; Coroutines.StartCoroutine(identifyObject(obj.go)); }
-                    GUI.Label(new Rect(50, 0, 200, 20), i + " | " + (obj.data.IsPrefab ? obj.data.PrefabId.ToString() : "Cube"));
+                    string color = "<color=white>";
+                    if (selObj == i) color = "<color=green>";
+                    if (targetGroup != "" && obj.data.GroupName == targetGroup) color = "<color=yellow>";
+                    if (selObj == i && targetGroup != "" && obj.data.GroupName == targetGroup) color = "<color=cyan>";
+                    GUI.Label(new Rect(50, 0, 200, 20), color + (obj.data.IsPrefab ? LevelPlayer.LevelData.PrefabToName(obj.data.PrefabId) : "Cube") + " | " + obj.go.name + "</color>");
                     GUI.EndGroup();
                     i++;
                 }
@@ -380,9 +392,13 @@ namespace KarlsonMapEditor
                     {
                         objects.Add(new EditorObject(obj.aPosition));
                         objects.Last().data.TextureId = obj.data.TextureId;
+                        objects.Last().go.GetComponent<MeshRenderer>().material.color = obj.go.GetComponent<MeshRenderer>().material.color;
                     }
                     objects.Last().aRotation = obj.aRotation;
                     objects.Last().aScale = obj.aScale;
+                    objects.Last().go.name = obj.go.name + " (Clone)";
+                    objects.Last().data.GroupName = obj.data.GroupName;
+                    selObj = objects.Count - 1;
                     return;
                 }
                 if (GUI.Button(new Rect(85, 40, 75, 20), "Delete"))
@@ -522,6 +538,7 @@ namespace KarlsonMapEditor
                 {
                     if (GUI.Button(new Rect(5, 470, 200, 20), "Update texture scailing"))
                     {
+                        string name = obj.go.name;
                         UnityEngine.Object.Destroy(obj.go);
                         obj.go = LoadsonAPI.PrefabManager.NewCube();
                         if (obj.data.TextureId < Main.gameTex.Length)
@@ -531,15 +548,83 @@ namespace KarlsonMapEditor
                         obj.go.transform.position = obj.data.Position;
                         obj.go.transform.rotation = Quaternion.Euler(obj.data.Rotation);
                         obj.go.transform.localScale = obj.data.Scale;
+                        obj.go.name = name;
                     }
-                    if (GUI.Button(new Rect(210, 470, 50, 20), "Bounce"))
-                    {
-                        obj.go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                    }
+                    obj.data.Bounce = GUI.Toggle(new Rect(5, 60, 75, 20), obj.data.Bounce, "Bounce");
+                    obj.data.Glass = GUI.Toggle(new Rect(85, 60, 75, 20), obj.data.Glass, "Glass");
+                    obj.data.Lava = GUI.Toggle(new Rect(165, 60, 75, 20), obj.data.Lava, "Lava");
                 }
+                GUI.DragWindow(new Rect(0, 0, 300, 20));
             }, "Object Properties");
 
-            if(selObj != -1 && !objects[selObj].data.IsPrefab)
+            wir[(int)WindowId.ObjectGroup] = GUI.Window(wid[(int)WindowId.ObjectGroup], wir[(int)WindowId.ObjectGroup], (windowId) => {
+                GUI.DragWindow(new Rect(0, 0, 200, 20));
+                if (selObj == -1)
+                {
+                    GUI.Label(new Rect(5, 20, 300, 20), "No object selected");
+                    return;
+                }
+                GUI.Label(new Rect(5, 20, 50, 20), "Name");
+                objects[selObj].go.name = GUI.TextField(new Rect(45, 20, 150, 20), objects[selObj].go.name);
+                GUI.Label(new Rect(5, 40, 50, 20), "Group");
+                objects[selObj].data.GroupName = GUI.TextField(new Rect(45, 40, 150, 20), objects[selObj].data.GroupName);
+            }, "Object Settings");
+            wir[(int)WindowId.ObjectGroupManip] = GUI.Window(wid[(int)WindowId.ObjectGroupManip], wir[(int)WindowId.ObjectGroupManip], (windowId) => {
+                GUI.DragWindow(new Rect(0, 0, 200, 20));
+                int count = 0;
+                foreach (var obj in objects)
+                    if (obj.data.GroupName == targetGroup)
+                        count++;
+                if (targetGroup == "") GUI.Label(new Rect(5, 20, 100, 20), "Group name:");
+                else GUI.Label(new Rect(5, 20, 200, 20), "Group name: <color=yellow>(" + count + " objects)</color>");
+                targetGroup = GUI.TextField(new Rect(5, 40, 190, 20), targetGroup);
+                if (targetGroup == "")
+                {
+                    GUI.Label(new Rect(5, 60, 200, 20), "Please enter a group name");
+                    return;
+                }
+                if (count == 0)
+                {
+                    GUI.Label(new Rect(5, 60, 200, 20), "No objects have the targeted group");
+                    return;
+                }
+                GUI.BeginGroup(new Rect(0, 60, 200, 60));
+                GUI.Label(new Rect(5, 0, 20, 20), "X:");
+                Vector3 delta = Vector3.zero;
+                if (GUI.Button(new Rect(20, 0, 20, 20), "-")) delta = new Vector3(-moveStep, 0, 0);
+                if (GUI.RepeatButton(new Rect(40, 0, 135, 20), "<------------|------------>"))
+                {
+                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
+                    delta = new Vector3(x / 270, 0, 0);
+                }
+                if (GUI.Button(new Rect(175, 0, 20, 20), "+")) delta = new Vector3(moveStep, 0, 0);
+
+                GUI.Label(new Rect(5, 20, 20, 20), "Y:");
+                if (GUI.Button(new Rect(20, 20, 20, 20), "-")) delta = new Vector3(0, -moveStep, 0);
+                if (GUI.RepeatButton(new Rect(40, 20, 135, 20), "<------------|------------>"))
+                {
+                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
+                    delta = new Vector3(0, x / 270, 0);
+                }
+                if (GUI.Button(new Rect(175, 20, 20, 20), "+")) delta = new Vector3(0, moveStep, 0);
+
+                GUI.Label(new Rect(5, 40, 20, 20), "Z:");
+                if (GUI.Button(new Rect(20, 40, 20, 20), "-")) delta = new Vector3(0, 0, -moveStep);
+                if (GUI.RepeatButton(new Rect(40, 40, 135, 20), "<------------|------------>"))
+                {
+                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
+                    delta = new Vector3(0, 0, x / 270);
+                }
+                if (GUI.Button(new Rect(175, 40, 20, 20), "+")) delta = new Vector3(0, 0, moveStep);
+                
+                foreach(var obj in objects)
+                    if (obj.data.GroupName == targetGroup)
+                        obj.aPosition += delta;
+
+                GUI.EndGroup();
+            }, "Group Manipulation");
+
+            if (selObj != -1 && !objects[selObj].data.IsPrefab)
             {
                 //picker.color = objects[selObj].go.GetComponent<MeshRenderer>().material.color;
                 picker.DrawWindow();
@@ -723,6 +808,8 @@ namespace KarlsonMapEditor
                 foreach(var obj in objects)
                 {
                     bw.Write(obj.data.IsPrefab);
+                    bw.Write(obj.go.name);
+                    bw.Write(obj.data.GroupName);
                     if(obj.data.IsPrefab)
                     {
                         bw.Write(obj.data.PrefabId);
@@ -737,6 +824,9 @@ namespace KarlsonMapEditor
                         bw.Write(obj.aScale);
                         bw.Write(obj.data.TextureId);
                         bw.Write(obj.go.GetComponent<MeshRenderer>().material.color);
+                        bw.Write(obj.data.Bounce);
+                        bw.Write(obj.data.Glass);
+                        bw.Write(obj.data.Lava);
                     }
                 }
                 bw.Flush();
@@ -790,7 +880,7 @@ namespace KarlsonMapEditor
         {
             public EditorObject(Vector3 position)
             {
-                data = new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white);
+                data = new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Cube", "", false, false, false);
                 go = LoadsonAPI.PrefabManager.NewCube();
                 go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[data.TextureId];
                 go.transform.position = data.Position;
@@ -800,7 +890,7 @@ namespace KarlsonMapEditor
 
             public EditorObject(int _prefabId, Vector3 position)
             {
-                data = new LevelPlayer.LevelData.LevelObject(_prefabId, position, Vector3.zero, Vector3.one);
+                data = new LevelPlayer.LevelData.LevelObject(_prefabId, position, Vector3.zero, Vector3.one, LevelPlayer.LevelData.PrefabToName(_prefabId), "");
                 go = LevelPlayer.LevelData.MakePrefab(_prefabId);
                 go.transform.position = data.Position;
                 go.transform.rotation = Quaternion.Euler(data.Rotation);
@@ -828,6 +918,7 @@ namespace KarlsonMapEditor
                 go.transform.position = data.Position;
                 go.transform.rotation = Quaternion.Euler(data.Rotation);
                 go.transform.localScale = data.Scale;
+                go.name = data.Name;
             }
 
             public LevelPlayer.LevelData.LevelObject data;

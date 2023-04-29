@@ -30,10 +30,8 @@ namespace KarlsonMapEditor
 
         public static void LoadLevelData(Scene arg0, LoadSceneMode arg1)
         {
-            Loadson.Console.Log("Clearing scene..");
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
-            Loadson.Console.Log("Loading custom objects..");
             foreach (var obj in levelData.Objects)
             {
                 GameObject go;
@@ -43,18 +41,27 @@ namespace KarlsonMapEditor
                 }
                 else
                 {
-                    go = LoadsonAPI.PrefabManager.NewCube();
+                    if(obj.Lava)
+                    {
+                        go = LoadsonAPI.PrefabManager.NewGlass();
+                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
+                        go.AddComponent<Lava>();
+                    }
+                    else if (obj.Glass)
+                        go = LoadsonAPI.PrefabManager.NewGlass();
+                    else
+                        go = LoadsonAPI.PrefabManager.NewCube();
                     if (obj.TextureId < Main.gameTex.Length)
                         go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
                     else
                         go.GetComponent<MeshRenderer>().material.mainTexture = levelData.Textures[obj.TextureId - Main.gameTex.Length];
                     go.GetComponent<MeshRenderer>().material.color = obj._Color;
+                    if (obj.Bounce)
+                        go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                    
                 }
-                Loadson.Console.Log("Pos: " + obj.Position);
                 go.transform.position = obj.Position;
-                Loadson.Console.Log("Pos: " + obj.Rotation);
                 go.transform.rotation = Quaternion.Euler(obj.Rotation);
-                Loadson.Console.Log("Pos: " + obj.Scale);
                 go.transform.localScale = obj.Scale;
             }
         }
@@ -88,10 +95,12 @@ namespace KarlsonMapEditor
                     while (_texl-- > 0)
                     {
                         bool prefab = br.ReadBoolean();
+                        string name = br.ReadString();
+                        string group = br.ReadString();
                         if(prefab)
-                            objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3()));
+                            objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group));
                         else
-                            objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor()));
+                            objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                     }
                     Objects = objects.ToArray();
                 }
@@ -102,7 +111,7 @@ namespace KarlsonMapEditor
 
             public class LevelObject
             {
-                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale)
+                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName)
                 {
                     IsPrefab = true;
                     PrefabId = prefabId;
@@ -110,9 +119,11 @@ namespace KarlsonMapEditor
                     Position = position;
                     Rotation = rotation;
                     Scale = scale;
-                    Loadson.Console.Log("Created LevelObject: " + ToString());
+
+                    Name = name;
+                    GroupName = groupName;
                 }
-                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color)
+                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava)
                 {
                     IsPrefab = false;
                     TextureId = textureId;
@@ -122,7 +133,11 @@ namespace KarlsonMapEditor
                     Scale = scale;
                     _Color = color;
 
-                    Loadson.Console.Log("Created LevelObject: " + ToString());
+                    Name = name;
+                    GroupName = groupName;
+                    Bounce = bounce;
+                    Glass = glass;
+                    Lava = lava;
                 }
 
                 public bool IsPrefab;
@@ -130,10 +145,15 @@ namespace KarlsonMapEditor
                 public Vector3 Rotation;
                 public Vector3 Scale;
                 public Color _Color;
+                public string Name;
+                public string GroupName;
 
                 public int PrefabId;
 
                 public int TextureId;
+                public bool Bounce;
+                public bool Glass;
+                public bool Lava;
 
                 public override string ToString()
                 {

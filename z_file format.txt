@@ -79,6 +79,9 @@ foreach [number of objects]
 		_vector3 - scale
 		int32 - texture index
 		_color - mesh renderer material color
+		boolean - bounce
+		boolean - glass
+		boolean - lava
 
 [.kwm] Karlson Workshop Map
 Encoded with LZMA: Decompress before reading, Compress before writing.

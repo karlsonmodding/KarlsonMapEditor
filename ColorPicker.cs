@@ -70,7 +70,7 @@ namespace KarlsonMapEditor
                         UpdateSVTexture(color, svTexture);
                 }
 
-                GUI.DragWindow();
+                GUI.DragWindow(new Rect(0, 0, 165, 20));
             }, "Color Picker");
         }
 
@@ -272,6 +272,11 @@ namespace KarlsonMapEditor
                 c.g = float.Parse(GUILayout.TextField(c.g.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
                 c.b = float.Parse(GUILayout.TextField(c.b.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
                 c.a = float.Parse(GUILayout.TextField(c.a.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
+                // clamp values
+                c.r = Mathf.Clamp(c.r, 0, 1);
+                c.g = Mathf.Clamp(c.g, 0, 1);
+                c.b = Mathf.Clamp(c.b, 0, 1);
+                c.a = Mathf.Clamp(c.a, 0, 1);
             }
         }
 

@@ -1,0 +1,89 @@
+﻿conventions:
+_data [
+	int32 - number of bytes
+	byte[] - bytes
+	
+	Write with:
+	bw.Write(data.Length);
+	bw.Write(data);
+
+	Read with:
+	int _len = bw.ReadInt32();
+	byte[] data = bw.ReadBytes(_len);
+]
+
+_vector3 [
+    float(single) - x
+    float(single) - y
+    float(single) - z
+
+	Write with:
+	[BinaryExtensions]
+	bw.Write(v);
+	[Default]
+	bw.Write(v.x);
+	bw.Write(v.y);
+	bw.Write(v.z);
+
+	Read with:
+	[BinaryExtensions]
+	Vector3 v = bw.ReadVector3();
+	[Default]
+	Vector3 v = new Vector3(bw.ReadSingle(), bw.ReadSingle(), bw.ReadSingle());
+]
+
+_color [
+    float(single) - r
+    float(single) - g
+    float(single) - b
+    float(single) - a
+
+	Write with:
+	[BinaryExtensions]
+	bw.Write(c);
+	[Default]
+	bw.Write(c.r);
+	bw.Write(c.g);
+	bw.Write(c.b);
+	bw.Write(c.a);
+
+	Read with:
+	[BinaryExtensions]
+	Vector3 v = bw.ReadColor();
+	[Default]
+	Vector3 v = new Color(bw.ReadSingle(), bw.ReadSingle(), bw.ReadSingle(), bw.ReadSingle());
+]
+
+
+[.kme] Karlson Map Editor
+Encoded with LZMA: Decompress before reading, Compress before writing.
+Written with BinaryWriter / Read with BinaryReader
+int32 - Level Data Version
+int32 - number of custom textures
+foreach [number of custom textures]
+	string - texture name
+    _data - texture data (Texture2D.EncodeToPNG())
+int32 - number of objects
+foreach [number of objects]
+	bool - prefab
+	string - name
+	string - group
+	if [prefab]
+		int32 - prefab id
+		_vector3 - position
+		_vector3 - rotation (euler)
+		_vector3 - scale
+	else
+		_vector3 - position
+		_vector3 - rotation (euler)
+		_vector3 - scale
+		int32 - texture index
+		_color - mesh renderer material color
+
+[.kwm] Karlson Workshop Map
+Encoded with LZMA: Decompress before reading, Compress before writing.
+Written with BinaryWriter / Read with BinaryReader
+string - Name
+string - Author
+_data - thumbnail
+_data - .kme data [compressed]

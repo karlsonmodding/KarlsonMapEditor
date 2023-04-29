@@ -1,0 +1,4 @@
+displayname=Karlson Map Editor
+author=devilExE
+description=TBA
+deps=

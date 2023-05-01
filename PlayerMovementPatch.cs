@@ -45,11 +45,7 @@ namespace KarlsonMapEditor
             }
             if (UIManger.Instance.gameUI.activeSelf) UIManger.Instance.gameUI.SetActive(false);
             GameObject ps = GameObject.Find("Camera/Main Camera/Particle System"); // you little fucker
-            if (ps.activeSelf)
-            {
-                ps.SetActive(false);
-                UnityEngine.Object.Destroy(ps);
-            }
+            if (ps.activeSelf) ps.SetActive(false);
             return false;
         }
     }

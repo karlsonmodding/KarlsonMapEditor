@@ -1,17 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32228.343
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadsonMod", "LoadsonMod.csproj", "{B9C79912-A6E6-42A2-8452-5336D454A627}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76712E49-8D17-4A62-B334-9842F2AA79B8} = {76712E49-8D17-4A62-B334-9842F2AA79B8}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModBuilder", "_ModBuilder\ModBuilder.csproj", "{76712E49-8D17-4A62-B334-9842F2AA79B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B9C79912-A6E6-42A2-8452-5336D454A627}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C79912-A6E6-42A2-8452-5336D454A627}.Debug|Any CPU.Build.0 = Release|Any CPU
 		{B9C79912-A6E6-42A2-8452-5336D454A627}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9C79912-A6E6-42A2-8452-5336D454A627}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76712E49-8D17-4A62-B334-9842F2AA79B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76712E49-8D17-4A62-B334-9842F2AA79B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76712E49-8D17-4A62-B334-9842F2AA79B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76712E49-8D17-4A62-B334-9842F2AA79B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

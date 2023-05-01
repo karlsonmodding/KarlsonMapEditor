@@ -1,7 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using KarlsonMapEditor.Workshop_API;
 using Loadson;
 using LoadsonAPI;
 using UnityEngine;
@@ -49,11 +53,11 @@ namespace KarlsonMapEditor
                 }
             }
             gameTex = temp.ToArray();
-            if(gameTex.Length != 13) Console.Log("<color=red>Invalid game texture array. Expected 13 items, got " + gameTex.Length + "</color>");
+            if(gameTex.Length != 13) Loadson.Console.Log("<color=red>Invalid game texture array. Expected 13 items, got " + gameTex.Length + "</color>");
 
             MenuEntry.AddMenuEntry(new List<(string, System.Action)>
             {
-                ("List", ()=> {
+                ("List", () => {
                     MenuCamera cam = UnityEngine.Object.FindObjectOfType<MenuCamera>();
                     typeof(MenuCamera).GetField("desiredPos", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, new Vector3(-1f, 15.1f, 184.06f));
                     typeof(MenuCamera).GetField("desiredRot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, Quaternion.Euler(0f, -90f, 0f));
@@ -62,8 +66,16 @@ namespace KarlsonMapEditor
                     GameObject.Find("/UI").transform.Find("Custom").gameObject.SetActive(true);
                     Hook_Lobby_Start.RenderMenuPage(1);
                 }),
-                ("Workshop", ()=>{}),
-                ("Editor", ()=> LevelEditor.StartEdit()),
+                ("Workshop", () => {
+                    if(DiscordAPI.HasDiscord && workshopToken == "") return; // wait for workshop login
+                    MenuCamera cam = UnityEngine.Object.FindObjectOfType<MenuCamera>();
+                    typeof(MenuCamera).GetField("desiredPos", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, new Vector3(-1f, 15.1f, 184.06f));
+                    typeof(MenuCamera).GetField("desiredRot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, Quaternion.Euler(0f, -90f, 0f));
+
+                    GameObject.Find("/UI/Menu").SetActive(false);
+                    WorkshopGUI.OpenWorkshop();
+                }),
+                ("Editor", () => LevelEditor.StartEdit()),
             }, "Map Editor");
 
             AddAPIFunction("KarlsonMapEditor.PickFile", (args) =>
@@ -80,34 +92,65 @@ namespace KarlsonMapEditor
             ColorPicker.imCircle = LoadAsset<Texture2D>("imCircle");
 
             if (!DiscordAPI.HasDiscord)
-                Console.Log("Discord not found. You will not be able to upload levels to the workshop");
+                Loadson.Console.Log("Discord not found. You will not be able to upload levels to the workshop");
             else
             {
-                System.DateTime start = System.DateTime.Now;
-                IEnumerator awaitDiscord()
+                new Thread(() =>
                 {
-                    while (DiscordAPI.User.Id == 0) yield return new WaitForSeconds(0.2f);
-                    while (DiscordAPI.Bearer == "") yield return new WaitForSeconds(0.2f);
-                    Console.Log("Logged in discord as " + DiscordAPI.User.Username + "#" + DiscordAPI.User.Discriminator + " (" + DiscordAPI.User.Id + ")");
-                    Console.Log("Bearer token for authentication is " + DiscordAPI.Bearer);
-                    Console.Log("Took " + (System.DateTime.Now - start).TotalMilliseconds + "ms to initialize discord");
-                }
-                Coroutines.StartCoroutine(awaitDiscord());
+                    Loadson.Console.Log("Awaiting discord..");
+                    while (DiscordAPI.User.Id == 0) Thread.Sleep(200);
+                    Loadson.Console.Log("Got discord user id " + DiscordAPI.User.Id);
+                    while (DiscordAPI.Bearer.Length < 2)
+                    {
+                        Loadson.Console.Log("Waiting for bearer (" + DiscordAPI.Bearer + ")");
+                        Thread.Sleep(200);
+                    }
+                    Loadson.Console.Log("Got discord bearer " + DiscordAPI.Bearer);
+                    Loadson.Console.Log("[WAPI] Logging in as " + DiscordAPI.User.Id + " " + DiscordAPI.Bearer);
+                    int[] ta;
+                    (workshopToken, ta) = Core.Login(DiscordAPI.User.Id, DiscordAPI.Bearer);
+                    workshopLikes = ta.ToList();
+                }).Start();
             }
+            loginWid = ImGUI_WID.GetWindowId();
         }
+
+        int loginWid;
+        Rect loginRect = new Rect(Screen.width - 205, Screen.height - 50, 200, 45);
 
         public override void OnGUI()
         {
             LevelEditor._ongui();
+            WorkshopGUI._OnGUI();
+            if(loginWid != -1 && workshopToken == "")
+                GUI.Window(loginWid, loginRect, (_) => {
+                    if (!LoadsonAPI.DiscordAPI.HasDiscord)
+                        GUI.Label(new Rect(5, 20, 200, 30), "Discord was not detected");
+                    else if (LoadsonAPI.DiscordAPI.User.Id == 0)
+                        GUI.Label(new Rect(5, 20, 200, 30), "Awaiting Discord User");
+                    else if (DiscordAPI.Bearer.Length < 2)
+                        GUI.Label(new Rect(5, 20, 200, 30), "Awaiting Discord Bearer");
+                    else
+                        GUI.Label(new Rect(5, 20, 200, 30), "Logging into KME Workshop");
+                }, "KME Workshop Login");
         }
 
         public override void Update(float deltaTime)
         {
             LevelEditor._onupdate();
+            if (runOnMain.Count > 0)
+            { // once at a time, not to overload
+                Action run = runOnMain[0];
+                runOnMain.RemoveAt(0);
+                run();
+            }
         }
 
         public static Dictionary<string, string> prefs;
         public static string directory;
         public static Texture2D[] gameTex;
+        public static string workshopToken = "";
+        public static List<int> workshopLikes;
+        public static List<Action> runOnMain = new List<Action>();
     }
 }

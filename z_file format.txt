@@ -59,6 +59,10 @@ _color [
 Encoded with LZMA: Decompress before reading, Compress before writing.
 Written with BinaryWriter / Read with BinaryReader
 int32 - Level Data Version
+float(single) - grid align
+int32 - starting gun
+_vector3 - spawn position
+float(single) - spawn orientation
 int32 - number of custom textures
 foreach [number of custom textures]
 	string - texture name
@@ -73,6 +77,7 @@ foreach [number of objects]
 		_vector3 - position
 		_vector3 - rotation (euler)
 		_vector3 - scale
+		int32 - prefab data (used for enemies, gun id)
 	else
 		_vector3 - position
 		_vector3 - rotation (euler)
@@ -82,11 +87,13 @@ foreach [number of objects]
 		boolean - bounce
 		boolean - glass
 		boolean - lava
+		boolean - coll disable trigger
 
 [.kwm] Karlson Workshop Map
 Encoded with LZMA: Decompress before reading, Compress before writing.
 Written with BinaryWriter / Read with BinaryReader
+byte[] - "KWM" (ascii encoding, magic)
 string - Name
 string - Author
 _data - thumbnail
-_data - .kme data [compressed]
+_data - .kme data (already compressed)

@@ -5,3 +5,5 @@ lib
 exportBundle.cs
 *.klm
 *.klmi
+_ModBuilder
+packages

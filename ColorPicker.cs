@@ -13,6 +13,8 @@ namespace KarlsonMapEditor
         public static Texture2D imRight, imLeft, imCircle;
         int wid;
         Rect pos;
+        public float wX { get => pos.x; }
+        public float wY { get => pos.y; }
         public Color color;
         public void UpdateColor()
         {
@@ -29,7 +31,7 @@ namespace KarlsonMapEditor
 
         public ColorPicker(Color _color, int x, int y) {
             wid = ImGUI_WID.GetWindowId();
-            pos = new Rect(x, y, 165, 200);
+            pos = new Rect(x, y, 165, 215);
             color = _color;
 
             RGBToHSV(_color, out h, out s, out v);
@@ -77,7 +79,7 @@ namespace KarlsonMapEditor
         #region https://github.com/mattatz/unity-immediate-color-picker
         // Licensed under MIT license. Copyright (c) 2016 mattatz
         // Check their repo for full license and copyright notice
-        public static Color HSVToRGB(float H, float S, float V, bool hdr = false)
+        public static Color HSVToRGB(float H, float S, float V, float keepAlpha = -1, bool hdr = false)
         {
             Color white = Color.white;
             if (S == 0f)
@@ -153,6 +155,8 @@ namespace KarlsonMapEditor
                     white.b = Mathf.Clamp(white.b, 0f, 1f);
                 }
             }
+            if(keepAlpha != -1)
+                white.a = Mathf.Clamp(keepAlpha, 0, 1);
             return white;
         }
 
@@ -272,12 +276,18 @@ namespace KarlsonMapEditor
                 c.g = float.Parse(GUILayout.TextField(c.g.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
                 c.b = float.Parse(GUILayout.TextField(c.b.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
                 c.a = float.Parse(GUILayout.TextField(c.a.ToString("0.00"), GUILayout.Height(20), GUILayout.Width(35)));
-                // clamp values
-                c.r = Mathf.Clamp(c.r, 0, 1);
-                c.g = Mathf.Clamp(c.g, 0, 1);
-                c.b = Mathf.Clamp(c.b, 0, 1);
-                c.a = Mathf.Clamp(c.a, 0, 1);
             }
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Space(-3);
+                c.a = GUILayout.HorizontalSlider(c.a, 0, 1, GUILayout.Height(20), GUILayout.Width(150));
+            }
+
+            // clamp values
+            c.r = Mathf.Clamp(c.r, 0, 1);
+            c.g = Mathf.Clamp(c.g, 0, 1);
+            c.b = Mathf.Clamp(c.b, 0, 1);
+            c.a = Mathf.Clamp(c.a, 0, 1);
         }
 
         void UpdateSVTexture(Color c, Texture2D tex)
@@ -311,7 +321,7 @@ namespace KarlsonMapEditor
             {
                 s = (p.x - rect.x) / rect.width;
                 v = 1f - (p.y - rect.y) / rect.height;
-                c = HSVToRGB(h, s, v);
+                c = HSVToRGB(h, s, v, c.a);
 
                 e.Use();
             }
@@ -328,7 +338,7 @@ namespace KarlsonMapEditor
             if (e.button == 0 && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag) && rect.Contains(p))
             {
                 h = 1f - (p.y - rect.y) / rect.height;
-                c = HSVToRGB(h, s, v);
+                c = HSVToRGB(h, s, v, c.a);
                 UpdateSVTexture(c, svTexture);
 
                 e.Use();

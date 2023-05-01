@@ -27,17 +27,40 @@ namespace KarlsonMapEditor
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }
+        public static void LoadLevel(string name, byte[] data)
+        {
+            currentLevel = name;
+            levelData = new LevelData(data);
+            SceneManager.sceneLoaded += LoadLevelData;
+            UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
+        }
 
         public static void LoadLevelData(Scene arg0, LoadSceneMode arg1)
         {
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
+            if(levelData.startingGun != 0)
+                PlayerMovement.Instance.spawnWeapon = LevelData.MakePrefab(levelData.startingGun - 1);
+
+            PlayerMovement.Instance.transform.position = levelData.startPosition;
+            PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
+            PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
+
             foreach (var obj in levelData.Objects)
             {
                 GameObject go;
                 if (obj.IsPrefab)
                 {
                     go = LevelData.MakePrefab(obj.PrefabId);
+                    if(obj.PrefabId == 11)
+                    {
+                        Enemy e = go.GetComponent<Enemy>();
+                        if(obj.PrefabData != 0)
+                        {
+                            e.startGun = LevelData.MakePrefab(obj.PrefabData - 1);
+                            typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
+                        }
+                    }
                 }
                 else
                 {
@@ -58,7 +81,8 @@ namespace KarlsonMapEditor
                     go.GetComponent<MeshRenderer>().material.color = obj._Color;
                     if (obj.Bounce)
                         go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                    
+                    if (obj.DisableTrigger)
+                        go.GetComponent<BoxCollider>().isTrigger = false;
                 }
                 go.transform.position = obj.Position;
                 go.transform.rotation = Quaternion.Euler(obj.Rotation);
@@ -78,6 +102,10 @@ namespace KarlsonMapEditor
                 {
                     int version = br.ReadInt32();
                     Loadson.Console.Log("Loading level version " + version);
+                    gridAlign = br.ReadSingle();
+                    startingGun = br.ReadInt32();
+                    startPosition = br.ReadVector3();
+                    startOrientation = br.ReadSingle();
                     int _len;
                     List<Texture2D> list = new List<Texture2D>();
                     int _texl = br.ReadInt32();
@@ -98,20 +126,25 @@ namespace KarlsonMapEditor
                         string name = br.ReadString();
                         string group = br.ReadString();
                         if(prefab)
-                            objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group));
+                            objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
                         else
-                            objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
+                            objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                     }
                     Objects = objects.ToArray();
                 }
             }
+
+            public float gridAlign;
+            public int startingGun;
+            public Vector3 startPosition;
+            public float startOrientation;
 
             public Texture2D[] Textures;
             public LevelObject[] Objects;
 
             public class LevelObject
             {
-                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName)
+                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName, int prefabData)
                 {
                     IsPrefab = true;
                     PrefabId = prefabId;
@@ -122,8 +155,10 @@ namespace KarlsonMapEditor
 
                     Name = name;
                     GroupName = groupName;
+
+                    PrefabData = prefabData;
                 }
-                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava)
+                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger)
                 {
                     IsPrefab = false;
                     TextureId = textureId;
@@ -138,6 +173,7 @@ namespace KarlsonMapEditor
                     Bounce = bounce;
                     Glass = glass;
                     Lava = lava;
+                    DisableTrigger = disableTrigger;
                 }
 
                 public bool IsPrefab;
@@ -154,6 +190,9 @@ namespace KarlsonMapEditor
                 public bool Bounce;
                 public bool Glass;
                 public bool Lava;
+                public bool DisableTrigger;
+
+                public int PrefabData;
 
                 public override string ToString()
                 {

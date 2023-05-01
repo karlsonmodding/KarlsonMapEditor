@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine.Events;
 using UnityEngine;
 using UnityEngine.UI;
+using KarlsonMapEditor.Workshop_API;
 
 namespace KarlsonMapEditor
 {
@@ -133,7 +134,7 @@ namespace KarlsonMapEditor
                     text.AddComponent<TextMeshProUGUI>();
                     text.GetComponent<TextMeshProUGUI>().text = ".kme level";
                     text.transform.parent = go.transform;
-                    text.transform.localPosition = new Vector3(13.9504f, -17.8543f, 0f);
+                    text.transform.localPosition = new Vector3(13.8f, -17.8543f, 0f);
                     text.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
                     text.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
                     InterceptButton(go.GetComponent<Button>(), () =>
@@ -145,8 +146,8 @@ namespace KarlsonMapEditor
                     Loadson.Console.Log("[r 10");
                     continue;
                 }
-                // read kwl
-                /*WML_Convert.WML level = WML_Convert.Decode(File.ReadAllBytes(levelList[idx]));
+                // read kwm
+                KWM_Convert.KWM level = KWM_Convert.Decode(File.ReadAllBytes(levelList[idx]));
                 go.GetComponentsInChildren<TextMeshProUGUI>()[0].text = level.Name;
                 go.GetComponentsInChildren<TextMeshProUGUI>()[1].text = LevelTimeDB.getForLevel(Path.GetFileName(levelList[idx])) == 0 ? "[NO RECORD]" : Timer.Instance.GetFormattedTime(LevelTimeDB.getForLevel(Path.GetFileName(levelList[idx])));
                 Texture2D tex = new Texture2D(1, 1);
@@ -154,10 +155,10 @@ namespace KarlsonMapEditor
                 go.GetComponent<Image>().sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0, 0));
                 InterceptButton(go.GetComponent<Button>(), () =>
                 {
-                    MelonLoader.MelonLogger.Msg("Loading level idx: " + idx);
-                    MelonLoader.MelonLogger.Msg("[WML] Loading level: " + levelList[idx]);
-                    MelonLoader.MelonCoroutines.Start(Editor.NewLoad(level.LevelData, Path.GetFileName(levelList[idx])));
-                });*/
+                    Loadson.Console.Log("Loading level idx: " + idx);
+                    Loadson.Console.Log("[WML] Loading level: " + levelList[idx]);
+                    LevelPlayer.LoadLevel(Path.GetFileName(levelList[idx]), level.LevelData);
+                });
             }
             Loadson.Console.Log("[r 1");
             GameObject.Find("/UI/Custom/PrevPage").GetComponent<Button>().interactable = page != 1;

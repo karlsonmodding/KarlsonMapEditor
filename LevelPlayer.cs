@@ -3,12 +3,14 @@ using LoadsonAPI;
 using SevenZip.Compression.LZMA;
 using System;
 using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
@@ -48,46 +50,77 @@ namespace KarlsonMapEditor
 
             foreach (var obj in levelData.Objects)
             {
+                if (obj.IsPrefab) continue;
                 GameObject go;
-                if (obj.IsPrefab)
+                if(obj.Lava)
                 {
-                    go = LevelData.MakePrefab(obj.PrefabId);
-                    if(obj.PrefabId == 11)
-                    {
-                        Enemy e = go.GetComponent<Enemy>();
-                        if(obj.PrefabData != 0)
-                        {
-                            e.startGun = LevelData.MakePrefab(obj.PrefabData - 1);
-                            typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
-                        }
-                    }
+                    go = LoadsonAPI.PrefabManager.NewGlass();
+                    UnityEngine.Object.Destroy(go.GetComponent<Glass>());
+                    go.AddComponent<Lava>();
                 }
+                else if (obj.Glass)
+                    go = LoadsonAPI.PrefabManager.NewGlass();
                 else
-                {
-                    if(obj.Lava)
-                    {
-                        go = LoadsonAPI.PrefabManager.NewGlass();
-                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                        go.AddComponent<Lava>();
-                    }
-                    else if (obj.Glass)
-                        go = LoadsonAPI.PrefabManager.NewGlass();
-                    else
-                        go = LoadsonAPI.PrefabManager.NewCube();
-                    if (obj.TextureId < Main.gameTex.Length)
-                        go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
-                    else
-                        go.GetComponent<MeshRenderer>().material.mainTexture = levelData.Textures[obj.TextureId - Main.gameTex.Length];
-                    go.GetComponent<MeshRenderer>().material.color = obj._Color;
-                    if (obj.Bounce)
-                        go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                    if (obj.DisableTrigger)
-                        go.GetComponent<BoxCollider>().isTrigger = false;
-                }
+                    go = LoadsonAPI.PrefabManager.NewCube();
+                if (obj.TextureId < Main.gameTex.Length)
+                    go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
+                else
+                    go.GetComponent<MeshRenderer>().material.mainTexture = levelData.Textures[obj.TextureId - Main.gameTex.Length];
+                go.GetComponent<MeshRenderer>().material.color = obj._Color;
+                if (obj.Bounce)
+                    go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                if (obj.DisableTrigger)
+                    go.GetComponent<BoxCollider>().isTrigger = false;
                 go.transform.position = obj.Position;
                 go.transform.rotation = Quaternion.Euler(obj.Rotation);
                 go.transform.localScale = obj.Scale;
             }
+            // create navmesh
+            GameObject navmeshGO = new GameObject("NavMesh Surface");
+            navmeshGO.transform.position = levelData.startPosition;
+            var navmeshs = navmeshGO.AddComponent<NavMeshSurface>();
+            navmeshs.useGeometry = NavMeshCollectGeometry.RenderMeshes;
+            navmeshs.collectObjects = CollectObjects.All;
+            navmeshs.BuildNavMesh();
+            Loadson.Console.Log("navmesh pos: " + navmeshs.navMeshData.position);
+
+            foreach (var obj in levelData.Objects)
+            {
+                if (!obj.IsPrefab) continue;
+                GameObject go;
+                go = LevelData.MakePrefab(obj.PrefabId);
+                go.transform.position = obj.Position;
+                go.transform.rotation = Quaternion.Euler(obj.Rotation);
+                go.transform.localScale = obj.Scale;
+                if (obj.PrefabId == 11)
+                {
+                    Enemy e = go.GetComponent<Enemy>();
+                    if (obj.PrefabData != 0)
+                    {
+                        e.startGun = LevelData.MakePrefab(obj.PrefabData - 1);
+                        typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
+
+                        go.GetComponent<NavMeshAgent>().enabled = true;
+                        go.GetComponent<NavMeshAgent>().enabled = false;
+                        go.GetComponent<NavMeshAgent>().enabled = true;
+                    }
+                    obj._enemyFix = go;
+                }
+            }
+            IEnumerator enemyFix()
+            {
+                yield return new WaitForEndOfFrame();
+                foreach (var obj in levelData.Objects)
+                {
+                    if (obj.PrefabId == 11)
+                    {
+                        float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj.Position.y;
+                        Loadson.Console.Log("delta: " + deltaY);
+                        obj._enemyFix.AddComponent<Enemy_ProjectPos>().delta = deltaY;
+                    }
+                }
+            }
+            Coroutines.StartCoroutine(enemyFix());
         }
 
         public class LevelData
@@ -193,6 +226,7 @@ namespace KarlsonMapEditor
                 public bool DisableTrigger;
 
                 public int PrefabData;
+                public GameObject _enemyFix;
 
                 public override string ToString()
                 {

@@ -22,8 +22,7 @@ namespace KarlsonMapEditor.Workshop_API
                 byte[] img_cmp = reader.ReadBytes(sz);
                 byte[] image = SevenZipHelper.Decompress(img_cmp);
                 sz = reader.ReadInt32();
-                byte[] lvl_cmp = reader.ReadBytes(sz);
-                byte[] level = SevenZipHelper.Decompress(lvl_cmp);
+                byte[] level = reader.ReadBytes(sz);
                 return new KWM(name, image, level);
             }
         }
@@ -38,9 +37,8 @@ namespace KarlsonMapEditor.Workshop_API
                 byte[] img_cmp = SevenZipHelper.Compress(data.Thumbnail);
                 writer.Write(img_cmp.Length);
                 writer.Write(img_cmp);
-                byte[] lvl_cmp = SevenZipHelper.Compress(data.LevelData);
-                writer.Write(lvl_cmp.Length);
-                writer.Write(lvl_cmp);
+                writer.Write(data.LevelData.Length);
+                writer.Write(data.LevelData);
                 writer.Flush();
                 return stream.ToArray();
             }

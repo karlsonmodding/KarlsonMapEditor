@@ -137,13 +137,7 @@ namespace KarlsonMapEditor
                     text.transform.localPosition = new Vector3(13.8f, -17.8543f, 0f);
                     text.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
                     text.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-                    InterceptButton(go.GetComponent<Button>(), () =>
-                    {
-                        Loadson.Console.Log("Loading level idx: " + idx);
-                        Loadson.Console.Log("Loading level: " + levelList[idx]);
-                        LevelPlayer.LoadLevel(levelList[idx]);
-                    });
-                    Loadson.Console.Log("[r 10");
+                    InterceptButton(go.GetComponent<Button>(), () => LevelPlayer.LoadLevel(levelList[idx]));
                     continue;
                 }
                 // read kwm
@@ -153,18 +147,10 @@ namespace KarlsonMapEditor
                 Texture2D tex = new Texture2D(1, 1);
                 tex.LoadImage(level.Thumbnail);
                 go.GetComponent<Image>().sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0, 0));
-                InterceptButton(go.GetComponent<Button>(), () =>
-                {
-                    Loadson.Console.Log("Loading level idx: " + idx);
-                    Loadson.Console.Log("[WML] Loading level: " + levelList[idx]);
-                    LevelPlayer.LoadLevel(Path.GetFileName(levelList[idx]), level.LevelData);
-                });
+                InterceptButton(go.GetComponent<Button>(), () => LevelPlayer.LoadLevel(Path.GetFileName(levelList[idx]), level.LevelData));
             }
-            Loadson.Console.Log("[r 1");
             GameObject.Find("/UI/Custom/PrevPage").GetComponent<Button>().interactable = page != 1;
-            Loadson.Console.Log("[r 2");
             GameObject.Find("/UI/Custom/NextPage").GetComponent<Button>().interactable = (levelList.Length - 1) / 12 >= page;
-            Loadson.Console.Log("[r 3");
         }
     }
 }

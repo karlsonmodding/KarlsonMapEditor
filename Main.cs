@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -76,6 +77,11 @@ namespace KarlsonMapEditor
                     WorkshopGUI.OpenWorkshop();
                 }),
                 ("Editor", () => LevelEditor.StartEdit()),
+                ("<size=25>Open Maps\nFolder</size>", () => Process.Start(Path.Combine(directory, "Levels"))),
+                /*("<size=25>Load MLL\nlevel</size>", () => {
+                    string file = FilePicker.PickFile("Open a MLL file", "MLL level (.mll)\0*.mll\0All files (*.*)\0*.*\0\0");
+                    if (file == "null") return;
+                }),*/
             }, "Map Editor");
 
             AddAPIFunction("KarlsonMapEditor.PickFile", (args) =>
@@ -92,21 +98,13 @@ namespace KarlsonMapEditor
             ColorPicker.imCircle = LoadAsset<Texture2D>("imCircle");
 
             if (!DiscordAPI.HasDiscord)
-                Loadson.Console.Log("Discord not found. You will not be able to upload levels to the workshop");
+                Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");
             else
             {
                 new Thread(() =>
                 {
-                    Loadson.Console.Log("Awaiting discord..");
                     while (DiscordAPI.User.Id == 0) Thread.Sleep(200);
-                    Loadson.Console.Log("Got discord user id " + DiscordAPI.User.Id);
-                    while (DiscordAPI.Bearer.Length < 2)
-                    {
-                        Loadson.Console.Log("Waiting for bearer (" + DiscordAPI.Bearer + ")");
-                        Thread.Sleep(200);
-                    }
-                    Loadson.Console.Log("Got discord bearer " + DiscordAPI.Bearer);
-                    Loadson.Console.Log("[WAPI] Logging in as " + DiscordAPI.User.Id + " " + DiscordAPI.Bearer);
+                    while (DiscordAPI.Bearer == "") Thread.Sleep(200);
                     int[] ta;
                     (workshopToken, ta) = Core.Login(DiscordAPI.User.Id, DiscordAPI.Bearer);
                     workshopLikes = ta.ToList();
@@ -122,10 +120,13 @@ namespace KarlsonMapEditor
         {
             LevelEditor._ongui();
             WorkshopGUI._OnGUI();
-            if(loginWid != -1 && workshopToken == "")
+            if(loginWid != -1 && workshopToken == "" && !noDiscordAck)
                 GUI.Window(loginWid, loginRect, (_) => {
                     if (!LoadsonAPI.DiscordAPI.HasDiscord)
+                    {
                         GUI.Label(new Rect(5, 20, 200, 30), "Discord was not detected");
+                        if (GUI.Button(new Rect(160, 20, 35, 20), "Ok")) noDiscordAck = true;
+                    }
                     else if (LoadsonAPI.DiscordAPI.User.Id == 0)
                         GUI.Label(new Rect(5, 20, 200, 30), "Awaiting Discord User");
                     else if (DiscordAPI.Bearer.Length < 2)
@@ -150,7 +151,8 @@ namespace KarlsonMapEditor
         public static string directory;
         public static Texture2D[] gameTex;
         public static string workshopToken = "";
-        public static List<int> workshopLikes;
+        public static List<int> workshopLikes = new List<int>();
         public static List<Action> runOnMain = new List<Action>();
+        static bool noDiscordAck = false;
     }
 }

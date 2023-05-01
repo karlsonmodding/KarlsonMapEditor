@@ -201,7 +201,7 @@ namespace KarlsonMapEditor
             if (!editorMode) return;
             if (dg_screenshot)
             {
-                GUI.Box(new Rect(Screen.width / 2 - 200, 10, 400, 25), "Point your camera to set the Thumbnail and press ENTER");
+                GUI.Box(new Rect(Screen.width / 2 - 200, 10, 400, 25), "Point your camera to set the Thumbnail and press <b>ENTER</b>");
                 return;
             }
             if (dg_enabled) wir[(int)WindowId.Prompt] = GUI.Window(wid[(int)WindowId.Prompt], wir[(int)WindowId.Prompt], (windowId) => {
@@ -274,7 +274,7 @@ namespace KarlsonMapEditor
                 GUI.Box(new Rect(0, 20, 150, 80), "");
                 if (GUI.Button(new Rect(0, 20, 150, 20), "Save Map")) { SaveLevel(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 40, 150, 20), "Close Map")) { StartEdit(); dd_file = false; }
-                if (GUI.Button(new Rect(0, 60, 150, 20), "Upload to Workshop")) Dialog("TBA", (_) => { }, "TBA");
+                if (GUI.Button(new Rect(0, 60, 150, 20), "Upload to Workshop")) dg_screenshot = true;
                 if (GUI.Button(new Rect(0, 80, 150, 20), "Exit Editor")) { ExitEditor(); dd_file = false; }
             }
 
@@ -778,6 +778,16 @@ namespace KarlsonMapEditor
         {
             if (!editorMode || Camera.main == null) return;
             
+            if(dg_screenshot && Input.GetKey(KeyCode.Return))
+            {
+                dg_screenshot = false;
+                var ss = MakeScreenshot();
+                Dialog("Enter level name:", (name) =>
+                {
+                    Workshop_API.Core.UploadLevel(new Workshop_API.KWM_Convert.KWM(name, ss, SaveLevelData()));
+                });
+            }
+
             if (!Input.GetButton("Fire2") && Input.GetMouseButtonDown(2))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -961,11 +971,10 @@ namespace KarlsonMapEditor
             UnityEngine.Object.Destroy(GOcam);
             return screenShot.EncodeToPNG();
         }
-
-        private static void SaveLevel()
+        private static byte[] SaveLevelData()
         {
-            using(MemoryStream ms = new MemoryStream())
-            using(BinaryWriter bw = new BinaryWriter(ms))
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
             {
                 bw.Write(1);
                 bw.Write(gridAlign);
@@ -984,13 +993,13 @@ namespace KarlsonMapEditor
                 foreach (var obj in objects)
                     if (obj.internalObject) internalCount++;
                 bw.Write(objects.Count - internalCount);
-                foreach(var obj in objects)
+                foreach (var obj in objects)
                 {
                     if (obj.internalObject) continue; // don't write internal objects
                     bw.Write(obj.data.IsPrefab);
                     bw.Write(obj.go.name);
                     bw.Write(obj.data.GroupName);
-                    if(obj.data.IsPrefab)
+                    if (obj.data.IsPrefab)
                     {
                         bw.Write(obj.data.PrefabId);
                         bw.Write(obj.aPosition);
@@ -1012,8 +1021,12 @@ namespace KarlsonMapEditor
                     }
                 }
                 bw.Flush();
-                File.WriteAllBytes(Path.Combine(Main.directory, "Levels", levelName + ".kme"), SevenZipHelper.Compress(ms.ToArray()));
+                return SevenZipHelper.Compress(ms.ToArray());
             }
+        }
+        private static void SaveLevel()
+        {
+            File.WriteAllBytes(Path.Combine(Main.directory, "Levels", levelName + ".kme"), SaveLevelData());
             List<string> oldList = Main.prefs["edit_recent"].Split(';').ToList();
             if (oldList.Contains(levelName + ".kme"))
                 oldList.Remove(levelName + ".kme");

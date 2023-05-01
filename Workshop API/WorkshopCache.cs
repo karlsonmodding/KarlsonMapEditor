@@ -61,7 +61,10 @@ namespace KarlsonMapEditor.Workshop_API
                 });
                 downloadThread.Start();
             }
-            DownloadList.Add((levelId + " Level Data", Core.API_ENDPOINT + "/level/downloadlevel.php?id=" + levelId + "&token=" + Main.workshopToken, Path.Combine(Main.directory, "Levels", "Workshop", levelId + ".kwm")));
+            if(Main.workshopToken == "")
+                DownloadList.Add((levelId + " Level Data", Core.API_ENDPOINT + "/level/downloadlevel.php?id=" + levelId, Path.Combine(Main.directory, "Levels", "Workshop", levelId + ".kwm")));
+            else
+                DownloadList.Add((levelId + " Level Data", Core.API_ENDPOINT + "/level/downloadlevel.php?id=" + levelId + "&token=" + Main.workshopToken, Path.Combine(Main.directory, "Levels", "Workshop", levelId + ".kwm")));
         }
         // Display Name, Url, file location
         private static List<(string, string, string)> DownloadList = new List<(string, string, string)>();
@@ -80,7 +83,7 @@ namespace KarlsonMapEditor.Workshop_API
             {
                 mostLikedCache = Core.GetMostLiked();
                 foreach (int id in mostLikedCache)
-                    if(!referenceLevelCacheDownload.Contains(id))
+                    if(!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
                         referenceLevelCacheDownload.Add(id);
                 foreach (int id in mostLikedCache) GrabLevel(id);
                 mostLikedCacheGen = false;
@@ -94,7 +97,7 @@ namespace KarlsonMapEditor.Workshop_API
             {
                 mostDlCache = Core.GetMostDl();
                 foreach (int id in mostDlCache)
-                    if (!referenceLevelCacheDownload.Contains(id))
+                    if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
                         referenceLevelCacheDownload.Add(id);
                 foreach (int id in mostDlCache) GrabLevel(id);
                 mostDlCacheGen = false;
@@ -108,7 +111,7 @@ namespace KarlsonMapEditor.Workshop_API
             {
                 mostRecCache = Core.GetMostRecent();
                 foreach (int id in mostRecCache)
-                    if (!referenceLevelCacheDownload.Contains(id))
+                    if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
                         referenceLevelCacheDownload.Add(id);
                 foreach (int id in mostRecCache) GrabLevel(id);
                 mostRecCacheGen = false;
@@ -169,6 +172,7 @@ namespace KarlsonMapEditor.Workshop_API
 
         public void ToggleLike()
         {
+            if (Main.workshopToken == "") return;
             Liked = !Liked;
             if(Liked)
             {
@@ -188,7 +192,8 @@ namespace KarlsonMapEditor.Workshop_API
         {
             if (Downloaded) return;
             Downloaded = true;
-            Dl++;
+            if(Main.workshopToken != "")
+                Dl++;
             WorkshopCache.QueueDownload(Id);
         }
     }

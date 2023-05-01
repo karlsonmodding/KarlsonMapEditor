@@ -95,5 +95,5 @@ Written with BinaryWriter / Read with BinaryReader
 byte[] - "KWM" (ascii encoding, magic)
 string - Name
 string - Author
-_data - thumbnail
+_data - thumbnail [compressed]
 _data - .kme data (already compressed)

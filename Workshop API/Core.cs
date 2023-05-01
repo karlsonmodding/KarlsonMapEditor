@@ -13,7 +13,7 @@ namespace KarlsonMapEditor.Workshop_API
 {
     public static class Core
     {
-        public const string API_ENDPOINT = "https://mang432.com.br/MangLevelLoader/api"; // no trailing [slash]
+        public const string API_ENDPOINT = "http://15.204.234.66/karlsonmapeditor"; // no trailing [slash]
 
         public static (string, int[]) Login(long id, string accessToken)
         {
@@ -23,7 +23,7 @@ namespace KarlsonMapEditor.Workshop_API
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 try
                 {
-                    string result = wc.UploadString(API_ENDPOINT + $"/accounts/login.php", $"userid={id}&bearer={accessToken}"); Loadson.Console.Log("[WAPI] " + result);
+                    string result = wc.UploadString(API_ENDPOINT + $"/accounts/login.php", $"userid={id}&bearer={accessToken}");
                     JToken obj = JToken.Parse(result);
                     if (CheckError(obj)) return ("", new int[0]);
                     List<int> cast = new List<int>();

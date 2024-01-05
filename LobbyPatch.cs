@@ -42,7 +42,7 @@ namespace KarlsonMapEditor
             try
             {
                 randomSprite.Clear();
-                for (int i = 1; i <= GO_LevelsUI.transform.childCount; i++)
+                for (int i = 1; i < GO_LevelsUI.transform.childCount; i++)
                 {
                     randomSprite.Add(GO_LevelsUI.transform.GetChild(i).gameObject.GetComponent<Image>().sprite);
                     UnityEngine.Object.Destroy(GO_LevelsUI.transform.GetChild(i).gameObject);

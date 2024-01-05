@@ -21,6 +21,11 @@ namespace KarlsonMapEditor
 
         public void Update()
         {
+            if (agent == null)
+            {
+                Destroy(this);
+                return;
+            }
             transform.position = agent.nextPosition - new Vector3(0, delta, 0);
         }
     }

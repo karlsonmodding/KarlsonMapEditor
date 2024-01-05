@@ -36,6 +36,8 @@ namespace KarlsonMapEditor
                 float scale = 20f;
                 if (Input.GetKey(KeyCode.LeftShift)) scale *= 2;
                 __instance.gameObject.transform.position += (Camera.main.transform.forward * z + Camera.main.transform.right * x) * scale * Time.unscaledDeltaTime;
+                float vertical = (Input.GetButton("Jump") ? 1 : 0) - (Input.GetButton("Crouch") ? 1 : 0);
+                __instance.gameObject.transform.position += Camera.main.transform.up * vertical * scale;
                 typeof(PlayerMovement).GetMethod("Look", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(__instance, Array.Empty<object>());
             }
             else

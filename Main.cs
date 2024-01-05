@@ -79,7 +79,7 @@ namespace KarlsonMapEditor
                 ("Editor", () => LevelEditor.StartEdit()),
                 ("<size=25>Open Maps\nFolder</size>", () => Process.Start(Path.Combine(directory, "Levels"))),
                 /*("<size=25>Load MLL\nlevel</size>", () => {
-                    string file = FilePicker.PickFile("Open a MLL file", "MLL level (.mll)\0*.mll\0All files (*.*)\0*.*\0\0");
+                    string file = FilePicker.PickFile("Open a MLL file", "MLL level (*.mll)\0*.mll\0All files (*.*)\0*.*\0\0");
                     if (file == "null") return;
                 }),*/
             }, "Map Editor");

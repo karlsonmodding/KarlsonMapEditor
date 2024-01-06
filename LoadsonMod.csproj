@@ -271,6 +271,7 @@
   <ItemGroup>
     <None Include="metadata.txt" />
     <None Include="packages.config" />
+    <None Include="_lmr.tracker" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="z_file format.txt" />

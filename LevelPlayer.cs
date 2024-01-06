@@ -59,7 +59,11 @@ namespace KarlsonMapEditor
                     go.AddComponent<Lava>();
                 }
                 else if (obj.Glass)
+                {
                     go = LoadsonAPI.PrefabManager.NewGlass();
+                    if (obj.DisableTrigger)
+                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
+                }
                 else
                     go = LoadsonAPI.PrefabManager.NewCube();
                 if (obj.TextureId < Main.gameTex.Length)
@@ -69,8 +73,6 @@ namespace KarlsonMapEditor
                 go.GetComponent<MeshRenderer>().material.color = obj._Color;
                 if (obj.Bounce)
                     go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                if (obj.DisableTrigger)
-                    go.GetComponent<BoxCollider>().isTrigger = false;
                 go.transform.position = obj.Position;
                 go.transform.rotation = Quaternion.Euler(obj.Rotation);
                 go.transform.localScale = obj.Scale;

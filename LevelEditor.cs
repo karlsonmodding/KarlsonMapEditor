@@ -32,7 +32,7 @@ namespace KarlsonMapEditor
             wir[(int)WindowId.TexPreview] = new Rect((Screen.width - 400) / 2, (Screen.height - 400) / 2, 400, 400);
             wir[(int)WindowId.TexPick] = new Rect((Screen.width - 800) / 2, (Screen.height - 400) / 2, 800, 400);
             wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
-            wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 500);
+            wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 520);
             wir[(int)WindowId.ObjectGroup] = new Rect(Screen.width - 510, 760, 200, 65);
             wir[(int)WindowId.ObjectGroupManip] = new Rect(Screen.width - 510, 830, 200, 125);
             wir[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);

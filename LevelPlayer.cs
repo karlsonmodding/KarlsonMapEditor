@@ -52,20 +52,28 @@ namespace KarlsonMapEditor
             {
                 if (obj.IsPrefab) continue;
                 GameObject go;
-                if(obj.Lava)
+                if (obj.Glass)
+                {
+                    go = LoadsonAPI.PrefabManager.NewGlass();
+                    if (obj.DisableTrigger)
+                    {
+                        // fix collider
+                        go.GetComponent<BoxCollider>().isTrigger = false;
+                        go.GetComponent<BoxCollider>().size = Vector3.one;
+                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
+                    }
+                }
+                else if (obj.Lava)
                 {
                     go = LoadsonAPI.PrefabManager.NewGlass();
                     UnityEngine.Object.Destroy(go.GetComponent<Glass>());
                     go.AddComponent<Lava>();
                 }
-                else if (obj.Glass)
-                {
-                    go = LoadsonAPI.PrefabManager.NewGlass();
-                    if (obj.DisableTrigger)
-                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                }
                 else
                     go = LoadsonAPI.PrefabManager.NewCube();
+                if (obj.MarkAsObject)
+                    // set layer to object so you can't wallrun / grapple
+                    go.layer = LayerMask.NameToLayer("Object");
                 if (obj.TextureId < Main.gameTex.Length)
                     go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
                 else
@@ -137,36 +145,74 @@ namespace KarlsonMapEditor
                 {
                     int version = br.ReadInt32();
                     Loadson.Console.Log("Loading level version " + version);
-                    gridAlign = br.ReadSingle();
-                    startingGun = br.ReadInt32();
-                    startPosition = br.ReadVector3();
-                    startOrientation = br.ReadSingle();
-                    int _len;
-                    List<Texture2D> list = new List<Texture2D>();
-                    int _texl = br.ReadInt32();
-                    while (_texl-- > 0)
+                    if (version == 1)
+                        LoadLevel_Version1(br);
+                    else
                     {
-                        string _name = br.ReadString();
-                        _len = br.ReadInt32();
-                        list.Add(new Texture2D(1, 1));
-                        list.Last().LoadImage(br.ReadBytes(_len));
-                        list.Last().name = _name;
+                        gridAlign = br.ReadSingle();
+                        startingGun = br.ReadInt32();
+                        startPosition = br.ReadVector3();
+                        startOrientation = br.ReadSingle();
+                        int _len;
+                        List<Texture2D> list = new List<Texture2D>();
+                        int _texl = br.ReadInt32();
+                        while (_texl-- > 0)
+                        {
+                            string _name = br.ReadString();
+                            _len = br.ReadInt32();
+                            list.Add(new Texture2D(1, 1));
+                            list.Last().LoadImage(br.ReadBytes(_len));
+                            list.Last().name = _name;
+                        }
+                        Textures = list.ToArray();
+                        List<LevelObject> objects = new List<LevelObject>();
+                        _texl = br.ReadInt32();
+                        while (_texl-- > 0)
+                        {
+                            bool prefab = br.ReadBoolean();
+                            string name = br.ReadString();
+                            string group = br.ReadString();
+                            if (prefab)
+                                objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
+                            else
+                                objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
+                        }
+                        Objects = objects.ToArray();
                     }
-                    Textures = list.ToArray();
-                    List<LevelObject> objects = new List<LevelObject>();
-                    _texl = br.ReadInt32();
-                    while (_texl-- > 0)
-                    {
-                        bool prefab = br.ReadBoolean();
-                        string name = br.ReadString();
-                        string group = br.ReadString();
-                        if(prefab)
-                            objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
-                        else
-                            objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
-                    }
-                    Objects = objects.ToArray();
                 }
+            }
+
+            private void LoadLevel_Version1(BinaryReader br)
+            {
+                gridAlign = br.ReadSingle();
+                startingGun = br.ReadInt32();
+                startPosition = br.ReadVector3();
+                startOrientation = br.ReadSingle();
+                int _len;
+                List<Texture2D> list = new List<Texture2D>();
+                int _texl = br.ReadInt32();
+                while (_texl-- > 0)
+                {
+                    string _name = br.ReadString();
+                    _len = br.ReadInt32();
+                    list.Add(new Texture2D(1, 1));
+                    list.Last().LoadImage(br.ReadBytes(_len));
+                    list.Last().name = _name;
+                }
+                Textures = list.ToArray();
+                List<LevelObject> objects = new List<LevelObject>();
+                _texl = br.ReadInt32();
+                while (_texl-- > 0)
+                {
+                    bool prefab = br.ReadBoolean();
+                    string name = br.ReadString();
+                    string group = br.ReadString();
+                    if (prefab)
+                        objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
+                    else
+                        objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), false));
+                }
+                Objects = objects.ToArray();
             }
 
             public float gridAlign;
@@ -193,7 +239,7 @@ namespace KarlsonMapEditor
 
                     PrefabData = prefabData;
                 }
-                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger)
+                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject)
                 {
                     IsPrefab = false;
                     TextureId = textureId;
@@ -209,6 +255,7 @@ namespace KarlsonMapEditor
                     Glass = glass;
                     Lava = lava;
                     DisableTrigger = disableTrigger;
+                    MarkAsObject = markAsObject;
                 }
 
                 public bool IsPrefab;
@@ -226,6 +273,7 @@ namespace KarlsonMapEditor
                 public bool Glass;
                 public bool Lava;
                 public bool DisableTrigger;
+                public bool MarkAsObject;
 
                 public int PrefabData;
                 public GameObject _enemyFix;

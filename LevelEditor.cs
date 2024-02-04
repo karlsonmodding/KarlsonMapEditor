@@ -448,7 +448,7 @@ namespace KarlsonMapEditor
                     obj.data.PrefabData = enemyGun.Index;
                 }
 
-                GUI.BeginGroup(new Rect(0, 80, 300, 80));
+                GUI.BeginGroup(new Rect(0, 100, 300, 80));
                 GUI.Label(new Rect(5, 0, 290, 20), "[Pos] X: " + obj.aPosition.x + " Y: " + obj.aPosition.y + " Z: " + obj.aPosition.z);
                 GUI.Label(new Rect(5, 20, 20, 20), "X:");
                 if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aPosition += new Vector3(-moveStep, 0, 0);
@@ -477,7 +477,7 @@ namespace KarlsonMapEditor
                 GUI.EndGroup();
                 if (!obj.internalObject)
                 {
-                    GUI.BeginGroup(new Rect(0, 170, 300, 80));
+                    GUI.BeginGroup(new Rect(0, 190, 300, 80));
                     GUI.Label(new Rect(5, 0, 290, 20), "[Rot] X: " + obj.aRotation.x + " Y: " + obj.aRotation.y + " Z: " + obj.aRotation.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
                     if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aRotation += new Vector3(-moveStep, 0f, 0f);
@@ -505,7 +505,7 @@ namespace KarlsonMapEditor
                     if (GUI.Button(new Rect(265, 60, 20, 20), "+")) obj.aRotation += new Vector3(0f, 0f, moveStep);
                     GUI.EndGroup();
 
-                    GUI.BeginGroup(new Rect(0, 260, 300, 80));
+                    GUI.BeginGroup(new Rect(0, 280, 300, 80));
                     GUI.Label(new Rect(5, 0, 290, 20), "[Scale] X: " + obj.aScale.x + " Y: " + obj.aScale.y + " Z: " + obj.aScale.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
                     if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aScale += new Vector3(-moveStep, 0f, 0f);
@@ -534,7 +534,7 @@ namespace KarlsonMapEditor
                     GUI.EndGroup();
                 }
 
-                GUI.BeginGroup(new Rect(5, 350, 300, 80));
+                GUI.BeginGroup(new Rect(5, 370, 300, 80));
                 GUI.Label(new Rect(0, 0, 300, 20), "Numerical values:");
                 GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
                 {
@@ -576,18 +576,18 @@ namespace KarlsonMapEditor
                 
                 GUI.EndGroup();
 
-                GUI.Label(new Rect(5, 450, 100, 20), "Editor Step: ");
-                moveStep = float.Parse(GUI.TextField(new Rect(80, 450, 70, 20), moveStep.ToString("0.00")));
-                if (GUI.Button(new Rect(155, 450, 50, 20), "Reset")) moveStep = 0.05f;
+                GUI.Label(new Rect(5, 470, 100, 20), "Editor Step: ");
+                moveStep = float.Parse(GUI.TextField(new Rect(80, 470, 70, 20), moveStep.ToString("0.00")));
+                if (GUI.Button(new Rect(155, 470, 50, 20), "Reset")) moveStep = 0.05f;
                 if (obj.data.IsPrefab && obj.go.GetComponent<Rigidbody>() != null)
                 {
-                    GUI.Label(new Rect(5, 470, 50, 20), "Physics");
-                    if (GUIex.Toggle(new Rect(55, 470, 70, 20), ref obj.physicsToggle, "enabled", "disabled"))
+                    GUI.Label(new Rect(5, 490, 50, 20), "Physics");
+                    if (GUIex.Toggle(new Rect(55, 490, 70, 20), ref obj.physicsToggle, "enabled", "disabled"))
                         obj.go.GetComponent<Rigidbody>().isKinematic = !obj.go.GetComponent<Rigidbody>().isKinematic;
                 }
                 if (!obj.data.IsPrefab && !obj.internalObject)
                 {
-                    if (GUI.Button(new Rect(5, 470, 200, 20), "Update texture scailing"))
+                    if (GUI.Button(new Rect(5, 490, 200, 20), "Update texture scailing"))
                     {
                         string name = obj.go.name;
                         Color c = obj.go.GetComponent<MeshRenderer>().material.color;
@@ -608,6 +608,7 @@ namespace KarlsonMapEditor
                     }
                     obj.data.Bounce = GUI.Toggle(new Rect(5, 60, 75, 20), obj.data.Bounce, "Bounce");
                     obj.data.Glass = GUI.Toggle(new Rect(85, 60, 75, 20), obj.data.Glass, "Glass");
+                    obj.data.MarkAsObject = GUI.Toggle(new Rect(5, 80, 120, 20), obj.data.MarkAsObject, "Mark as Object");
                     if(obj.data.Glass)
                         obj.data.DisableTrigger = GUI.Toggle(new Rect(165, 60, 120, 20), obj.data.DisableTrigger, "Disable Trigger");
                     else
@@ -976,7 +977,7 @@ namespace KarlsonMapEditor
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                bw.Write(1);
+                bw.Write(2);
                 bw.Write(gridAlign);
                 bw.Write(startingGun);
                 bw.Write(startPosition);
@@ -1018,6 +1019,7 @@ namespace KarlsonMapEditor
                         bw.Write(obj.data.Glass);
                         bw.Write(obj.data.Lava);
                         bw.Write(obj.data.DisableTrigger);
+                        bw.Write(obj.data.MarkAsObject);
                     }
                 }
                 bw.Flush();
@@ -1083,7 +1085,7 @@ namespace KarlsonMapEditor
         {
             public EditorObject(Vector3 position)
             {
-                data = new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Cube", "", false, false, false, false);
+                data = new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Cube", "", false, false, false, false, false);
                 go = LoadsonAPI.PrefabManager.NewCube();
                 go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[data.TextureId];
                 go.transform.position = data.Position;
@@ -1129,7 +1131,7 @@ namespace KarlsonMapEditor
 
             public EditorObject(Vector3 pos, float orientation)
             {
-                data = new LevelPlayer.LevelData.LevelObject(pos, Vector3.zero, Vector3.one, 6, Color.white, "Player Spawn", "_internal", false, false, false, false);
+                data = new LevelPlayer.LevelData.LevelObject(pos, Vector3.zero, Vector3.one, 6, Color.white, "Player Spawn", "_internal", false, false, false, false, false);
                 go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 go.transform.localScale = new Vector3(1f, 1.5f, 1f);
                 go.transform.position = pos;

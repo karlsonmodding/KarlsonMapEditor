@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Instrumentation;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -79,11 +80,11 @@ namespace KarlsonMapEditor
             SceneManager.sceneLoaded += InitEditor;
             SceneManager.LoadScene(6);
         }
+        const float clickGizmoScaleFactor = 0.1f;
         static List<GameObject> clickGizmo;
         static Camera gizmoCamera;
         static Vector3 gizmoMovePos;
         static Vector3 gizmoMoveDirection = Vector3.zero;
-        static float oldGizmoDistance;
 
         static string targetGroup = "";
         static GUIex.Dropdown enemyGun;
@@ -194,6 +195,7 @@ namespace KarlsonMapEditor
 
         private static int selObj = -1;
         private static float moveStep = 0.05f;
+        private static bool aligned = false;
         private static Vector2 object_browser_scroll = new Vector2(0, 0);
 
         public static void _ongui()
@@ -733,7 +735,7 @@ namespace KarlsonMapEditor
             wir[(int)WindowId.LevelData] = GUI.Window(wid[(int)WindowId.LevelData], wir[(int)WindowId.LevelData], (windowId) => {
                 GUI.DragWindow(new Rect(0, 0, 200, 20));
                 GUI.Label(new Rect(5, 20, 100, 20), "Grid Align");
-                GUI.TextField(new Rect(95, 20, 50, 20), "TBA");
+                gridAlign = float.Parse(GUI.TextField(new Rect(95, 20, 50, 20), gridAlign.ToString("0.00")));
 
                 GUI.Label(new Rect(5, 40, 100, 20), "Starting Gun");
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
@@ -778,6 +780,7 @@ namespace KarlsonMapEditor
         public static void _onupdate()
         {
             if (!editorMode || Camera.main == null) return;
+            if (levelName == "") return;
             
             if(dg_screenshot && Input.GetKey(KeyCode.Return))
             {
@@ -841,10 +844,27 @@ namespace KarlsonMapEditor
             
             if (selObj != -1)
             {
+                float distanceToGizmo = Vector3.Distance(Camera.main.transform.position, clickGizmo[0].transform.position);
                 clickGizmo[0].transform.position = objects[selObj].go.transform.position;
                 clickGizmo[1].transform.position = objects[selObj].go.transform.position + new Vector3(0, 0, 1);
+                clickGizmo[1].transform.rotation = Quaternion.Euler(90, 0, 0);
                 clickGizmo[2].transform.position = objects[selObj].go.transform.position + new Vector3(0, 1, 0);
+                clickGizmo[2].transform.rotation = Quaternion.Euler(0, 0, 0);
                 clickGizmo[3].transform.position = objects[selObj].go.transform.position + new Vector3(1, 0, 0);
+                clickGizmo[3].transform.rotation = Quaternion.Euler(0, 0, 90);
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    // rotate gizmo
+                    void rotateX(int x)
+                    {
+                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(1, 0, 0), objects[selObj].aRotation.x);
+                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(0, 1, 0), objects[selObj].aRotation.y);
+                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(0, 0, 1), objects[selObj].aRotation.z);
+                    }
+                    rotateX(1);
+                    rotateX(2);
+                    rotateX(3);
+                }
                 // check for hovering gizmo
 
                 Ray ray = gizmoCamera.ScreenPointToRay(Input.mousePosition);
@@ -885,24 +905,23 @@ namespace KarlsonMapEditor
                     {
                         gizmoMovePos = ray.GetPoint(hit.distance);
                         if (clickGizmo[1] == hit.transform.gameObject)
-                            gizmoMoveDirection = new Vector3(0, 0, 1);
+                            gizmoMoveDirection = clickGizmo[1].transform.up;
                         if (clickGizmo[2] == hit.transform.gameObject)
-                            gizmoMoveDirection = new Vector3(0, 1, 0);
+                            gizmoMoveDirection = clickGizmo[2].transform.up;
                         if (clickGizmo[3] == hit.transform.gameObject)
-                            gizmoMoveDirection = new Vector3(1, 0, 0);
+                            gizmoMoveDirection = -clickGizmo[3].transform.up;
                     }
-                    oldGizmoDistance = hit.distance;
                 }
                 if (Input.GetMouseButton(0) && gizmoMoveDirection != Vector3.zero)
                 {
-                    Vector3 delta = ray.GetPoint(oldGizmoDistance) - gizmoMovePos;
-                    delta.Scale(gizmoMoveDirection);
+                    Vector3 delta = gizmoMoveDirection * Vector3Extensions.DistanceOnDirection(gizmoMovePos, ray.GetPoint(distanceToGizmo), gizmoMoveDirection);
                     objects[selObj].aPosition += delta;
-                    gizmoMovePos = ray.GetPoint(oldGizmoDistance);
+                    gizmoMovePos = ray.GetPoint(distanceToGizmo);
                 }
                 if (Input.GetMouseButtonUp(0))
                 {
                     gizmoMoveDirection = Vector3.zero;
+                    aligned = false;
                 }
             }
             else
@@ -915,30 +934,27 @@ namespace KarlsonMapEditor
 
             startPosition = objects[0].aPosition;
             startOrientation = objects[0].aRotation.y;
-
-            // update grid align
+            
+            // grid align
             if(gridAlign != 0)
             {
-                if (gridAlign < 0) gridAlign = 0;
-                foreach (var obj in objects)
+                if(gridAlign < 0)
                 {
-                    Vector3 delta = obj.aPosition;
-                    while (delta.x >= gridAlign)
-                        delta.x -= gridAlign;
-                    if (2 * delta.x / gridAlign >= 1)
-                        delta.x = gridAlign - delta.x;
-
-                    while (delta.y >= gridAlign)
-                        delta.y -= gridAlign;
-                    if (2 * delta.y / gridAlign >= 1)
-                        delta.y = gridAlign - delta.y;
-
-                    while (delta.z >= gridAlign)
-                        delta.z -= gridAlign;
-                    if (2 * delta.z / gridAlign >= 1)
-                        delta.z = gridAlign - delta.z;
-
-                    obj.aPosition -= delta;
+                    gridAlign = 0;
+                }
+                else
+                {
+                    if (!aligned)
+                    {
+                        Loadson.Console.Log("Aligning objects");
+                        foreach (var obj in objects)
+                        {
+                            obj.aPosition += Vector3Extensions.Snap(obj.aPosition, gridAlign) - obj.aPosition;
+                            obj.aRotation += Vector3Extensions.Snap(obj.aRotation, gridAlign) - obj.aRotation;
+                            obj.aScale += Vector3Extensions.Snap(obj.aScale, gridAlign) - obj.aScale;
+                        }
+                        aligned = true;
+                    }
                 }
             }
         }
@@ -1056,6 +1072,7 @@ namespace KarlsonMapEditor
             globalPhysics = true; ToggleGlobalPhysics();
             targetGroup = "";
             selObj = -1;
+            aligned = false;
         }
 
         private static IEnumerator identifyObject(GameObject go)

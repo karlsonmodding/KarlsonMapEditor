@@ -147,7 +147,7 @@ namespace KarlsonMapEditor
                     Loadson.Console.Log("Loading level version " + version);
                     if (version == 1)
                         LoadLevel_Version1(br);
-                    else
+                    else if(version == 2)
                     {
                         gridAlign = br.ReadSingle();
                         startingGun = br.ReadInt32();
@@ -178,6 +178,11 @@ namespace KarlsonMapEditor
                                 objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                         }
                         Objects = objects.ToArray();
+                    }
+                    else
+                    {
+                        Loadson.Console.Log("<color=red>Unknown level version " + version + "</color>");
+                        Loadson.Console.Log("Try to update KME to the latest version.");
                     }
                 }
             }

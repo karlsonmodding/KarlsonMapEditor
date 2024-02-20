@@ -42,4 +42,51 @@ namespace KarlsonMapEditor
             bw.Write(c.a);
         }
     }
+
+    public static class Vector3Extensions
+    {
+        public static float DistanceOnDirection(Vector3 origin, Vector3 point, Vector3 direction)
+        {
+            Vector3 translated = point - origin;
+            if (direction.x != 0)
+                return translated.x / direction.x;
+            if (direction.y != 0)
+                return translated.y / direction.y;
+            if (direction.z != 0)
+                return translated.z / direction.z;
+            return 0f; // something went wrong. or point == origin
+        }
+        public static Vector3 Snap(Vector3 original, float snap)
+        {
+            Vector3 result = new Vector3();
+            // x axis
+            float comp = original.x;
+            if (original.x < 0)
+                comp = -comp;
+            while (comp >= snap) comp -= snap;
+            result.x = original.x - comp;
+            if (original.x < 0)
+                result.x = original.x + comp;
+
+            // y axis
+            comp = original.y;
+            if (original.y < 0)
+                comp = -comp;
+            while (comp >= snap) comp -= snap;
+            result.y = original.y - comp;
+            if (original.y < 0)
+                result.y = original.y + comp;
+
+            // z axis
+            comp = original.z;
+            if (original.z < 0)
+                comp = -comp;
+            while (comp >= snap) comp -= snap;
+            result.z = original.z - comp;
+            if (original.z < 0)
+                result.z = original.z + comp;
+
+            return result;
+        }
+    }
 }

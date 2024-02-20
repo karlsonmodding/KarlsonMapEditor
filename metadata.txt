@@ -1,4 +1,4 @@
 displayname=Karlson Map Editor
 author=devilExE
-description=Create, Play and Download custom Karlson Maps\nA whole workshop awaits you!\n\n<LMR>v1.5</LMR>
+description=Create, Play and Download custom Karlson Maps\nA whole workshop awaits you!\n\n<LMR>v1.6</LMR>
 deps=

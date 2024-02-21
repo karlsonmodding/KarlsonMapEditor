@@ -48,11 +48,11 @@ namespace KarlsonMapEditor
         public static float DistanceOnDirection(Vector3 origin, Vector3 point, Vector3 direction)
         {
             Vector3 translated = point - origin;
-            if (direction.x != 0)
+            if (direction.x > 0.01f)
                 return translated.x / direction.x;
-            if (direction.y != 0)
+            if (direction.y > 0.01f)
                 return translated.y / direction.y;
-            if (direction.z != 0)
+            if (direction.z > 0.01f)
                 return translated.z / direction.z;
             return 0f; // something went wrong. or point == origin
         }
@@ -60,31 +60,46 @@ namespace KarlsonMapEditor
         {
             Vector3 result = new Vector3();
             // x axis
-            float comp = original.x;
-            if (original.x < 0)
-                comp = -comp;
-            while (comp >= snap) comp -= snap;
-            result.x = original.x - comp;
-            if (original.x < 0)
-                result.x = original.x + comp;
+            if (Mathf.Abs(original.x) < 0.01f)
+                result.x = 0f;
+            else
+            {
+                float comp = original.x + snap / 2f;
+                if (original.x < 0)
+                    comp = -comp;
+                while (comp >= snap) comp -= snap;
+                result.x = original.x + snap / 2f - comp;
+                if (original.x < 0)
+                    result.x = original.x - snap / 2f + comp;
+            }
 
             // y axis
-            comp = original.y;
-            if (original.y < 0)
-                comp = -comp;
-            while (comp >= snap) comp -= snap;
-            result.y = original.y - comp;
-            if (original.y < 0)
-                result.y = original.y + comp;
+            if (Mathf.Abs(original.y) < 0.01f)
+                result.y = 0f;
+            else
+            {
+                float comp = original.y + snap / 2f;
+                if (original.y < 0)
+                    comp = -comp;
+                while (comp >= snap) comp -= snap;
+                result.y = original.y + snap / 2f - comp;
+                if (original.y < 0)
+                    result.y = original.y - snap / 2f + comp;
+            }
 
             // z axis
-            comp = original.z;
-            if (original.z < 0)
-                comp = -comp;
-            while (comp >= snap) comp -= snap;
-            result.z = original.z - comp;
-            if (original.z < 0)
-                result.z = original.z + comp;
+            if (Mathf.Abs(original.z) < 0.01f)
+                result.z = 0f;
+            else
+            {
+                float comp = original.z + snap / 2f;
+                if (original.z < 0)
+                    comp = -comp;
+                while (comp >= snap) comp -= snap;
+                result.z = original.z + snap / 2f - comp;
+                if (original.z < 0)
+                    result.z = original.z - snap / 2f + comp;
+            }
 
             return result;
         }

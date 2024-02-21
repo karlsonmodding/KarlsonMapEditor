@@ -4,6 +4,7 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Instrumentation;
@@ -20,6 +21,8 @@ namespace KarlsonMapEditor
 {
     public static class LevelEditor
     {
+        private delegate bool skipObject(EditorObject obj);
+
         private static bool _initd = false;
         private static void _init()
         {
@@ -85,6 +88,7 @@ namespace KarlsonMapEditor
         static Camera gizmoCamera;
         static Vector3 gizmoMovePos;
         static Vector3 gizmoMoveDirection = Vector3.zero;
+        static float oldGizmoDistance;
 
         static string targetGroup = "";
         static GUIex.Dropdown enemyGun;
@@ -269,15 +273,16 @@ namespace KarlsonMapEditor
             if (GUI.Button(new Rect(0, 0, 100, 20), "File")) { dd_file = !dd_file; dd_level = false; }
             if (GUI.Button(new Rect(100, 0, 100, 20), "Map")) { dd_level = !dd_level; dd_file = false; }
             if (GUI.Button(new Rect(205, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
-            GUI.Label(new Rect(310, 0, 1000, 20), $"<b>Karlson Map Editor</b> | Current map: <b>{levelName}</b> | Object count: <b>{objects.Count}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
+            GUI.Label(new Rect(310, 0, 1000, 20), $"<b>Karlson Map Editor</b> v1.7 | Current map: <b>{levelName}</b> | Object count: <b>{objects.Count}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
 
             if (dd_file)
             {
-                GUI.Box(new Rect(0, 20, 150, 80), "");
+                GUI.Box(new Rect(0, 20, 150, 100), "");
                 if (GUI.Button(new Rect(0, 20, 150, 20), "Save Map")) { SaveLevel(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 40, 150, 20), "Close Map")) { StartEdit(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 60, 150, 20), "Upload to Workshop")) dg_screenshot = true;
-                if (GUI.Button(new Rect(0, 80, 150, 20), "Exit Editor")) { ExitEditor(); dd_file = false; }
+                if (GUI.Button(new Rect(0, 80, 150, 20), "Export for KMP")) { ExportKMP(); dd_file = false; }
+                if (GUI.Button(new Rect(0, 100, 150, 20), "Exit Editor")) { ExitEditor(); dd_file = false; }
             }
 
             if(dd_level)
@@ -844,7 +849,6 @@ namespace KarlsonMapEditor
             
             if (selObj != -1)
             {
-                float distanceToGizmo = Vector3.Distance(Camera.main.transform.position, clickGizmo[0].transform.position);
                 clickGizmo[0].transform.position = objects[selObj].go.transform.position;
                 clickGizmo[1].transform.position = objects[selObj].go.transform.position + new Vector3(0, 0, 1);
                 clickGizmo[1].transform.rotation = Quaternion.Euler(90, 0, 0);
@@ -854,19 +858,20 @@ namespace KarlsonMapEditor
                 clickGizmo[3].transform.rotation = Quaternion.Euler(0, 0, 90);
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    // rotate gizmo
-                    void rotateX(int x)
-                    {
-                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(1, 0, 0), objects[selObj].aRotation.x);
-                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(0, 1, 0), objects[selObj].aRotation.y);
-                        clickGizmo[x].transform.RotateAround(clickGizmo[0].transform.position, new Vector3(0, 0, 1), objects[selObj].aRotation.z);
-                    }
-                    rotateX(1);
-                    rotateX(2);
-                    rotateX(3);
+                    if (clickGizmo[1].gameObject.activeSelf)
+                        clickGizmo[1].gameObject.SetActive(false);
+                    clickGizmo[2].transform.position = objects[selObj].go.transform.position + objects[selObj].go.transform.up;
+                    clickGizmo[2].transform.rotation = objects[selObj].go.transform.rotation;
+                    clickGizmo[3].transform.position = objects[selObj].go.transform.position + objects[selObj].go.transform.right;
+                    clickGizmo[3].transform.rotation = Quaternion.Euler(objects[selObj].go.transform.rotation.eulerAngles + new Vector3(0f, 0f, 90f));
                 }
-                // check for hovering gizmo
+                else
+                {
+                    if (!clickGizmo[1].gameObject.activeSelf)
+                        clickGizmo[1].gameObject.SetActive(true);
+                }
 
+                // check for hovering gizmo
                 Ray ray = gizmoCamera.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
                 bool onGizmo = false;
@@ -911,12 +916,13 @@ namespace KarlsonMapEditor
                         if (clickGizmo[3] == hit.transform.gameObject)
                             gizmoMoveDirection = -clickGizmo[3].transform.up;
                     }
+                    oldGizmoDistance = hit.distance;
                 }
                 if (Input.GetMouseButton(0) && gizmoMoveDirection != Vector3.zero)
                 {
-                    Vector3 delta = gizmoMoveDirection * Vector3Extensions.DistanceOnDirection(gizmoMovePos, ray.GetPoint(distanceToGizmo), gizmoMoveDirection);
+                    Vector3 delta = gizmoMoveDirection * Vector3Extensions.DistanceOnDirection(gizmoMovePos, ray.GetPoint(oldGizmoDistance), gizmoMoveDirection);
                     objects[selObj].aPosition += delta;
-                    gizmoMovePos = ray.GetPoint(distanceToGizmo);
+                    gizmoMovePos = ray.GetPoint(oldGizmoDistance);
                 }
                 if (Input.GetMouseButtonUp(0))
                 {
@@ -988,7 +994,7 @@ namespace KarlsonMapEditor
             UnityEngine.Object.Destroy(GOcam);
             return screenShot.EncodeToPNG();
         }
-        private static byte[] SaveLevelData()
+        private static byte[] SaveLevelDataRaw(skipObject skipIfTrue)
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
@@ -1008,11 +1014,11 @@ namespace KarlsonMapEditor
                 }
                 int internalCount = 0;
                 foreach (var obj in objects)
-                    if (obj.internalObject) internalCount++;
+                    if (obj.internalObject || skipIfTrue(obj)) internalCount++;
                 bw.Write(objects.Count - internalCount);
                 foreach (var obj in objects)
                 {
-                    if (obj.internalObject) continue; // don't write internal objects
+                    if (obj.internalObject || skipIfTrue(obj)) continue; // don't write internal objects
                     bw.Write(obj.data.IsPrefab);
                     bw.Write(obj.go.name);
                     bw.Write(obj.data.GroupName);
@@ -1039,9 +1045,11 @@ namespace KarlsonMapEditor
                     }
                 }
                 bw.Flush();
-                return SevenZipHelper.Compress(ms.ToArray());
+                return ms.ToArray();
             }
         }
+        private static byte[] SaveLevelDataRaw() => SaveLevelDataRaw((_) => false);
+        private static byte[] SaveLevelData() => SevenZipHelper.Compress(SaveLevelDataRaw());
         private static void SaveLevel()
         {
             File.WriteAllBytes(Path.Combine(Main.directory, "Levels", levelName + ".kme"), SaveLevelData());
@@ -1052,6 +1060,34 @@ namespace KarlsonMapEditor
                 oldList.RemoveAt(0);
             oldList.Add(levelName + ".kme");
             Main.prefs["edit_recent"] = string.Join(";", oldList);
+        }
+
+
+        private static void ExportKMP()
+        {
+            Directory.CreateDirectory(Path.Combine(Main.directory, "KMP_Export"));
+            File.WriteAllBytes(Path.Combine(Main.directory, "KMP_Export", levelName + ".kme_raw"), SaveLevelDataRaw((obj) => obj.go.name.StartsWith("KMPSpawn_")));
+            // lookup kmp spawnpoints
+            List<(string, Vector3, float)> spawnPos = new List<(string, Vector3, float)>();
+            foreach(var obj in objects)
+            {
+                if (obj.go.name.StartsWith("KMPSpawn_"))
+                    spawnPos.Add((obj.go.name.Substring(9), obj.aPosition, obj.aRotation.y));
+            }
+            if (spawnPos.Count == 0)
+                spawnPos.Add(("default", objects[0].aPosition, objects[0].aRotation.y));
+            using(FileStream fs = File.OpenWrite(Path.Combine(Main.directory, "KMP_Export", levelName + ".kme_data")))
+            using(BinaryWriter bw = new BinaryWriter(fs))
+            {
+                bw.Write(spawnPos.Count);
+                foreach (var x in spawnPos)
+                {
+                    bw.Write(x.Item1);
+                    bw.Write(x.Item2);
+                    bw.Write(x.Item3);
+                }
+            }
+            Process.Start(Path.Combine(Path.Combine(Main.directory, "KMP_Export")));
         }
 
         private static void LoadLevel(string path)

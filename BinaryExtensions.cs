@@ -41,6 +41,18 @@ namespace KarlsonMapEditor
             bw.Write(c.b);
             bw.Write(c.a);
         }
+
+        public static byte[] ReadByteArray(this BinaryReader br)
+        {
+            int len = br.ReadInt32();
+            return br.ReadBytes(len);
+        }
+
+        public static void WriteByteArray(this BinaryWriter bw, byte[] data)
+        {
+            bw.Write(data.Length);
+            bw.Write(data);
+        }
     }
 
     public static class Vector3Extensions

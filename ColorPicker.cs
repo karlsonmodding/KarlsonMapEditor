@@ -52,6 +52,9 @@ namespace KarlsonMapEditor
         }
         public void DrawWindow()
         {
+            if(pos.x < 0 || pos.y < 0)
+                pos = new Rect(Screen.width - 180, Screen.height - 20, 165, 215);
+
             pos = GUI.Window(wid, pos, (_) =>
             {
                 using (new GUILayout.VerticalScope())

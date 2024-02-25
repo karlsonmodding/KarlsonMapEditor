@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -28,17 +29,13 @@ namespace KarlsonMapEditor
         {
             if(_initd) return;
             _initd = true;
-            wid = new int[]{ ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId() };
-            wir = new Rect[10];
+            wid = new int[]{ ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId() };
+            wir = new Rect[6];
             wir[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
             wir[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
             wir[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
-            wir[(int)WindowId.TexPreview] = new Rect((Screen.width - 400) / 2, (Screen.height - 400) / 2, 400, 400);
-            wir[(int)WindowId.TexPick] = new Rect((Screen.width - 800) / 2, (Screen.height - 400) / 2, 800, 400);
             wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
             wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 520);
-            wir[(int)WindowId.ObjectGroup] = new Rect(Screen.width - 510, 760, 200, 65);
-            wir[(int)WindowId.ObjectGroupManip] = new Rect(Screen.width - 510, 830, 200, 125);
             wir[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);
 
             multiPick = new GUIStyle();
@@ -59,12 +56,8 @@ namespace KarlsonMapEditor
             Startup = 0,
             Prompt,
             TexBrowser,
-            TexPreview,
-            TexPick,
             LevelBrowser,
             ObjectManip,
-            ObjectGroup,
-            ObjectGroupManip,
             LevelData,
         }
 
@@ -90,12 +83,12 @@ namespace KarlsonMapEditor
         static Vector3 gizmoMoveDirection = Vector3.zero;
         static float oldGizmoDistance;
 
-        static string targetGroup = "";
         static GUIex.Dropdown enemyGun;
         static GUIex.Dropdown startGunDD;
         static GUIex.Dropdown spawnPrefabDD;
         private static void InitEditor(Scene arg0, LoadSceneMode arg1)
         {
+            AudioListener.volume = 0;
             SceneManager.sceneLoaded -= InitEditor;
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject & c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
@@ -170,7 +163,7 @@ namespace KarlsonMapEditor
         }
 
         public static string levelName { get; private set; } = "";
-        private static List<EditorObject> objects = new List<EditorObject>();
+        private static ObjectGroup globalObject;
         private static List<Texture2D> textures = new List<Texture2D>();
         private static float gridAlign;
         private static int startingGun;
@@ -197,7 +190,68 @@ namespace KarlsonMapEditor
         private static Vector2 tex_browser_scroll = new Vector2(0, 0);
         private static int recent_select = 0;
 
-        private static int selObj = -1;
+        private static class SelectedObject
+        {
+            public enum SelectedType
+            {
+                EditorObject = 0,
+                ObjectGroup = 1
+            };
+            public static SelectedType Type = SelectedType.EditorObject;
+
+            public static ObjectGroup Group { get; private set; }
+            public static EditorObject Object { get; private set; }
+            public static IBasicProperties Basic => (Type == SelectedType.ObjectGroup ? (IBasicProperties)Group : Object);
+
+            public static bool Selected { get; private set; } = false;
+
+            public static void SelectObject(EditorObject obj)
+            {
+                Object = obj;
+                Type = SelectedType.EditorObject;
+                Selected = true;
+
+                if (!obj.data.IsPrefab)
+                    picker.color = obj.go.GetComponent<MeshRenderer>().material.color;
+
+                Identify();
+            }
+            public static void SelectGroup(ObjectGroup group)
+            {
+                Group = group;
+                Type = SelectedType.ObjectGroup;
+                Selected = true;
+                Identify();
+            }
+            public static void Identify()
+            {
+                if(Type == SelectedType.ObjectGroup)
+                    Coroutines.StartCoroutine(identifyObject(Group.go));
+                else
+                    Coroutines.StartCoroutine(identifyObject(Object.go));
+            }
+            public static void Destroy()
+            {
+                if (Type == SelectedType.ObjectGroup)
+                {
+                    UnityEngine.Object.Destroy(Group.go);
+                    globalObject.DereferenceGroup(Group);
+                }
+                else
+                {
+                    UnityEngine.Object.Destroy(Object.go);
+                    globalObject.DereferenceObject(Object);
+                }
+                SelectedObject.Deselect();
+            }
+            public static void Deselect()
+            {
+                Selected = false;
+                Object = null;
+                Group = null;
+                Type = SelectedType.EditorObject;
+            }
+        }
         private static float moveStep = 0.05f;
         private static bool aligned = false;
         private static Vector2 object_browser_scroll = new Vector2(0, 0);
@@ -205,11 +259,29 @@ namespace KarlsonMapEditor
         public static void _ongui()
         {
             if (!editorMode) return;
+
+            // check for windows out of bound (if the user right clicks them, they glitch
+            // out because also right-clicking enables camera move, which locks cursor)
+
+            if (wir[(int)WindowId.Startup].x < 0 || wir[(int)WindowId.Startup].y < 0)
+                wir[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
+            if (wir[(int)WindowId.Prompt].x < 0 || wir[(int)WindowId.Prompt].y < 0)
+                wir[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
+            if (wir[(int)WindowId.TexBrowser].x < 0 || wir[(int)WindowId.TexBrowser].y < 0)
+                wir[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
+            if (wir[(int)WindowId.LevelBrowser].x < 0 || wir[(int)WindowId.LevelBrowser].y < 0)
+                wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
+            if (wir[(int)WindowId.ObjectManip].x < 0 || wir[(int)WindowId.ObjectManip].y < 0)
+                wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 520);
+            if (wir[(int)WindowId.LevelData].x < 0 || wir[(int)WindowId.LevelData].y < 0)
+                wir[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);
+
             if (dg_screenshot)
             {
                 GUI.Box(new Rect(Screen.width / 2 - 200, 10, 400, 25), "Point your camera to set the Thumbnail and press <b>ENTER</b>");
                 return;
             }
+
             if (dg_enabled) wir[(int)WindowId.Prompt] = GUI.Window(wid[(int)WindowId.Prompt], wir[(int)WindowId.Prompt], (windowId) => {
                 GUI.SetNextControlName("dg_text_input");
                 dg_input = GUI.TextArea(new Rect(5, 20, 190, 20), dg_input);
@@ -230,16 +302,26 @@ namespace KarlsonMapEditor
                 wir[(int)WindowId.Startup] = GUI.Window(wid[(int)WindowId.Startup], wir[(int)WindowId.Startup], (_) =>
                 {
                     if (GUI.Button(new Rect(12f, 29f, 184f, 40f), "Create a new map"))
-                        Dialog("Enter map name: ", (name) => {
-                            levelName = name;
-                            objects.Clear();
-                            objects.Add(new EditorObject(new Vector3(0f, 2f, 0f), 0f));
-                            textures.Clear();
-                            dd_level = true;
-                            globalPhysics = true; ToggleGlobalPhysics();
-                            targetGroup = "";
-                            selObj = -1;
-                        });
+                    {
+                        void recurence(string name)
+                        {
+                            if (File.Exists(Path.Combine(Main.directory, "Levels", name + ".kme")))
+                                Dialog("Enter map name:", recurence, "Map already exists");
+                            else
+                            {
+                                levelName = name;
+                                globalObject = new ObjectGroup(name);
+                                globalObject.isGlobal = true;
+                                globalObject.AddObject(new EditorObject(new Vector3(0f, 2f, 0f), 0f));
+                                textures.Clear();
+                                dd_level = true;
+                                Time.timeScale = 0f;
+                                SelectedObject.Deselect();
+                            }
+                        }
+
+                        Dialog("Enter map name:", recurence);
+                    }
                     if (GUI.Button(new Rect(208f, 29f, 184f, 40f), "Load existing map"))
                     {
                         void recurence(string file)
@@ -269,45 +351,46 @@ namespace KarlsonMapEditor
                 return;
             }
 
+            int _countAll = globalObject.CountAll();
+
             GUI.Box(new Rect(-5, 0, Screen.width + 10, 20), "");
             if (GUI.Button(new Rect(0, 0, 100, 20), "File")) { dd_file = !dd_file; dd_level = false; }
             if (GUI.Button(new Rect(100, 0, 100, 20), "Map")) { dd_level = !dd_level; dd_file = false; }
-            if (GUI.Button(new Rect(205, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
-            GUI.Label(new Rect(310, 0, 1000, 20), $"<b>Karlson Map Editor</b> v1.7 | Current map: <b>{levelName}</b> | Object count: <b>{objects.Count}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
+            if (GUI.Button(new Rect(200, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
+            if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, textures);
+            GUI.Label(new Rect(405, 0, 1000, 20), $"<b>Karlson Map Editor</b> v2.0 | Current map: <b>{levelName}</b> | Object count: <b>{_countAll}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
 
             if (dd_file)
             {
-                GUI.Box(new Rect(0, 20, 150, 100), "");
+                GUI.Box(new Rect(0, 20, 150, 80), "");
                 if (GUI.Button(new Rect(0, 20, 150, 20), "Save Map")) { SaveLevel(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 40, 150, 20), "Close Map")) { StartEdit(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 60, 150, 20), "Upload to Workshop")) dg_screenshot = true;
-                if (GUI.Button(new Rect(0, 80, 150, 20), "Export for KMP")) { ExportKMP(); dd_file = false; }
-                if (GUI.Button(new Rect(0, 100, 150, 20), "Exit Editor")) { ExitEditor(); dd_file = false; }
+                if (GUI.Button(new Rect(0, 80, 150, 20), "Exit Editor")) { ExitEditor(); dd_file = false; }
             }
 
             if(dd_level)
             {
-                GUI.Box(new Rect(100, 20, 450, 20), "");
-                spawnPrefabDD.Draw(new Rect(100, 20, 150, 20));
-                if(spawnPrefabDD.Index != 0)
+                GUI.Box(new Rect(100, 20, 300, 20), "");
+                if(!SelectedObject.Selected || SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
                 {
-                    objects.Add(new EditorObject(spawnPrefabDD.Index - 1, PlayerMovement.Instance.gameObject.transform.position));
-                    selObj = objects.Count - 1;
-                    Coroutines.StartCoroutine(identifyObject(objects[selObj].go));
-                    spawnPrefabDD.Index = 0;
+                    GUI.Label(new Rect(105, 20, 300, 20), "Select an Object Group to spawn objects");
                 }
-                if (GUI.Button(new Rect(250, 20, 150, 20), "Spawn Cube"))
+                else
                 {
-                    objects.Add(new EditorObject(PlayerMovement.Instance.gameObject.transform.position));
-                    dd_level = false;
-                    selObj = objects.Count - 1;
-                    Coroutines.StartCoroutine(identifyObject(objects[selObj].go));
-                    picker.color = Color.white;
-                }
-                if (GUI.Button(new Rect(400, 20, 150, 20), globalPhysics ? "Disable phyisics" : "Enable physics"))
-                {
-                    ToggleGlobalPhysics();
-                    dd_level = false;
+                    spawnPrefabDD.Draw(new Rect(100, 20, 150, 20));
+                    if (spawnPrefabDD.Index != 0)
+                    {
+                        SelectedObject.Group.AddObject(new EditorObject(spawnPrefabDD.Index - 1, PlayerMovement.Instance.gameObject.transform.position));
+                        SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                        spawnPrefabDD.Index = 0;
+                    }
+                    if (GUI.Button(new Rect(250, 20, 150, 20), "Spawn Cube"))
+                    {
+                        SelectedObject.Group.AddObject(new EditorObject(PlayerMovement.Instance.gameObject.transform.position));
+                        dd_level = false;
+                        SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                    }
                 }
             }
 
@@ -331,30 +414,30 @@ namespace KarlsonMapEditor
                     GUI.DrawTexture(new Rect(200 * (i % 4), 200 * (i / 4), 200, 200), t);
                     GUI.Box(new Rect(200 * (i % 4), 180 + 200 * (i / 4), 200, 20), "");
                     GUI.Label(new Rect(5 + 200 * (i % 4), 180 + 200 * (i / 4), 200, 20), "<size=9>" + t.name + "</size>");
-                    if(selObj != -1)
+                    if(SelectedObject.Selected && SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
                     {
-                        if (!objects[selObj].data.IsPrefab && !objects[selObj].internalObject)
+                        if (!SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
                         {
                             string color = "^";
-                            if (objects[selObj].data.TextureId == i) color = "<color=green>^</color>";
+                            if (SelectedObject.Object.data.TextureId == i) color = "<color=green>^</color>";
                             if (GUI.Button(new Rect(180 + 200 * (i % 4), 180 + 200 * (i / 4), 20, 20), color))
                             {
-                                objects[selObj].data.TextureId = i;
-                                objects[selObj].go.GetComponent<MeshRenderer>().material.mainTexture = t;
+                                SelectedObject.Object.data.TextureId = i;
+                                SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = t;
                             }
                         }
                     }
                     if(i >= Main.gameTex.Length)
                     {
                         int usecount = 0;
-                        foreach(var o in objects)
+                        foreach(var o in globalObject.AllEditorObjects())
                             if (o.data.TextureId == i) usecount++;
                         if(usecount == 0)
                         {
                             if(GUI.Button(new Rect(200 * (i % 4) + 130, 200 * (i / 4) + 160, 70, 20), "Remove"))
                             {
                                 textures.RemoveAt(i - Main.gameTex.Length);
-                                foreach (var o in objects)
+                                foreach (var o in globalObject.AllEditorObjects())
                                     if (o.data.TextureId > i) o.data.TextureId--;
                             }
                         }
@@ -365,179 +448,187 @@ namespace KarlsonMapEditor
                 GUI.DragWindow(new Rect(0, 0, 650, 20));
             }, "Texture Browser");
 
+            // TODO: implement
             wir[(int)WindowId.LevelBrowser] = GUI.Window(wid[(int)WindowId.LevelBrowser], wir[(int)WindowId.LevelBrowser], (windowId) => {
-                GUI.DragWindow(new Rect(0, 0, 1000, 20));
-                object_browser_scroll = GUI.BeginScrollView(new Rect(0, 20, 300, 480), object_browser_scroll, new Rect(0, 0, 280, objects.Count * 25));
-                int i = 0;
-                foreach (var obj in objects)
+
+                int renderObjectGroup(ObjectGroup group, int j, int depth)
                 {
-                    GUI.BeginGroup(new Rect(5, 25 * i, 270, 20));
-                    if (GUI.Button(new Rect(0, 0, 20, 20), "S"))
-                    {
-                        selObj = i;
-                        if (!objects[selObj].data.IsPrefab)
-                        {
-                            picker.color = objects[selObj].go.GetComponent<MeshRenderer>().material.color;
-                        }
-                        else
-                        {
-                            if (objects[selObj].data.PrefabId == 11)
-                                enemyGun.Index = objects[selObj].data.PrefabData;
-                        }
-                        Coroutines.StartCoroutine(identifyObject(obj.go));
+                    // render this group name and controls
+                    if (GUI.Button(new Rect(depth * 20, j * 25, 20, 20), "S"))
+                        SelectedObject.SelectGroup(group);
+                    GUI.Label(new Rect(depth * 20 + 20, j * 25, 200, 20), group.go.name);
+                    ++j;
+                    int firstj = j;
+                    // render child groups
+                    foreach (var g in group.objectGroups) {
+                        j = renderObjectGroup(g, j, depth + 1);
                     }
-                    if (GUI.Button(new Rect(25, 0, 20, 20), "^")) { PlayerMovement.Instance.gameObject.transform.position = obj.go.transform.position + Camera.main.transform.forward * -5f; Coroutines.StartCoroutine(identifyObject(obj.go)); }
-                    string color = "<color=white>";
-                    if (selObj == i) color = "<color=green>";
-                    if (targetGroup != "" && obj.data.GroupName == targetGroup) color = "<color=yellow>";
-                    if (selObj == i && targetGroup != "" && obj.data.GroupName == targetGroup) color = "<color=cyan>";
-                    GUI.Label(new Rect(50, 0, 200, 20), color + (obj.data.IsPrefab ? LevelPlayer.LevelData.PrefabToName(obj.data.PrefabId) : "Cube") + " | " + obj.go.name + "</color>");
-                    GUI.EndGroup();
-                    i++;
+                    // render child editor objects
+                    foreach (var obj in group.editorObjects)
+                    {
+                        if (GUI.Button(new Rect(depth * 20 + 20, j * 25, 20, 20), "S"))
+                            SelectedObject.SelectObject(obj);
+                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? LevelPlayer.LevelData.PrefabToName(obj.data.PrefabId) : "Cube") + " | " + obj.go.name);
+                        ++j;
+                    }
+                    // close group
+                    GUI.Box(new Rect(depth * 20 + 7, firstj * 25 - 5, 5, (j - firstj) * 25 + 5), "");
+                    GUI.Box(new Rect(depth * 20 + 7, j * 25, 200, 5), "");
+                    ++j;
+                    return j;
                 }
+                
+                GUI.DragWindow(new Rect(0, 0, 1000, 20));
+                if(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup)
+                    if(GUI.Button(new Rect(280, 20, 20, 20), "+"))
+                    {
+                        SelectedObject.Group.AddGroup(new ObjectGroup());
+                        SelectedObject.SelectGroup(SelectedObject.Group.objectGroups.Last());
+                        return;
+                    }
+
+                object_browser_scroll = GUI.BeginScrollView(new Rect(0, 20, 300, 480), object_browser_scroll, new Rect(0, 0, 280, _countAll * 25));
+                
+                renderObjectGroup(globalObject, 0, 0);
+
                 GUI.EndScrollView();
             }, "Map Object Browser");
 
             wir[(int)WindowId.ObjectManip] = GUI.Window(wid[(int)WindowId.ObjectManip], wir[(int)WindowId.ObjectManip], (windowId) => {
                 GUI.DragWindow(new Rect(0, 0, 1000, 20));
-                if (selObj == -1)
+                if (!SelectedObject.Selected)
                 {
                     GUI.Label(new Rect(5, 20, 300, 20), "No object selected");
                     return;
                 }
-                EditorObject obj = objects[selObj];
-                GUI.Label(new Rect(5, 20, 290, 20), "Selected object: " + obj.go.name + ", prefab: " + (obj.data.IsPrefab ? LevelPlayer.LevelData.PrefabToName(obj.data.PrefabId) : "Cube"));
-                if(obj.internalObject)
+                if(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal)
+                {
+                    GUI.Label(new Rect(5, 20, 300, 20), "You can't modify the global object.");
+                    GUI.Label(new Rect(5, 35, 300, 20), "You can only add objects (Prefabs / Cube) and groups (+ in the top right)");
+                    return;
+                }
+                SelectedObject.Basic.aName = GUI.TextField(new Rect(5f, 20f, 290f, 20f), SelectedObject.Basic.aName);
+
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.internalObject)
                     GUI.Label(new Rect(5, 40, 290, 60), "This is an internal object.\nProperties are limited.");
-                if (!obj.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.internalObject)
                 {
                     if (GUI.Button(new Rect(5, 40, 75, 20), "Duplicate"))
                     {
-                        if (obj.data.IsPrefab)
-                            objects.Add(new EditorObject(obj.data.PrefabId, obj.aPosition));
+                        if(SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
+                        {
+                            ObjectGroup parent = globalObject.FindParentOfChild(SelectedObject.Object);
+                            SelectedObject.Object.Clone(parent);
+                            SelectedObject.SelectObject(parent.editorObjects.Last());
+                            return;
+                        }
                         else
                         {
-                            objects.Add(new EditorObject(obj.aPosition));
-                            objects.Last().data.TextureId = obj.data.TextureId;
-                            if (obj.data.TextureId < Main.gameTex.Length)
-                                obj.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.data.TextureId];
-                            else
-                                obj.go.GetComponent<MeshRenderer>().material.mainTexture = textures[obj.data.TextureId - Main.gameTex.Length];
-                            objects.Last().go.GetComponent<MeshRenderer>().material.color = obj.go.GetComponent<MeshRenderer>().material.color;
-
-                            objects.Last().data.Bounce = obj.data.Bounce;
-                            objects.Last().data.Glass = obj.data.Glass;
-                            objects.Last().data.Lava = obj.data.Lava;
-                            objects.Last().data.DisableTrigger = obj.data.DisableTrigger;
+                            ObjectGroup parent = globalObject.FindParentOfChild(SelectedObject.Group);
+                            SelectedObject.Group.Clone(parent);
+                            SelectedObject.SelectGroup(parent.objectGroups.Last());
+                            return;
                         }
-                        objects.Last().aRotation = obj.aRotation;
-                        objects.Last().aScale = obj.aScale;
-                        objects.Last().go.name = obj.go.name + " (Clone)";
-                        objects.Last().data.GroupName = obj.data.GroupName;
-                        selObj = objects.Count - 1;
-                        return;
                     }
                     if (GUI.Button(new Rect(85, 40, 75, 20), "Delete"))
                     {
-                        UnityEngine.Object.Destroy(obj.go);
-                        objects.Remove(obj);
-                        selObj = -1;
+                        SelectedObject.Destroy();
                         return;
                     }
                 }
-                if (GUI.Button(new Rect(165, 40, 75, 20), "Identify")) Coroutines.StartCoroutine(identifyObject(obj.go));
-                if (GUI.Button(new Rect(245, 40, 50, 20), "Find")) { PlayerMovement.Instance.gameObject.transform.position = obj.aPosition + Camera.main.transform.forward * -5f; Coroutines.StartCoroutine(identifyObject(obj.go)); }
+                if (GUI.Button(new Rect(165, 40, 75, 20), "Identify")) SelectedObject.Identify();
+                if (GUI.Button(new Rect(245, 40, 50, 20), "Find")) { PlayerMovement.Instance.gameObject.transform.position = SelectedObject.Basic.worldPos + Camera.main.transform.forward * -5f; SelectedObject.Identify(); }
 
-                if (obj.data.PrefabId == 11)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.PrefabId == 11)
                 {
                     GUI.Label(new Rect(5, 60, 40, 20), "Gun");
                     enemyGun.Draw(new Rect(35, 60, 100, 20));
-                    obj.data.PrefabData = enemyGun.Index;
+                    SelectedObject.Object.data.PrefabData = enemyGun.Index;
                 }
 
                 GUI.BeginGroup(new Rect(0, 100, 300, 80));
-                GUI.Label(new Rect(5, 0, 290, 20), "[Pos] X: " + obj.aPosition.x + " Y: " + obj.aPosition.y + " Z: " + obj.aPosition.z);
+                GUI.Label(new Rect(5, 0, 290, 20), "[Pos] X: " + SelectedObject.Basic.aPosition.x + " Y: " + SelectedObject.Basic.aPosition.y + " Z: " + SelectedObject.Basic.aPosition.z);
                 GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aPosition += new Vector3(-moveStep, 0, 0);
+                if (GUI.Button(new Rect(20, 20, 20, 20), "-")) SelectedObject.Basic.aPosition += new Vector3(-moveStep, 0, 0);
                 if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
                 {
                     float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    obj.aPosition += new Vector3(x / 450, 0, 0);
+                    SelectedObject.Basic.aPosition += new Vector3(x / 450, 0, 0);
                 }
-                if (GUI.Button(new Rect(265, 20, 20, 20), "+")) obj.aPosition += new Vector3(moveStep, 0, 0);
+                if (GUI.Button(new Rect(265, 20, 20, 20), "+")) SelectedObject.Basic.aPosition += new Vector3(moveStep, 0, 0);
                 GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                if (GUI.Button(new Rect(20, 40, 20, 20), "-")) obj.aPosition += new Vector3(0, -moveStep, 0);
+                if (GUI.Button(new Rect(20, 40, 20, 20), "-")) SelectedObject.Basic.aPosition += new Vector3(0, -moveStep, 0);
                 if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
                 {
                     float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    obj.aPosition += new Vector3(0, x / 450, 0);
+                    SelectedObject.Basic.aPosition += new Vector3(0, x / 450, 0);
                 }
-                if (GUI.Button(new Rect(265, 40, 20, 20), "+")) obj.aPosition += new Vector3(0, moveStep, 0);
+                if (GUI.Button(new Rect(265, 40, 20, 20), "+")) SelectedObject.Basic.aPosition += new Vector3(0, moveStep, 0);
                 GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                if (GUI.Button(new Rect(20, 60, 20, 20), "-")) obj.aPosition += new Vector3(0, 0, -moveStep);
+                if (GUI.Button(new Rect(20, 60, 20, 20), "-")) SelectedObject.Basic.aPosition += new Vector3(0, 0, -moveStep);
                 if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
                 {
                     float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    obj.aPosition += new Vector3(0, 0, x / 450);
+                    SelectedObject.Basic.aPosition += new Vector3(0, 0, x / 450);
                 }
-                if (GUI.Button(new Rect(265, 60, 20, 20), "+")) obj.aPosition += new Vector3(0, 0, moveStep);
+                if (GUI.Button(new Rect(265, 60, 20, 20), "+")) SelectedObject.Basic.aPosition += new Vector3(0, 0, moveStep);
                 GUI.EndGroup();
-                if (!obj.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
                 {
                     GUI.BeginGroup(new Rect(0, 190, 300, 80));
-                    GUI.Label(new Rect(5, 0, 290, 20), "[Rot] X: " + obj.aRotation.x + " Y: " + obj.aRotation.y + " Z: " + obj.aRotation.z);
+                    GUI.Label(new Rect(5, 0, 290, 20), "[Rot] X: " + SelectedObject.Basic.aRotation.x + " Y: " + SelectedObject.Basic.aRotation.y + " Z: " + SelectedObject.Basic.aRotation.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aRotation += new Vector3(-moveStep, 0f, 0f);
+                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) SelectedObject.Basic.aRotation += new Vector3(-moveStep, 0f, 0f);
                     if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aRotation += new Vector3(x / 450, 0f, 0f);
+                        SelectedObject.Basic.aRotation += new Vector3(x / 450, 0f, 0f);
                     }
-                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) obj.aRotation += new Vector3(moveStep, 0f, 0f);
+                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) SelectedObject.Basic.aRotation += new Vector3(moveStep, 0f, 0f);
                     GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) obj.aRotation += new Vector3(0f, -moveStep, 0f);
+                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) SelectedObject.Basic.aRotation += new Vector3(0f, -moveStep, 0f);
                     if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aRotation += new Vector3(0f, x / 450, 0f);
+                        SelectedObject.Basic.aRotation += new Vector3(0f, x / 450, 0f);
                     }
-                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) obj.aRotation += new Vector3(0f, moveStep, 0f);
+                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) SelectedObject.Basic.aRotation += new Vector3(0f, moveStep, 0f);
                     GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) obj.aRotation += new Vector3(0f, 0f, -moveStep);
+                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) SelectedObject.Basic.aRotation += new Vector3(0f, 0f, -moveStep);
                     if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aRotation += new Vector3(0f, 0f, x / 450);
+                        SelectedObject.Basic.aRotation += new Vector3(0f, 0f, x / 450);
                     }
-                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) obj.aRotation += new Vector3(0f, 0f, moveStep);
+                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) SelectedObject.Basic.aRotation += new Vector3(0f, 0f, moveStep);
                     GUI.EndGroup();
 
                     GUI.BeginGroup(new Rect(0, 280, 300, 80));
-                    GUI.Label(new Rect(5, 0, 290, 20), "[Scale] X: " + obj.aScale.x + " Y: " + obj.aScale.y + " Z: " + obj.aScale.z);
+                    GUI.Label(new Rect(5, 0, 290, 20), "[Scale] X: " + SelectedObject.Basic.aScale.x + " Y: " + SelectedObject.Basic.aScale.y + " Z: " + SelectedObject.Basic.aScale.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) obj.aScale += new Vector3(-moveStep, 0f, 0f);
+                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) SelectedObject.Basic.aScale += new Vector3(-moveStep, 0f, 0f);
                     if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aScale += new Vector3(x / 450, 0, 0);
+                        SelectedObject.Basic.aScale += new Vector3(x / 450, 0, 0);
                     }
-                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) obj.aScale += new Vector3(moveStep, 0f, 0f);
+                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) SelectedObject.Basic.aScale += new Vector3(moveStep, 0f, 0f);
                     GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) obj.aScale += new Vector3(0f, -moveStep, 0f);
+                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) SelectedObject.Basic.aScale += new Vector3(0f, -moveStep, 0f);
                     if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aScale += new Vector3(0, x / 450, 0);
+                        SelectedObject.Basic.aScale += new Vector3(0, x / 450, 0);
                     }
-                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) obj.aScale += new Vector3(0f, moveStep, 0f);
+                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) SelectedObject.Basic.aScale += new Vector3(0f, moveStep, 0f);
                     GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) obj.aScale += new Vector3(0f, 0f, -moveStep);
+                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) SelectedObject.Basic.aScale += new Vector3(0f, 0f, -moveStep);
                     if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
                     {
                         float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        obj.aScale += new Vector3(0, 0, x / 450);
+                        SelectedObject.Basic.aScale += new Vector3(0, 0, x / 450);
                     }
-                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) obj.aScale += new Vector3(0f, 0f, moveStep);
+                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) SelectedObject.Basic.aScale += new Vector3(0f, 0f, moveStep);
                     GUI.EndGroup();
                 }
 
@@ -545,39 +636,39 @@ namespace KarlsonMapEditor
                 GUI.Label(new Rect(0, 0, 300, 20), "Numerical values:");
                 GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
                 {
-                    float x = obj.aPosition.x, y = obj.aPosition.y, z = obj.aPosition.z;
+                    float x = SelectedObject.Basic.aPosition.x, y = SelectedObject.Basic.aPosition.y, z = SelectedObject.Basic.aPosition.z;
                     x = float.Parse(GUI.TextField(new Rect(50, 20, 70, 20), x.ToString("0.00")));
                     y = float.Parse(GUI.TextField(new Rect(125, 20, 70, 20), y.ToString("0.00")));
                     z = float.Parse(GUI.TextField(new Rect(200, 20, 70, 20), z.ToString("0.00")));
-                    obj.aPosition = new Vector3(x, y, z);
+                    SelectedObject.Basic.aPosition = new Vector3(x, y, z);
                 }
-                if(!obj.internalObject)
+                if(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
                 {
                     GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
                     {
-                        float x = obj.aRotation.x, y = obj.aRotation.y, z = obj.aRotation.z;
+                        float x = SelectedObject.Basic.aRotation.x, y = SelectedObject.Basic.aRotation.y, z = SelectedObject.Basic.aRotation.z;
                         x = float.Parse(GUI.TextField(new Rect(50, 40, 70, 20), x.ToString("0.00")));
                         y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
                         z = float.Parse(GUI.TextField(new Rect(200, 40, 70, 20), z.ToString("0.00")));
-                        obj.aRotation = new Vector3(x, y, z);
+                        SelectedObject.Basic.aRotation = new Vector3(x, y, z);
                     }
 
                     GUI.Label(new Rect(0, 60, 50, 20), "Scale:");
                     {
-                        float x = obj.aScale.x, y = obj.aScale.y, z = obj.aScale.z;
+                        float x = SelectedObject.Basic.aScale.x, y = SelectedObject.Basic.aScale.y, z = SelectedObject.Basic.aScale.z;
                         x = float.Parse(GUI.TextField(new Rect(50, 60, 70, 20), x.ToString("0.00")));
                         y = float.Parse(GUI.TextField(new Rect(125, 60, 70, 20), y.ToString("0.00")));
                         z = float.Parse(GUI.TextField(new Rect(200, 60, 70, 20), z.ToString("0.00")));
-                        obj.aScale = new Vector3(x, y, z);
+                        SelectedObject.Basic.aScale = new Vector3(x, y, z);
                     }
                 }
                 else
                 {
                     GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
                     {
-                        float y = obj.aRotation.y;
+                        float y = SelectedObject.Basic.aRotation.y;
                         y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
-                        obj.aRotation = new Vector3(0, y, 0);
+                        SelectedObject.Basic.aRotation = new Vector3(0, y, 0);
                     }
                 }
                 
@@ -586,156 +677,62 @@ namespace KarlsonMapEditor
                 GUI.Label(new Rect(5, 470, 100, 20), "Editor Step: ");
                 moveStep = float.Parse(GUI.TextField(new Rect(80, 470, 70, 20), moveStep.ToString("0.00")));
                 if (GUI.Button(new Rect(155, 470, 50, 20), "Reset")) moveStep = 0.05f;
-                if (obj.data.IsPrefab && obj.go.GetComponent<Rigidbody>() != null)
-                {
-                    GUI.Label(new Rect(5, 490, 50, 20), "Physics");
-                    if (GUIex.Toggle(new Rect(55, 490, 70, 20), ref obj.physicsToggle, "enabled", "disabled"))
-                        obj.go.GetComponent<Rigidbody>().isKinematic = !obj.go.GetComponent<Rigidbody>().isKinematic;
-                }
-                if (!obj.data.IsPrefab && !obj.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
                 {
                     if (GUI.Button(new Rect(5, 490, 200, 20), "Update texture scailing"))
                     {
-                        string name = obj.go.name;
-                        Color c = obj.go.GetComponent<MeshRenderer>().material.color;
-                        UnityEngine.Object.Destroy(obj.go);
-                        if(obj.data.Glass || obj.data.Lava) 
-                            obj.go = LoadsonAPI.PrefabManager.NewGlass();
-                        else
-                            obj.go = LoadsonAPI.PrefabManager.NewCube();
-                        if (obj.data.TextureId < Main.gameTex.Length)
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.data.TextureId];
-                        else
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = textures[obj.data.TextureId - Main.gameTex.Length];
-                        obj.go.GetComponent<MeshRenderer>().material.color = c;
-                        obj.go.transform.position = obj.data.Position;
-                        obj.go.transform.rotation = Quaternion.Euler(obj.data.Rotation);
-                        obj.go.transform.localScale = obj.data.Scale;
-                        obj.go.name = name;
+                        SelectedObject.Object.go.GetComponent<TextureScaling>().Calculate();
                     }
-                    obj.data.Bounce = GUI.Toggle(new Rect(5, 60, 75, 20), obj.data.Bounce, "Bounce");
-                    obj.data.Glass = GUI.Toggle(new Rect(85, 60, 75, 20), obj.data.Glass, "Glass");
-                    obj.data.MarkAsObject = GUI.Toggle(new Rect(5, 80, 120, 20), obj.data.MarkAsObject, "Mark as Object");
-                    if(obj.data.Glass)
-                        obj.data.DisableTrigger = GUI.Toggle(new Rect(165, 60, 120, 20), obj.data.DisableTrigger, "Disable Trigger");
+                    SelectedObject.Object.data.Bounce = GUI.Toggle(new Rect(5, 60, 75, 20), SelectedObject.Object.data.Bounce, "Bounce");
+                    SelectedObject.Object.data.Glass = GUI.Toggle(new Rect(85, 60, 75, 20), SelectedObject.Object.data.Glass, "Glass");
+                    SelectedObject.Object.data.MarkAsObject = GUI.Toggle(new Rect(5, 80, 120, 20), SelectedObject.Object.data.MarkAsObject, "Mark as Object");
+                    if(SelectedObject.Object.data.Glass)
+                        SelectedObject.Object.data.DisableTrigger = GUI.Toggle(new Rect(165, 60, 120, 20), SelectedObject.Object.data.DisableTrigger, "Disable Trigger");
                     else
-                        obj.data.Lava = GUI.Toggle(new Rect(165, 60, 75, 20), obj.data.Lava, "Lava");
-                    if((obj.data.Glass || obj.data.Lava) && obj.go.GetComponent<Glass>() == null)
+                        SelectedObject.Object.data.Lava = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
+                    if((SelectedObject.Object.data.Glass || SelectedObject.Object.data.Lava) && SelectedObject.Object.go.GetComponent<Glass>() == null)
                     {
-                        string name = obj.go.name;
-                        Color c = obj.go.GetComponent<MeshRenderer>().material.color;
-                        UnityEngine.Object.Destroy(obj.go);
-                        obj.go = LoadsonAPI.PrefabManager.NewGlass();
-                        if (obj.data.TextureId < Main.gameTex.Length)
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.data.TextureId];
+                        string name = SelectedObject.Object.go.name;
+                        Color c = SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color;
+                        UnityEngine.Object.Destroy(SelectedObject.Object.go);
+                        SelectedObject.Object.go = LoadsonAPI.PrefabManager.NewGlass();
+                        if (SelectedObject.Object.data.TextureId < Main.gameTex.Length)
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[SelectedObject.Object.data.TextureId];
                         else
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = textures[obj.data.TextureId - Main.gameTex.Length];
-                        obj.go.GetComponent<MeshRenderer>().material.color = c;
-                        obj.go.transform.position = obj.data.Position;
-                        obj.go.transform.rotation = Quaternion.Euler(obj.data.Rotation);
-                        obj.go.transform.localScale = obj.data.Scale;
-                        obj.go.name = name;
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = textures[SelectedObject.Object.data.TextureId - Main.gameTex.Length];
+                        SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = c;
+                        SelectedObject.Object.go.transform.position = SelectedObject.Object.data.Position;
+                        SelectedObject.Object.go.transform.rotation = Quaternion.Euler(SelectedObject.Object.data.Rotation);
+                        SelectedObject.Object.go.transform.localScale = SelectedObject.Object.data.Scale;
+                        SelectedObject.Object.go.name = name;
                     }
-                    if(!obj.data.Glass && !obj.data.Lava && obj.go.GetComponent<Glass>() != null)
+                    if(!SelectedObject.Object.data.Glass && !SelectedObject.Object.data.Lava && SelectedObject.Object.go.GetComponent<Glass>() != null)
                     {
-                        string name = obj.go.name;
-                        Color c = obj.go.GetComponent<MeshRenderer>().material.color;
-                        UnityEngine.Object.Destroy(obj.go);
-                        obj.go = LoadsonAPI.PrefabManager.NewCube();
-                        if (obj.data.TextureId < Main.gameTex.Length)
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.data.TextureId];
+                        string name = SelectedObject.Object.go.name;
+                        Color c = SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color;
+                        UnityEngine.Object.Destroy(SelectedObject.Object.go);
+                        SelectedObject.Object.go = LoadsonAPI.PrefabManager.NewCube();
+                        if (SelectedObject.Object.data.TextureId < Main.gameTex.Length)
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[SelectedObject.Object.data.TextureId];
                         else
-                            obj.go.GetComponent<MeshRenderer>().material.mainTexture = textures[obj.data.TextureId - Main.gameTex.Length];
-                        obj.go.GetComponent<MeshRenderer>().material.color = c;
-                        obj.go.transform.position = obj.data.Position;
-                        obj.go.transform.rotation = Quaternion.Euler(obj.data.Rotation);
-                        obj.go.transform.localScale = obj.data.Scale;
-                        obj.go.name = name;
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = textures[SelectedObject.Object.data.TextureId - Main.gameTex.Length];
+                        SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = c;
+                        SelectedObject.Object.go.transform.position = SelectedObject.Object.data.Position;
+                        SelectedObject.Object.go.transform.rotation = Quaternion.Euler(SelectedObject.Object.data.Rotation);
+                        SelectedObject.Object.go.transform.localScale = SelectedObject.Object.data.Scale;
+                        SelectedObject.Object.go.name = name;
                     }
                     // TODO: add hint labels to every option
                 }
                 else
                 {
-                    if (obj.data.PrefabId == 11) // only draw, so it appears on top
+                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.IsPrefab && SelectedObject.Object.data.PrefabId == 11) // only draw, so it appears on top
                         enemyGun.Draw(new Rect(35, 60, 100, 20));
                     // for some reason, the first button rendered takes priority over the mouse click
                     // even if it is below .. idk
                 }
                 GUI.DragWindow(new Rect(0, 0, 300, 20));
             }, "Object Properties");
-
-            wir[(int)WindowId.ObjectGroup] = GUI.Window(wid[(int)WindowId.ObjectGroup], wir[(int)WindowId.ObjectGroup], (windowId) => {
-                GUI.DragWindow(new Rect(0, 0, 200, 20));
-                if (selObj == -1)
-                {
-                    GUI.Label(new Rect(5, 20, 300, 20), "No object selected");
-                    return;
-                }
-                if (objects[selObj].internalObject)
-                {
-                    GUI.Label(new Rect(5, 20, 300, 20), "This is an internal object");
-                    return;
-                }
-                GUI.Label(new Rect(5, 20, 50, 20), "Name");
-                objects[selObj].go.name = GUI.TextField(new Rect(45, 20, 150, 20), objects[selObj].go.name);
-                GUI.Label(new Rect(5, 40, 50, 20), "Group");
-                objects[selObj].data.GroupName = GUI.TextField(new Rect(45, 40, 150, 20), objects[selObj].data.GroupName);
-            }, "Object Settings");
-            wir[(int)WindowId.ObjectGroupManip] = GUI.Window(wid[(int)WindowId.ObjectGroupManip], wir[(int)WindowId.ObjectGroupManip], (windowId) => {
-                GUI.DragWindow(new Rect(0, 0, 200, 20));
-                int count = 0;
-                foreach (var obj in objects)
-                    if (obj.data.GroupName == targetGroup)
-                        count++;
-                if (targetGroup == "") GUI.Label(new Rect(5, 20, 100, 20), "Group name:");
-                else GUI.Label(new Rect(5, 20, 200, 20), "Group name: <color=yellow>(" + count + " objects)</color>");
-                targetGroup = GUI.TextField(new Rect(5, 40, 190, 20), targetGroup);
-                if (targetGroup == "")
-                {
-                    GUI.Label(new Rect(5, 60, 200, 20), "Please enter a group name");
-                    return;
-                }
-                if (count == 0)
-                {
-                    GUI.Label(new Rect(5, 60, 200, 20), "No objects have the targeted group");
-                    return;
-                }
-                GUI.BeginGroup(new Rect(0, 60, 200, 60));
-                GUI.Label(new Rect(5, 0, 20, 20), "X:");
-                Vector3 delta = Vector3.zero;
-                if (GUI.Button(new Rect(20, 0, 20, 20), "-")) delta = new Vector3(-moveStep, 0, 0);
-                if (GUI.RepeatButton(new Rect(40, 0, 135, 20), "<------------|------------>"))
-                {
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
-                    delta = new Vector3(x / 270, 0, 0);
-                }
-                if (GUI.Button(new Rect(175, 0, 20, 20), "+")) delta = new Vector3(moveStep, 0, 0);
-
-                GUI.Label(new Rect(5, 20, 20, 20), "Y:");
-                if (GUI.Button(new Rect(20, 20, 20, 20), "-")) delta = new Vector3(0, -moveStep, 0);
-                if (GUI.RepeatButton(new Rect(40, 20, 135, 20), "<------------|------------>"))
-                {
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
-                    delta = new Vector3(0, x / 270, 0);
-                }
-                if (GUI.Button(new Rect(175, 20, 20, 20), "+")) delta = new Vector3(0, moveStep, 0);
-
-                GUI.Label(new Rect(5, 40, 20, 20), "Z:");
-                if (GUI.Button(new Rect(20, 40, 20, 20), "-")) delta = new Vector3(0, 0, -moveStep);
-                if (GUI.RepeatButton(new Rect(40, 40, 135, 20), "<------------|------------>"))
-                {
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectGroupManip].x - 107;
-                    delta = new Vector3(0, 0, x / 270);
-                }
-                if (GUI.Button(new Rect(175, 40, 20, 20), "+")) delta = new Vector3(0, 0, moveStep);
-                
-                foreach(var obj in objects)
-                    if (obj.data.GroupName == targetGroup)
-                        obj.aPosition += delta;
-
-                GUI.EndGroup();
-            }, "Group Manipulation");
-
 
             wir[(int)WindowId.LevelData] = GUI.Window(wid[(int)WindowId.LevelData], wir[(int)WindowId.LevelData], (windowId) => {
                 GUI.DragWindow(new Rect(0, 0, 200, 20));
@@ -746,27 +743,26 @@ namespace KarlsonMapEditor
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
                 startingGun = startGunDD.Index;
 
-                if(GUI.Button(new Rect(5, 65, 190, 20), "Set Spawn"))
+                EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
+                if (GUI.Button(new Rect(5, 65, 190, 20), "Set Spawn"))
                 {
                     startPosition = PlayerMovement.Instance.gameObject.transform.position;
-                    objects[0].aPosition = startPosition;
+                    spawnObject.aPosition = startPosition;
                 }
                 if (GUI.Button(new Rect(5, 90, 190, 20), "Set Spawn Orientation"))
                 {
                     startOrientation = Camera.main.transform.rotation.eulerAngles.y;
-                    objects[0].aRotation = new Vector3(0, startOrientation, 0);
+                    spawnObject.aRotation = new Vector3(0, startOrientation, 0);
                 }
 
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
 
             }, "Map Settings");
 
-            if (selObj != -1 && !objects[selObj].data.IsPrefab && !objects[selObj].internalObject)
+            if (SelectedObject.Selected && SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
             {
-                //picker.color = objects[selObj].go.GetComponent<MeshRenderer>().material.color;
-                Color oldc = picker.color;
                 picker.DrawWindow();
-                objects[selObj].go.GetComponent<MeshRenderer>().material.color = picker.color;
+                SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = picker.color;
             }
 
             GUI.DrawTexture(new Rect(5, Screen.height - 125, 100, 100), gizmoRender);
@@ -804,16 +800,11 @@ namespace KarlsonMapEditor
 
                 if (Physics.Raycast(ray, out hit, 100, ~(1 << 19)))
                 {
-                    int i = 0;
-                    for(; i < objects.Count; i++)
+                    foreach(var obj in globalObject.AllEditorObjects())
                     {
-                        if (objects[i].go == hit.transform.gameObject)
+                        if(obj.go == hit.transform.gameObject)
                         {
-                            selObj = i;
-                            if (!objects[selObj].data.IsPrefab)
-                                picker.color = objects[selObj].go.GetComponent<MeshRenderer>().material.color;
-                            Coroutines.StartCoroutine(identifyObject(objects[i].go));
-                            break;
+                            SelectedObject.SelectObject(obj);
                         }
                     }
                 }
@@ -847,23 +838,26 @@ namespace KarlsonMapEditor
             UnityEngine.Object.Destroy(rt);
             UnityEngine.Object.Destroy(GOcam);
             
-            if (selObj != -1)
+            // update gizmo
+            if (SelectedObject.Selected && !(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal))
             {
-                clickGizmo[0].transform.position = objects[selObj].go.transform.position;
-                clickGizmo[1].transform.position = objects[selObj].go.transform.position + new Vector3(0, 0, 1);
+                Vector3 pos = SelectedObject.Basic.worldPos;
+
+                clickGizmo[0].transform.position = pos;
+                clickGizmo[1].transform.position = pos + new Vector3(0, 0, 1);
                 clickGizmo[1].transform.rotation = Quaternion.Euler(90, 0, 0);
-                clickGizmo[2].transform.position = objects[selObj].go.transform.position + new Vector3(0, 1, 0);
+                clickGizmo[2].transform.position = pos + new Vector3(0, 1, 0);
                 clickGizmo[2].transform.rotation = Quaternion.Euler(0, 0, 0);
-                clickGizmo[3].transform.position = objects[selObj].go.transform.position + new Vector3(1, 0, 0);
+                clickGizmo[3].transform.position = pos + new Vector3(1, 0, 0);
                 clickGizmo[3].transform.rotation = Quaternion.Euler(0, 0, 90);
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
                     if (clickGizmo[1].gameObject.activeSelf)
                         clickGizmo[1].gameObject.SetActive(false);
-                    clickGizmo[2].transform.position = objects[selObj].go.transform.position + objects[selObj].go.transform.up;
-                    clickGizmo[2].transform.rotation = objects[selObj].go.transform.rotation;
-                    clickGizmo[3].transform.position = objects[selObj].go.transform.position + objects[selObj].go.transform.right;
-                    clickGizmo[3].transform.rotation = Quaternion.Euler(objects[selObj].go.transform.rotation.eulerAngles + new Vector3(0f, 0f, 90f));
+                    clickGizmo[2].transform.position = pos + SelectedObject.Basic.transformUp;
+                    clickGizmo[2].transform.rotation = SelectedObject.Basic.transformRotation;
+                    clickGizmo[3].transform.position = pos + SelectedObject.Basic.transformRight;
+                    clickGizmo[3].transform.rotation = Quaternion.Euler(SelectedObject.Basic.transformRotation.eulerAngles + new Vector3(0f, 0f, 90f));
                 }
                 else
                 {
@@ -921,7 +915,8 @@ namespace KarlsonMapEditor
                 if (Input.GetMouseButton(0) && gizmoMoveDirection != Vector3.zero)
                 {
                     Vector3 delta = gizmoMoveDirection * Vector3Extensions.DistanceOnDirection(gizmoMovePos, ray.GetPoint(oldGizmoDistance), gizmoMoveDirection);
-                    objects[selObj].aPosition += delta;
+
+                    SelectedObject.Basic.MoveByGizmo(delta);
                     gizmoMovePos = ray.GetPoint(oldGizmoDistance);
                 }
                 if (Input.GetMouseButtonUp(0))
@@ -938,8 +933,9 @@ namespace KarlsonMapEditor
                 clickGizmo[3].transform.position = new Vector3(5000, 5000, 5100);
             }
 
-            startPosition = objects[0].aPosition;
-            startOrientation = objects[0].aRotation.y;
+            EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
+            startPosition = spawnObject.aPosition;
+            startOrientation = spawnObject.aRotation.y;
             
             // grid align
             if(gridAlign != 0)
@@ -953,7 +949,7 @@ namespace KarlsonMapEditor
                     if (!aligned)
                     {
                         Loadson.Console.Log("Aligning objects");
-                        foreach (var obj in objects)
+                        foreach (var obj in globalObject.AllBasicOperableObjects())
                         {
                             obj.aPosition += Vector3Extensions.Snap(obj.aPosition, gridAlign) - obj.aPosition;
                             obj.aRotation += Vector3Extensions.Snap(obj.aRotation, gridAlign) - obj.aRotation;
@@ -967,6 +963,7 @@ namespace KarlsonMapEditor
 
         private static void ExitEditor()
         {
+            AudioListener.volume = SaveManager.Instance.state.volume;
             UnityEngine.Object.Destroy(gizmoCamera);
             dd_file = false;
             dd_level = false;
@@ -994,34 +991,25 @@ namespace KarlsonMapEditor
             UnityEngine.Object.Destroy(GOcam);
             return screenShot.EncodeToPNG();
         }
-        private static byte[] SaveLevelDataRaw(skipObject skipIfTrue)
+
+        private static byte[] SaveObjectGroup(ObjectGroup objGroup)
         {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter bw = new BinaryWriter(ms))
+            using(MemoryStream ms = new MemoryStream())
+            using(BinaryWriter bw = new BinaryWriter(ms))
             {
-                bw.Write(2);
-                bw.Write(gridAlign);
-                bw.Write(startingGun);
-                bw.Write(startPosition);
-                bw.Write(startOrientation);
-                bw.Write(textures.Count);
-                foreach (var t in textures)
+                bw.Write(objGroup.go.name);
+                bw.Write(objGroup.aPosition);
+                bw.Write(objGroup.aRotation);
+                bw.Write(objGroup.aScale);
+                if(objGroup.isGlobal)
+                    bw.Write(objGroup.editorObjects.Count - 1);
+                else
+                    bw.Write(objGroup.editorObjects.Count);
+                foreach (var obj in objGroup.editorObjects)
                 {
-                    bw.Write(t.name);
-                    byte[] data = t.EncodeToPNG();
-                    bw.Write(data.Length);
-                    bw.Write(data);
-                }
-                int internalCount = 0;
-                foreach (var obj in objects)
-                    if (obj.internalObject || skipIfTrue(obj)) internalCount++;
-                bw.Write(objects.Count - internalCount);
-                foreach (var obj in objects)
-                {
-                    if (obj.internalObject || skipIfTrue(obj)) continue; // don't write internal objects
+                    if (obj.internalObject) continue;
                     bw.Write(obj.data.IsPrefab);
                     bw.Write(obj.go.name);
-                    bw.Write(obj.data.GroupName);
                     if (obj.data.IsPrefab)
                     {
                         bw.Write(obj.data.PrefabId);
@@ -1044,12 +1032,37 @@ namespace KarlsonMapEditor
                         bw.Write(obj.data.MarkAsObject);
                     }
                 }
+                bw.Write(objGroup.objectGroups.Count);
+                foreach (var group in objGroup.objectGroups)
+                    bw.WriteByteArray(SaveObjectGroup(group));
                 bw.Flush();
                 return ms.ToArray();
             }
         }
-        private static byte[] SaveLevelDataRaw() => SaveLevelDataRaw((_) => false);
-        private static byte[] SaveLevelData() => SevenZipHelper.Compress(SaveLevelDataRaw());
+
+        private static byte[] SaveLevelData()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
+            {
+                bw.Write(3);
+                bw.Write(gridAlign);
+                bw.Write(startingGun);
+                bw.Write(startPosition);
+                bw.Write(startOrientation);
+                bw.Write(textures.Count);
+                foreach (var t in textures)
+                {
+                    bw.Write(t.name);
+                    byte[] data = t.EncodeToPNG();
+                    bw.Write(data.Length);
+                    bw.Write(data);
+                }
+                bw.WriteByteArray(SaveObjectGroup(globalObject));
+                bw.Flush();
+                return SevenZipHelper.Compress(ms.ToArray());
+            }
+        }
         private static void SaveLevel()
         {
             File.WriteAllBytes(Path.Combine(Main.directory, "Levels", levelName + ".kme"), SaveLevelData());
@@ -1062,36 +1075,33 @@ namespace KarlsonMapEditor
             Main.prefs["edit_recent"] = string.Join(";", oldList);
         }
 
-
-        private static void ExportKMP()
-        {
-            Directory.CreateDirectory(Path.Combine(Main.directory, "KMP_Export"));
-            File.WriteAllBytes(Path.Combine(Main.directory, "KMP_Export", levelName + ".kme_raw"), SaveLevelDataRaw((obj) => obj.go.name.StartsWith("KMPSpawn_")));
-            // lookup kmp spawnpoints
-            List<(string, Vector3, float)> spawnPos = new List<(string, Vector3, float)>();
-            foreach(var obj in objects)
-            {
-                if (obj.go.name.StartsWith("KMPSpawn_"))
-                    spawnPos.Add((obj.go.name.Substring(9), obj.aPosition, obj.aRotation.y));
-            }
-            if (spawnPos.Count == 0)
-                spawnPos.Add(("default", objects[0].aPosition, objects[0].aRotation.y));
-            using(FileStream fs = File.OpenWrite(Path.Combine(Main.directory, "KMP_Export", levelName + ".kme_data")))
-            using(BinaryWriter bw = new BinaryWriter(fs))
-            {
-                bw.Write(spawnPos.Count);
-                foreach (var x in spawnPos)
-                {
-                    bw.Write(x.Item1);
-                    bw.Write(x.Item2);
-                    bw.Write(x.Item3);
-                }
-            }
-            Process.Start(Path.Combine(Path.Combine(Main.directory, "KMP_Export")));
-        }
-
         private static void LoadLevel(string path)
         {
+            ObjectGroup ReplicateObjectGroup(LevelPlayer.LevelData.ObjectGroup group, ObjectGroup parentGroup)
+            {
+                ObjectGroup objGroup = new ObjectGroup(group.Name);
+                if (parentGroup != null)
+                {
+                    objGroup.go.transform.parent = parentGroup.go.transform;
+                    parentGroup.objectGroups.Add(objGroup);
+                }
+                objGroup.go.transform.localPosition = group.Position;
+                objGroup.go.transform.localRotation = Quaternion.Euler(group.Rotation);
+                objGroup.go.transform.localScale = group.Scale;
+                foreach(var obj in group.Objects)
+                {
+                    var eo = new EditorObject(obj);
+                    objGroup.editorObjects.Add(eo);
+                    eo.go.transform.parent = objGroup.go.transform;
+                    eo.go.transform.localPosition = obj.Position;
+                    eo.go.transform.localRotation = Quaternion.Euler(obj.Rotation);
+                    eo.go.transform.localScale = obj.Scale;
+                }
+                foreach(var grp in group.Groups)
+                    ReplicateObjectGroup(grp, objGroup);
+                return objGroup;
+            }
+
             LevelPlayer.LevelData data = new LevelPlayer.LevelData(File.ReadAllBytes(path));
             levelName = Path.GetFileNameWithoutExtension(path);
             gridAlign = data.gridAlign;
@@ -1100,14 +1110,25 @@ namespace KarlsonMapEditor
             startPosition = data.startPosition;
             startOrientation = data.startOrientation;
             textures = data.Textures.ToList();
-            objects.Clear();
-            objects.Add(new EditorObject(data.startPosition, startOrientation));
-            foreach(var obj in data.Objects)
-                objects.Add(new EditorObject(obj));
+            // kme v1 compatibility
+            if (!data.isKMEv2)
+            {
+                globalObject = new ObjectGroup(levelName);
+                globalObject.isGlobal = true;
+                foreach(var obj in data.Objects)
+                    globalObject.AddObject(new EditorObject(obj));
+            }
+            else
+            {
+                globalObject = ReplicateObjectGroup(data.GlobalObject, null);
+                globalObject.isGlobal = true;
+            }
+            var spawn = new EditorObject(startPosition, startOrientation);
+            globalObject.editorObjects.Insert(0, spawn);
+            spawn.go.transform.parent = globalObject.go.transform;
             dd_level = true;
-            globalPhysics = true; ToggleGlobalPhysics();
-            targetGroup = "";
-            selObj = -1;
+            Time.timeScale = 0f;
+            SelectedObject.Deselect();
             aligned = false;
         }
 
@@ -1126,34 +1147,38 @@ namespace KarlsonMapEditor
             go.SetActive(true);
         }
 
-        private static bool globalPhysics = false;
-        private static void ToggleGlobalPhysics()
+        public interface IBasicProperties
         {
-            globalPhysics = !globalPhysics;
-            if (globalPhysics) Time.timeScale = 1.0f;
-            else Time.timeScale = 0f;
+            Vector3 aPosition { get; set; }
+            Vector3 aRotation { get; set; }
+            Vector3 aScale { get; set; }
+            string aName { get; set; }
+            Quaternion transformRotation { get; }
+            Vector3 transformUp { get; }
+            Vector3 transformRight { get; }
+            Vector3 worldPos { get; }
+            void MoveByGizmo(Vector3 delta);
         }
 
-        public class EditorObject
+        public class EditorObject : IBasicProperties
         {
             public EditorObject(Vector3 position)
             {
-                data = new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Cube", "", false, false, false, false, false);
                 go = LoadsonAPI.PrefabManager.NewCube();
-                go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[data.TextureId];
-                go.transform.position = data.Position;
-                go.transform.rotation = Quaternion.Euler(data.Rotation);
-                go.transform.localScale = data.Scale;
+                go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[6];
+                go.transform.position = position;
+                go.transform.rotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                data = new LevelPlayer.LevelData.LevelObject(go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, 6, Color.white, go.name, false, false, false, false, false);
             }
 
             public EditorObject(int _prefabId, Vector3 position)
             {
-                data = new LevelPlayer.LevelData.LevelObject(_prefabId, position, Vector3.zero, Vector3.one, LevelPlayer.LevelData.PrefabToName(_prefabId), "", 0);
                 go = LevelPlayer.LevelData.MakePrefab(_prefabId);
-                go.transform.position = data.Position;
-                go.transform.rotation = Quaternion.Euler(data.Rotation);
-                data.Scale = go.transform.localScale;
-                if(go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
+                go.transform.position = position;
+                go.transform.rotation = Quaternion.identity;
+                if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
+                data = new LevelPlayer.LevelData.LevelObject(_prefabId, go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, go.name, 0);
             }
 
             public EditorObject(LevelPlayer.LevelData.LevelObject playObj)
@@ -1198,25 +1223,54 @@ namespace KarlsonMapEditor
             public LevelPlayer.LevelData.LevelObject data;
             public GameObject go;
 
+            public void Clone(ObjectGroup parent)
+            {
+                EditorObject toAdd;
+                if (data.IsPrefab)
+                    toAdd = new EditorObject(data.PrefabId, aPosition);
+                else
+                {
+                    toAdd = new EditorObject(aPosition);
+                    toAdd.data.TextureId = data.TextureId;
+                    if (data.TextureId < Main.gameTex.Length)
+                        toAdd.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[data.TextureId];
+                    else
+                        toAdd.go.GetComponent<MeshRenderer>().material.mainTexture = textures[data.TextureId - Main.gameTex.Length];
+                    toAdd.go.GetComponent<MeshRenderer>().material.color = go.GetComponent<MeshRenderer>().material.color;
+
+                    toAdd.data.Bounce = data.Bounce;
+                    toAdd.data.Glass = data.Glass;
+                    toAdd.data.Lava = data.Lava;
+                    toAdd.data.DisableTrigger = data.DisableTrigger;
+                    toAdd.data.MarkAsObject = data.MarkAsObject;
+                }
+                parent.editorObjects.Add(toAdd);
+                toAdd.go.transform.parent = parent.go.transform;
+                toAdd.aPosition = aPosition;
+                toAdd.aRotation = aRotation;
+                toAdd.aScale = aScale;
+                toAdd.go.name = go.name + " (Clone)";
+            }
+
             public Vector3 aPosition
             {
                 get
                 {
-                    if (data.Position != go.transform.position)
-                        data.Position = go.transform.position;
-                    return go.transform.position;
+                    if (data.Position != go.transform.localPosition)
+                        data.Position = go.transform.localPosition;
+                    return go.transform.localPosition;
                 }
-                set { go.transform.position = value; data.Position = value; }
+                set { go.transform.localPosition = value; data.Position = value; }
             }
             public Vector3 aRotation
             {
                 get
                 {
-                    if (data.Rotation != go.transform.rotation.eulerAngles)
-                        data.Rotation = go.transform.rotation.eulerAngles;
-                    return go.transform.rotation.eulerAngles;
+                    if (data.Rotation != go.transform.localRotation.eulerAngles)
+                        data.Rotation = go.transform.localRotation.eulerAngles;
+                    return go.transform.localRotation.eulerAngles;
                 }
-                set { go.transform.rotation = Quaternion.Euler(value); data.Rotation = value; }
+                set { go.transform.localRotation = Quaternion.Euler(value); data.Rotation = value; }
             }
             public Vector3 aScale
             {
@@ -1228,11 +1282,168 @@ namespace KarlsonMapEditor
                 }
                 set { go.transform.localScale = value; data.Scale = value; }
             }
-
-            public bool physicsToggle = false;
+            public string aName
+            {
+                get => go.name;
+                set => go.name = value;
+            }
+            public Quaternion transformRotation => go.transform.rotation;
+            public Vector3 transformUp => go.transform.up;
+            public Vector3 transformRight => go.transform.right;
+            public Vector3 worldPos => go.transform.position;
+            public void MoveByGizmo(Vector3 delta)
+            {
+                go.transform.position += delta;
+                data.Position = go.transform.localPosition;
+            }
         }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetActiveWindow();
+        public class ObjectGroup : IBasicProperties
+        {
+            public bool isGlobal = false;
+            public List<EditorObject> editorObjects;
+            public List<ObjectGroup> objectGroups;
+            public GameObject go;
+
+            public void AddObject(EditorObject obj)
+            {
+                editorObjects.Add(obj);
+                obj.go.transform.parent = go.transform;
+            }
+            public void AddGroup(ObjectGroup group)
+            {
+                objectGroups.Add(group);
+                group.go.transform.parent = go.transform;
+            }
+
+            public int CountAll()
+            {
+                if (objectGroups.Count == 0) return editorObjects.Count;
+                int objg = 0;
+                foreach (var g in objectGroups)
+                    objg += g.CountAll();
+                return objg + editorObjects.Count;
+            }
+
+            public void DereferenceGroup(ObjectGroup group)
+            {
+                if (objectGroups.Contains(group))
+                {
+                    objectGroups.Remove(group);
+                    return;
+                }
+                foreach (var g in objectGroups)
+                    g.DereferenceGroup(group);
+            }
+            public void DereferenceObject(EditorObject obj)
+            {
+                if (editorObjects.Contains(obj))
+                {
+                    editorObjects.Remove(obj);
+                    return;
+                }
+                foreach (var g in objectGroups)
+                    g.DereferenceObject(obj);
+            }
+
+            public ObjectGroup FindParentOfChild(ObjectGroup target)
+            {
+                if (objectGroups.Contains(target))
+                    return this;
+                foreach (var g in objectGroups)
+                {
+                    var result = g.FindParentOfChild(target);
+                    if (result != null) return result;
+                }
+                return null;
+            }
+            public ObjectGroup FindParentOfChild(EditorObject target)
+            {
+                if (editorObjects.Contains(target))
+                    return this;
+                foreach (var g in objectGroups)
+                {
+                    var result = g.FindParentOfChild(target);
+                    if (result != null) return result;
+                }
+                return null;
+            }
+
+            public ObjectGroup Clone(ObjectGroup parent)
+            {
+                ObjectGroup ret = new ObjectGroup(go.name);
+                if (parent != null)
+                    ret.go.transform.parent = parent.go.transform;
+                ret.aPosition = aPosition;
+                ret.aRotation = aRotation;
+                ret.aScale = aScale;
+                if (parent != null)
+                    parent.objectGroups.Add(ret);
+                foreach (var g in objectGroups)
+                    g.Clone(ret);
+                foreach (var o in editorObjects)
+                    o.Clone(ret);
+                return ret;
+            }
+
+            public List<EditorObject> AllEditorObjects()
+            {
+                List<EditorObject> ret = new List<EditorObject>(editorObjects);
+                foreach(var g in objectGroups)
+                    ret.Concat(g.AllEditorObjects());
+                return ret;
+            }
+
+            public List<IBasicProperties> AllBasicOperableObjects()
+            {
+                List<IBasicProperties> ret = new List<IBasicProperties>();
+                ret.Add(this);
+                ret.AddRange(editorObjects);
+                foreach (var g in objectGroups)
+                    ret.AddRange(g.AllBasicOperableObjects());
+                return ret;
+            }
+
+            public ObjectGroup(string name = null)
+            {
+                if (name == null)
+                    name = "Object Group #" + UnityEngine.Random.Range(0, 32768);
+                go = new GameObject(name);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                editorObjects = new List<EditorObject>();
+                objectGroups = new List<ObjectGroup>(); 
+            }
+
+            public Vector3 aPosition
+            {
+                get => go.transform.localPosition;
+                set => go.transform.localPosition = value;
+            }
+            public Vector3 aRotation
+            {
+                get => go.transform.localRotation.eulerAngles;
+                set => go.transform.localRotation = Quaternion.Euler(value);
+            }
+            public Vector3 aScale
+            {
+                get => go.transform.localScale;
+                set => go.transform.localScale = value;
+            }
+            public string aName
+            {
+                get => go.name;
+                set => go.name = value;
+            }
+            public Quaternion transformRotation => go.transform.rotation;
+            public Vector3 transformUp => go.transform.up;
+            public Vector3 transformRight => go.transform.right;
+            public Vector3 worldPos => go.transform.position;
+            public void MoveByGizmo(Vector3 delta)
+            {
+                go.transform.position += delta;
+            }
+        }
     }
 }

@@ -251,6 +251,7 @@
     <Compile Include="Enemy_ProjectPos.cs" />
     <Compile Include="FilePicker.cs" />
     <Compile Include="GUIex.cs" />
+    <Compile Include="KMPExporter.cs" />
     <Compile Include="LevelEditor.cs" />
     <Compile Include="LevelPlayer.cs" />
     <Compile Include="LevelTimeDB.cs" />

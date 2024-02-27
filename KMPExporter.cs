@@ -78,7 +78,7 @@ namespace KarlsonMapEditor
                         // don't include kmp objects, instead write them to data file
                         string key = obj.go.name.Split('.')[1];
                         string value = obj.go.name.Split('.')[2];
-                        if (!kmp_data.ContainsKey(obj.go.name))
+                        if (!kmp_data.ContainsKey(key))
                             kmp_data.Add(key, new List<(string, Vector3, Vector3)>());
                         kmp_data[key].Add((value, obj.go.transform.position, obj.go.transform.rotation.eulerAngles));
                         continue;

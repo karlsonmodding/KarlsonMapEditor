@@ -72,7 +72,7 @@ namespace KarlsonMapEditor
         {
             Vector3 result = new Vector3();
             // x axis
-            if (Mathf.Abs(original.x) < 0.01f)
+            if (Mathf.Abs(original.x) < snap / 2) // edge case
                 result.x = 0f;
             else
             {
@@ -86,7 +86,7 @@ namespace KarlsonMapEditor
             }
 
             // y axis
-            if (Mathf.Abs(original.y) < 0.01f)
+            if (Mathf.Abs(original.y) < snap / 2) // edge case
                 result.y = 0f;
             else
             {
@@ -100,7 +100,7 @@ namespace KarlsonMapEditor
             }
 
             // z axis
-            if (Mathf.Abs(original.z) < 0.01f)
+            if (Mathf.Abs(original.z) < snap / 2) // edge case
                 result.z = 0f;
             else
             {

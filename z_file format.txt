@@ -54,8 +54,53 @@ _color [
     Vector3 v = new Color(bw.ReadSingle(), bw.ReadSingle(), bw.ReadSingle(), bw.ReadSingle());
 ]
 
+_group [ (This is a complex format, which is primarly used to store the new object groups)
+    Written with BinaryWriter / Read with BinaryReader
+    string - group name
+    _vector3 - group's GameObject local position
+    _vector3 - group's GameObject local rotation
+    _vector3 - group's GameObject local scale
+    int32 - number of editor objects
+    foreach [number of editor objects] (currently, almost the same as v2 format)
+        bool - prefab
+        string - name
+        if [prefab]
+            int32 - prefab id
+            _vector3 - position
+            _vector3 - rotation (euler)
+            _vector3 - scale
+            int32 - prefab data (used for enemies, gun id)
+        else
+            _vector3 - position
+            _vector3 - rotation (euler)
+            _vector3 - scale
+            int32 - texture index
+            _color - mesh renderer material color
+            boolean - bounce
+            boolean - glass
+            boolean - lava
+            boolean - coll disable trigger
+            boolean - mark as object
+    int32 - number of groups
+    foreach [number of groups]
+        _group as _data - child group
+]
 
-[.kme] Karlson Map Editor
+[.kme] Karlson Map Editor (v3 format)
+Encoded with LZMA: Decompress before reading, Compress before writing.
+Written with BinaryWriter / Read with BinaryReader
+int32 - Level Data Version (currently 2)
+float(single) - grid align
+int32 - starting gun
+_vector3 - spawn position
+float(single) - spawn orientation
+int32 - number of custom textures
+foreach [number of custom textures]
+    string - texture name
+    _data - texture data (Texture2D.EncodeToPNG())
+_group as _data - global object group
+
+[.kme] Karlson Map Editor (v2 format)
 Encoded with LZMA: Decompress before reading, Compress before writing.
 Written with BinaryWriter / Read with BinaryReader
 int32 - Level Data Version (currently 2)
@@ -91,7 +136,6 @@ foreach [number of objects]
         boolean - mark as object
 
 [.kwm] Karlson Workshop Map
-Encoded with LZMA: Decompress before reading, Compress before writing.
 Written with BinaryWriter / Read with BinaryReader
 byte[] - "KWM" (ascii encoding, magic)
 string - Name

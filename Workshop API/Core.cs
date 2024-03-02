@@ -13,7 +13,7 @@ namespace KarlsonMapEditor.Workshop_API
 {
     public static class Core
     {
-        public const string API_ENDPOINT = "https://karlsonlevelloader.000webhostapp.com"; // no trailing [slash]
+        public const string API_ENDPOINT = "http://redline2.go.ro:100/kme"; // no trailing [slash]
 
         public static (string, int[]) Login(long id, string accessToken)
         {

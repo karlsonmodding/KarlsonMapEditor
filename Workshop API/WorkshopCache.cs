@@ -25,17 +25,17 @@ namespace KarlsonMapEditor.Workshop_API
 
         public static void MakeCache()
         {
-            downloadCurrent = "Getting liked levels..";
-            downloadProgress = 0;
-            GrabMostLiked();
-            downloadCurrent = "Getting most downloaded levels..";
-            downloadProgress = 33;
-            GrabMostDl();
-            downloadCurrent = "Getting most recent levels..";
-            downloadProgress = 66;
-            GrabMostRec();
-            downloadCurrent = "";
-            downloadProgress = 0;
+            new Thread(() =>
+            {
+                // construct list of levels we need to download
+                GrabMostLiked();
+                GrabMostDl();
+                GrabMostRec();
+                // download levels
+                foreach (int id in mostLikedCache) GrabLevel(id);
+                foreach (int id in mostDlCache) GrabLevel(id);
+                foreach (int id in mostRecCache) GrabLevel(id);
+            }).Start();
         }
 
         public static void QueueDownload(int levelId)
@@ -79,43 +79,31 @@ namespace KarlsonMapEditor.Workshop_API
         {
             if (mostLikedCache.Length != 0 || mostLikedCacheGen) return;
             mostLikedCacheGen = true;
-            new Thread(() =>
-            {
-                mostLikedCache = Core.GetMostLiked();
-                foreach (int id in mostLikedCache)
-                    if(!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
-                        referenceLevelCacheDownload.Add(id);
-                foreach (int id in mostLikedCache) GrabLevel(id);
-                mostLikedCacheGen = false;
-            }).Start();
+            mostLikedCache = Core.GetMostLiked();
+            foreach (int id in mostLikedCache)
+                if(!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
+                    referenceLevelCacheDownload.Add(id);
+            mostLikedCacheGen = false;
         }
         public static void GrabMostDl()
         {
             if (mostDlCache.Length != 0 || mostDlCacheGen) return;
             mostDlCacheGen = true;
-            new Thread(() =>
-            {
-                mostDlCache = Core.GetMostDl();
-                foreach (int id in mostDlCache)
-                    if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
-                        referenceLevelCacheDownload.Add(id);
-                foreach (int id in mostDlCache) GrabLevel(id);
-                mostDlCacheGen = false;
-            }).Start();
+            mostDlCache = Core.GetMostDl();
+            foreach (int id in mostDlCache)
+                if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
+                    referenceLevelCacheDownload.Add(id);
+            mostDlCacheGen = false;
         }
         public static void GrabMostRec()
         {
             if (mostRecCache.Length != 0 || mostRecCacheGen) return;
             mostRecCacheGen = true;
-            new Thread(() =>
-            {
-                mostRecCache = Core.GetMostRecent();
-                foreach (int id in mostRecCache)
-                    if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
-                        referenceLevelCacheDownload.Add(id);
-                foreach (int id in mostRecCache) GrabLevel(id);
-                mostRecCacheGen = false;
-            }).Start();
+            mostRecCache = Core.GetMostRecent();
+            foreach (int id in mostRecCache)
+                if (!referenceLevelCacheDownload.Contains(id) && !levelCache.ContainsKey(id))
+                    referenceLevelCacheDownload.Add(id);
+            mostRecCacheGen = false;
         }
 
         private static void GrabLevel(int id)

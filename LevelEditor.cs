@@ -581,6 +581,7 @@ namespace KarlsonMapEditor
                         }
                         else
                         {
+                            parent = globalObject.FindParentOfChild(SelectedObject.Group);
                             SelectedObject.Group.Clone(parent);
                             SelectedObject.SelectGroup(parent.objectGroups.Last());
                             return;

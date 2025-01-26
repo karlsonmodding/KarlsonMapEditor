@@ -72,6 +72,7 @@ namespace KarlsonMapEditor
         private static Rect[] wir;
 
         public static bool editorMode { get; private set; } = false;
+        static Coroutine fileWatcher = null;
         public static void StartEdit()
         {
             _init();
@@ -79,6 +80,10 @@ namespace KarlsonMapEditor
             levelName = "";
             SceneManager.sceneLoaded += InitEditor;
             SceneManager.LoadScene(6);
+            if (File.Exists(Path.Combine(Main.directory, "_temp.amta")))
+                File.Delete(Path.Combine(Main.directory, "_temp.amta"));
+            if(fileWatcher != null)
+                Coroutines.StopCoroutine(fileWatcher);
         }
         const float clickGizmoScaleFactor = 0.1f;
         static List<GameObject> clickGizmo;
@@ -336,6 +341,10 @@ namespace KarlsonMapEditor
                                 dd_level = true;
                                 Time.timeScale = 0f;
                                 SelectedObject.Deselect();
+
+                                File.WriteAllText(Path.Combine(Main.directory, "_temp.amta"), "# Any code written below will be executed every time the level is (re)started.\n# Be sure to use LF instead of CRLF line endings.\n# Any modifications to this file will be reflected by marking the level as modified (unsaved).\n# Saving the level will also save this script.\n# Automata documentation: https://github.com/devilExE3/automataV2/blob/master/automata.md\n# KME API: https://github.com/karlsonmodding/KarlsonMapEditor/wiki/Scripting-API\n$:print(\"Hello, world!\")");
+                                fileWatcher = Coroutines.StartCoroutine(FileWatcher());
+                                //Process.Start(Path.Combine(Main.directory, "_temp.amta"));
                             }
                         }
 
@@ -377,6 +386,7 @@ namespace KarlsonMapEditor
             if (GUI.Button(new Rect(200, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
             if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, textures);
             GUI.Label(new Rect(405, 0, 1000, 20), $"<b>Karlson Map Editor</b> v2.0 | Current map: <b>{(unsaved ? (levelName + '*') : levelName)}</b> | Object count: <b>{_countAll.Item1 + _countAll.Item2}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
+            if (GUI.Button(new Rect(Screen.width - 100, 0, 100, 20), "Open Script")) Process.Start(Path.Combine(Main.directory, "_temp.amta"));
 
             if (dd_file)
             {
@@ -1123,6 +1133,8 @@ namespace KarlsonMapEditor
             tex_browser_enabled = false;
             editorMode = false;
             Game.Instance.MainMenu();
+            if(fileWatcher != null)
+                Coroutines.StopCoroutine(fileWatcher);
         }
 
         public static byte[] MakeScreenshot()
@@ -1198,7 +1210,7 @@ namespace KarlsonMapEditor
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                bw.Write(3);
+                bw.Write(4);
                 bw.Write(gridAlign);
                 bw.Write(startingGun);
                 bw.Write(startPosition);
@@ -1211,6 +1223,7 @@ namespace KarlsonMapEditor
                     bw.Write(data.Length);
                     bw.Write(data);
                 }
+                bw.Write(File.ReadAllText(Path.Combine(Main.directory, "_temp.amta")));
                 bw.WriteByteArray(SaveObjectGroup(globalObject));
                 bw.Flush();
                 return SevenZipHelper.Compress(ms.ToArray());
@@ -1295,6 +1308,26 @@ namespace KarlsonMapEditor
                 unsaved = false;
             }
             Coroutines.StartCoroutine(markAsSaved());
+
+            // scripting
+            File.WriteAllText(Path.Combine(Main.directory, "_temp.amta"), data.AutomataScript.Trim().Length > 0 ? data.AutomataScript : "# Any code written below will be executed every time the level is (re)started.\n# Be sure to use LF instead of CRLF line endings.\n# Any modifications to this file will be reflected by marking the level as modified (unsaved).\n# Saving the level will also save this script.\n# Automata documentation: https://github.com/devilExE3/automataV2/blob/master/automata.md\n# KME API: https://github.com/karlsonmodding/KarlsonMapEditor/wiki/Scripting-API\n$:print(\"Hello, world!\")");
+            fileWatcher = Coroutines.StartCoroutine(FileWatcher());
+            //Process.Start(Path.Combine(Main.directory, "_temp.amta"));
+        }
+
+        static IEnumerator FileWatcher()
+        {
+            DateTime lastMod = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
+            while(true)
+            {
+                yield return new WaitForSecondsRealtime(1f);
+                var modNow = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
+                if (modNow != lastMod)
+                {
+                    lastMod = modNow;
+                    MarkAsModified();
+                }
+            }
         }
 
         private static IEnumerator identifyObject(GameObject go)

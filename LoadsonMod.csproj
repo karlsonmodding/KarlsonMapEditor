@@ -264,6 +264,10 @@
     <Compile Include="NavMeshComponents\NavMeshSurface.cs" />
     <Compile Include="PlayerMovementPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripting API\Automata.cs" />
+    <Compile Include="Scripting API\ObjectWrapper.cs" />
+    <Compile Include="Scripting API\ScriptRunner.cs" />
+    <Compile Include="Scripting API\UnityAPI.cs" />
     <Compile Include="Workshop API\Core.cs" />
     <Compile Include="Workshop API\KWM_Convert.cs" />
     <Compile Include="Workshop API\WorkshopCache.cs" />

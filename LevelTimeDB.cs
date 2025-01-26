@@ -54,6 +54,11 @@ namespace KarlsonMapEditor
         public static bool Prefix(Game __instance)
         {
             if (LevelPlayer.currentLevel == "") return true;
+            if(LevelPlayer.currentScript != null)
+            {
+                var ret = LevelPlayer.currentScript.InvokeFunction("onwin");
+                if (ret.HoldsTrue()) return false;
+            }
             __instance.playing = false;
             Timer.Instance.Stop();
             Time.timeScale = 0.05f;

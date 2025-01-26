@@ -134,7 +134,7 @@ namespace KarlsonMapEditor
                     text.AddComponent<TextMeshProUGUI>();
                     text.GetComponent<TextMeshProUGUI>().text = ".kme level";
                     text.transform.parent = go.transform;
-                    text.transform.localPosition = new Vector3(13.8f, -17.8543f, 0f);
+                    text.transform.localPosition = new Vector3(8.5f, -17.8543f, 0f);
                     text.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
                     text.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
                     InterceptButton(go.GetComponent<Button>(), () => LevelPlayer.LoadLevel(levelList[idx]));

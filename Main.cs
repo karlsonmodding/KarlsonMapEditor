@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using KarlsonMapEditor.Scripting_API;
 using KarlsonMapEditor.Workshop_API;
 using Loadson;
 using LoadsonAPI;
@@ -145,6 +146,13 @@ namespace KarlsonMapEditor
                 runOnMain.RemoveAt(0);
                 run();
             }
+            if (LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
+                LevelPlayer.currentScript.InvokeFunction("update", deltaTime);
+        }
+        public override void FixedUpdate(float fixedDeltaTime)
+        {
+            if (LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
+                LevelPlayer.currentScript.InvokeFunction("fixedupdate", fixedDeltaTime);
         }
 
         public static Dictionary<string, string> prefs;

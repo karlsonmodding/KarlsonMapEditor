@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using KarlsonMapEditor.Scripting_API;
 using Loadson;
 using LoadsonAPI;
 using SevenZip.Compression.LZMA;
@@ -23,11 +24,19 @@ namespace KarlsonMapEditor
         public static string currentLevel { get; private set; } = "";
         public static void ExitedLevel() => currentLevel = "";
         private static LevelData levelData;
+        private static Automata.Backbone.FunctionRunner mainFunction = null;
+        public static ScriptRunner currentScript { get; private set; } = null;
 
         public static void LoadLevel(string levelPath)
         {
             currentLevel = Path.GetFileName(levelPath);
             levelData = new LevelData(File.ReadAllBytes(levelPath));
+            if(levelData.AutomataScript.Trim().Length > 0)
+            { // load level script
+                var tokens = Automata.Parser.Tokenizer.Tokenize(Automata.Parser.ProgramCleaner.CleanProgram(levelData.AutomataScript));
+                var program = new Automata.Parser.ProgramParser(tokens).ParseProgram();
+                mainFunction = new Automata.Backbone.FunctionRunner(new List<(Automata.Backbone.VarResolver, Automata.Backbone.BaseValue.ValueType)> { }, program);
+            }
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }
@@ -69,6 +78,7 @@ namespace KarlsonMapEditor
                         if (obj.IsPrefab)
                         {
                             go = LevelData.MakePrefab(obj.PrefabId);
+                            go.name = obj.Name;
                             go.transform.parent = objGroup.transform;
                             go.transform.localPosition = obj.Position;
                             go.transform.localRotation = Quaternion.Euler(obj.Rotation);
@@ -96,11 +106,11 @@ namespace KarlsonMapEditor
                         if (obj.Glass)
                         {
                             go = LoadsonAPI.PrefabManager.NewGlass();
+                            // fix collider
+                            go.GetComponent<BoxCollider>().size = Vector3.one;
                             if (obj.DisableTrigger)
                             {
-                                // fix collider
                                 go.GetComponent<BoxCollider>().isTrigger = false;
-                                go.GetComponent<BoxCollider>().size = Vector3.one;
                                 UnityEngine.Object.Destroy(go.GetComponent<Glass>());
                             }
                         }
@@ -122,10 +132,22 @@ namespace KarlsonMapEditor
                         go.GetComponent<MeshRenderer>().material.color = obj._Color;
                         if (obj.Bounce)
                             go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                        go.name = obj.Name;
                         go.transform.parent = objGroup.transform;
                         go.transform.localPosition = obj.Position;
                         go.transform.localRotation = Quaternion.Euler(obj.Rotation);
                         go.transform.localScale = obj.Scale;
+                        if(obj.Glass)
+                        {
+                            // fix particle system
+                            var ps = go.GetComponent<Glass>().glass.GetComponent<ParticleSystem>();
+                            var shape = ps.shape;
+                            shape.scale = go.transform.lossyScale;
+                            var volume = (shape.scale.x * shape.scale.y * shape.scale.z);
+                            var main = ps.main;
+                            main.maxParticles = Math.Max((int)(1000f * volume / 160f), 1);
+                            main.startSpeed = 0.5f;
+                        }
                     }
                     foreach (var grp in group.Groups)
                         ReplicateObjectGroup(grp, objGroup);
@@ -155,6 +177,12 @@ namespace KarlsonMapEditor
                     }
                 }
                 Coroutines.StartCoroutine(enemyFix());
+
+                // load script
+                if (mainFunction != null)
+                    currentScript = new ScriptRunner(mainFunction);
+                else
+                    currentScript = null;
             }
 
             void LoadLevelData_v2()
@@ -251,33 +279,6 @@ namespace KarlsonMapEditor
 
             public LevelData(byte[] _data)
             {
-                ObjectGroup ReadObjectGroup(byte[] group)
-                {
-                    ObjectGroup objGroup = new ObjectGroup();
-                    using(BinaryReader br = new BinaryReader(new MemoryStream(group)))
-                    {
-                        objGroup.Name = br.ReadString();
-                        objGroup.Position = br.ReadVector3();
-                        objGroup.Rotation = br.ReadVector3();
-                        objGroup.Scale = br.ReadVector3();
-                        int count = br.ReadInt32();
-                        while (count-- > 0)
-                        {
-                            bool prefab = br.ReadBoolean();
-                            string name = br.ReadString();
-                            if (prefab)
-                                objGroup.Objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
-                            else
-                                objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
-                            Loadson.Console.Log(objGroup.Objects.Last().ToString());
-                        }
-                        count = br.ReadInt32();
-                        while (count-- > 0)
-                            objGroup.Groups.Add(ReadObjectGroup(br.ReadByteArray()));
-                        return objGroup;
-                    }
-                }
-
                 // decompress
                 byte[] data = SevenZipHelper.Decompress(_data);
                 using(BinaryReader br = new BinaryReader(new MemoryStream(data)))
@@ -288,32 +289,42 @@ namespace KarlsonMapEditor
                         LoadLevel_Version1(br);
                     else if (version == 2)
                         LoadLevel_Version2(br);
-                    else if(version == 3)
-                    {
-                        isKMEv2 = true;
-                        gridAlign = br.ReadSingle();
-                        startingGun = br.ReadInt32();
-                        startPosition = br.ReadVector3();
-                        startOrientation = br.ReadSingle();
-                        int _len;
-                        List<Texture2D> list = new List<Texture2D>();
-                        int _texl = br.ReadInt32();
-                        while (_texl-- > 0)
-                        {
-                            string _name = br.ReadString();
-                            _len = br.ReadInt32();
-                            list.Add(new Texture2D(1, 1));
-                            list.Last().LoadImage(br.ReadBytes(_len));
-                            list.Last().name = _name;
-                        }
-                        Textures = list.ToArray();
-                        GlobalObject = ReadObjectGroup(br.ReadByteArray());
-                    }
+                    else if (version == 3)
+                        LoadLevel_Version3(br);
+                    else if (version == 4)
+                        LoadLevel_Version4(br);
                     else
                     {
                         Loadson.Console.Log("<color=red>Unknown level version " + version + "</color>");
                         Loadson.Console.Log("Try to update KME to the latest version.");
                     }
+                }
+            }
+
+            ObjectGroup ReadObjectGroup_v3(byte[] group)
+            {
+                ObjectGroup objGroup = new ObjectGroup();
+                using (BinaryReader br = new BinaryReader(new MemoryStream(group)))
+                {
+                    objGroup.Name = br.ReadString();
+                    objGroup.Position = br.ReadVector3();
+                    objGroup.Rotation = br.ReadVector3();
+                    objGroup.Scale = br.ReadVector3();
+                    int count = br.ReadInt32();
+                    while (count-- > 0)
+                    {
+                        bool prefab = br.ReadBoolean();
+                        string name = br.ReadString();
+                        if (prefab)
+                            objGroup.Objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                        else
+                            objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
+                        Loadson.Console.Log(objGroup.Objects.Last().ToString());
+                    }
+                    count = br.ReadInt32();
+                    while (count-- > 0)
+                        objGroup.Groups.Add(ReadObjectGroup_v3(br.ReadByteArray()));
+                    return objGroup;
                 }
             }
 
@@ -349,6 +360,7 @@ namespace KarlsonMapEditor
                         objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), false));
                 }
                 Objects = objects.ToArray();
+                AutomataScript = "";
             }
 
             private void LoadLevel_Version2(BinaryReader br)
@@ -383,6 +395,53 @@ namespace KarlsonMapEditor
                         objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                 }
                 Objects = objects.ToArray();
+                AutomataScript = "";
+            }
+
+            private void LoadLevel_Version3(BinaryReader br)
+            {
+                isKMEv2 = true;
+                gridAlign = br.ReadSingle();
+                startingGun = br.ReadInt32();
+                startPosition = br.ReadVector3();
+                startOrientation = br.ReadSingle();
+                int _len;
+                List<Texture2D> list = new List<Texture2D>();
+                int _texl = br.ReadInt32();
+                while (_texl-- > 0)
+                {
+                    string _name = br.ReadString();
+                    _len = br.ReadInt32();
+                    list.Add(new Texture2D(1, 1));
+                    list.Last().LoadImage(br.ReadBytes(_len));
+                    list.Last().name = _name;
+                }
+                Textures = list.ToArray();
+                GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
+                AutomataScript = "";
+            }
+
+            private void LoadLevel_Version4(BinaryReader br)
+            {
+                isKMEv2 = true;
+                gridAlign = br.ReadSingle();
+                startingGun = br.ReadInt32();
+                startPosition = br.ReadVector3();
+                startOrientation = br.ReadSingle();
+                int _len;
+                List<Texture2D> list = new List<Texture2D>();
+                int _texl = br.ReadInt32();
+                while (_texl-- > 0)
+                {
+                    string _name = br.ReadString();
+                    _len = br.ReadInt32();
+                    list.Add(new Texture2D(1, 1));
+                    list.Last().LoadImage(br.ReadBytes(_len));
+                    list.Last().name = _name;
+                }
+                Textures = list.ToArray();
+                AutomataScript = br.ReadString();
+                GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
             }
 
             public bool isKMEv2;
@@ -394,6 +453,8 @@ namespace KarlsonMapEditor
             public Texture2D[] Textures;
             public LevelObject[] Objects;
             public ObjectGroup GlobalObject;
+
+            public string AutomataScript;
 
             public class LevelObject
             {
@@ -584,6 +645,35 @@ namespace KarlsonMapEditor
         {
             LevelPlayer.ExitedLevel();
             SceneManager.sceneLoaded -= LevelPlayer.LoadLevelData;
+        }
+    }
+
+    [HarmonyPatch(typeof(Glass), "OnTriggerEnter")]
+    class Hook_Glass_OnTriggerEnter
+    {
+        static bool Prefix(Glass __instance, Collider other)
+        {
+            if (LevelPlayer.currentLevel == "") return true;
+            if (LevelPlayer.currentScript == null) return true;
+            // determine break reason
+            if (other.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                return false; // collide with ground, ignore
+            int reason = 0;
+            if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+                reason = 1;
+            if (other.gameObject.layer == LayerMask.NameToLayer("Bullet"))
+            {
+                if (other.gameObject.name == "Damage")
+                    reason = 3;
+                else
+                    reason = 2;
+            }
+            var ret = LevelPlayer.currentScript.InvokeFunction("onbreak", __instance, other, reason);
+            if (!ret.HoldsTrue() || ret.Type != Automata.Backbone.BaseValue.ValueType.Number) return true; // continue normal execution
+            var retN = (double)ret.Value;
+            if(retN > 0) // insta-break
+                UnityEngine.Object.Destroy(__instance.gameObject);
+            return false;
         }
     }
 }

@@ -27,16 +27,21 @@ namespace KarlsonMapEditor
         private static Automata.Backbone.FunctionRunner mainFunction = null;
         public static ScriptRunner currentScript { get; private set; } = null;
 
-        public static void LoadLevel(string levelPath)
+        static void LoadScript()
         {
-            currentLevel = Path.GetFileName(levelPath);
-            levelData = new LevelData(File.ReadAllBytes(levelPath));
-            if(levelData.AutomataScript.Trim().Length > 0)
+            if (levelData.AutomataScript.Trim().Length > 0)
             { // load level script
                 var tokens = Automata.Parser.Tokenizer.Tokenize(Automata.Parser.ProgramCleaner.CleanProgram(levelData.AutomataScript));
                 var program = new Automata.Parser.ProgramParser(tokens).ParseProgram();
                 mainFunction = new Automata.Backbone.FunctionRunner(new List<(Automata.Backbone.VarResolver, Automata.Backbone.BaseValue.ValueType)> { }, program);
             }
+        }
+
+        public static void LoadLevel(string levelPath)
+        {
+            currentLevel = Path.GetFileName(levelPath);
+            levelData = new LevelData(File.ReadAllBytes(levelPath));
+            LoadScript();
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }
@@ -44,6 +49,7 @@ namespace KarlsonMapEditor
         {
             currentLevel = name;
             levelData = new LevelData(data);
+            LoadScript();
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }

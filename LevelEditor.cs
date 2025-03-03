@@ -103,18 +103,35 @@ namespace KarlsonMapEditor
         // gizmo constants
         const int gizmoLayer = 19;
         const int gizmoLayerMask = 1 << gizmoLayer;
-        const float clickGizmoScaleFactor = 0.018f;
+        const float clickGizmoScaleFactor = 0.25f;
         // gizmo handling
+        static bool onGizmo = false;
         static bool holdingGizmo = false;
         static Vector3 initialGizmoPosition;
         static Vector3 gizmoMoveDirection;
         static float gizmoLastOffset;
-        static GizmoMode gizmoMode = GizmoMode.Translate;
-        enum GizmoMode
+        public enum GizmoMode
         {
             Translate,
             Scale,
             Rotate
+        }
+        private static GizmoMode _gizmoMode;
+        static GizmoMode gizmoMode
+        {
+            get { return _gizmoMode; }
+            set
+            {
+                if (_gizmoMode == value) { return; }
+                Mesh mesh = MeshBuilder.AxisMeshes[(int)value];
+                GizmoXAxis.GetComponent<MeshFilter>().sharedMesh = mesh;
+                GizmoXAxis.GetComponent<MeshCollider>().sharedMesh = mesh;
+                GizmoYAxis.GetComponent<MeshFilter>().sharedMesh = mesh;
+                GizmoYAxis.GetComponent<MeshCollider>().sharedMesh = mesh;
+                GizmoZAxis.GetComponent<MeshFilter>().sharedMesh = mesh;
+                GizmoZAxis.GetComponent<MeshCollider>().sharedMesh = mesh;
+                _gizmoMode = value;
+            }
         }
         // controls
         const KeyCode scaleGizmoKey = KeyCode.LeftControl;
@@ -169,38 +186,26 @@ namespace KarlsonMapEditor
             GObg.name = "Gizmo Backplane";
 
             // create clickable gizmo
-            clickGizmo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-
-            clickGizmo.GetComponent<Renderer>().material.SetColor("_Color", new Color(0, 0, 0, 1));
-            clickGizmo.transform.position = new Vector3(5000, 5000, 5100);
-            clickGizmo.transform.localScale = Vector3.one;
+            clickGizmo = new GameObject();
             clickGizmo.layer = gizmoLayer;
+            clickGizmo.SetActive(false);
 
             // create the axis for the gizmo
-            GizmoZAxis = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            GizmoZAxis.transform.parent = clickGizmo.transform;
-            GizmoZAxis.GetComponent<Renderer>().material.SetColor("_Color", new Color(0.3f, 0.3f, 1, 1));
-            GizmoZAxis.transform.localPosition = new Vector3(0, 0, 3);
-            GizmoZAxis.transform.rotation = Quaternion.Euler(90, 0, 0);
-            GizmoZAxis.transform.transform.localScale = new Vector3(0.95f, 3f, 0.95f);
-            GizmoZAxis.layer = gizmoLayer;
-            
-            GizmoYAxis = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            GizmoYAxis.transform.parent = clickGizmo.transform;
-            GizmoYAxis.GetComponent<Renderer>().material.SetColor("_Color", new Color(0.3f, 1, 0.3f, 1));
-            GizmoYAxis.transform.localPosition = new Vector3(0, 3, 0);
-            GizmoYAxis.transform.rotation = Quaternion.Euler(0, 0, 0);
-            GizmoYAxis.transform.transform.localScale = new Vector3(0.95f, 3f, 0.95f);
-            GizmoYAxis.layer = gizmoLayer;
-
-            GizmoXAxis = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GizmoXAxis = MeshBuilder.GetAxisGO(GizmoMode.Translate);
             GizmoXAxis.transform.parent = clickGizmo.transform;
-            GizmoXAxis.GetComponent<Renderer>().material.SetColor("_Color", new Color(1, 0.3f, 0.3f, 1));
-            GizmoXAxis.transform.localPosition = new Vector3(3, 0, 0);
-            GizmoXAxis.transform.rotation = Quaternion.Euler(0, 0, 90);
-            GizmoXAxis.transform.transform.localScale = new Vector3(0.95f, 3f, 0.95f);
+            GizmoXAxis.transform.rotation = Quaternion.Euler(0, 90, 0);
             GizmoXAxis.layer = gizmoLayer;
             
+            GizmoYAxis = MeshBuilder.GetAxisGO(GizmoMode.Translate);
+            GizmoYAxis.transform.parent = clickGizmo.transform;
+            GizmoYAxis.transform.rotation = Quaternion.Euler(-90, 0, 0);
+            GizmoYAxis.layer = gizmoLayer;
+
+            GizmoZAxis = MeshBuilder.GetAxisGO(GizmoMode.Translate);
+            GizmoZAxis.transform.parent = clickGizmo.transform;
+            GizmoZAxis.transform.rotation = Quaternion.Euler(0, 0, 0);
+            GizmoZAxis.layer = gizmoLayer;
+
             gizmoCamera = UnityEngine.Object.Instantiate(Camera.main);
             UnityEngine.Object.Destroy(gizmoCamera.transform.Find("GunCam").gameObject);
             UnityEngine.Object.Destroy(gizmoCamera.transform.Find("Particle System").gameObject);
@@ -993,7 +998,7 @@ namespace KarlsonMapEditor
                 });
             }
 
-            if (!Input.GetButton("Fire2") && Input.GetMouseButtonDown(MiddleMouseButton))
+            if (!Input.GetMouseButton(RightMouseButton) && (Input.GetMouseButtonDown(MiddleMouseButton) || ((!onGizmo) && Input.GetMouseButtonDown(LeftMouseButton))))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -1047,6 +1052,8 @@ namespace KarlsonMapEditor
             {
                 Vector3 pos = SelectedObject.Basic.worldPos;
                 clickGizmo.transform.position = pos;
+                if (gizmoMode == GizmoMode.Translate) { clickGizmo.transform.rotation = Quaternion.identity; }
+                else { clickGizmo.transform.rotation = SelectedObject.Basic.transformRotation; }
                 clickGizmo.SetActive(true);
 
                 // scale up the gizmo so it stays the same size even when the camera gets further away
@@ -1066,7 +1073,7 @@ namespace KarlsonMapEditor
                 // check for hovering gizmo
                 Ray ray = gizmoCamera.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
-                bool onGizmo = Physics.Raycast(ray, out hit, float.PositiveInfinity, gizmoLayerMask);
+                onGizmo = Physics.Raycast(ray, out hit, float.PositiveInfinity, gizmoLayerMask) && !Input.GetMouseButton(RightMouseButton); // cant manipulate the gizmo while panning and moving
 
                 GameObject hitObject = null;
                 if (onGizmo) { hitObject = hit.transform.gameObject; }
@@ -1076,47 +1083,72 @@ namespace KarlsonMapEditor
                 GizmoYAxis.GetComponent<Renderer>().material.SetColor("_Color", onGizmo && (hitObject == GizmoYAxis) ? yHighlightColor : yColor);
                 GizmoZAxis.GetComponent<Renderer>().material.SetColor("_Color", onGizmo && (hitObject == GizmoZAxis) ? zHighlightColor : zColor);
 
-                // if right click is held, cancel the gizmo manipulation
-                if(Input.GetMouseButton(RightMouseButton))
-                {
-                    onGizmo = false;
-                }
-
                 // gizmo controller
                 if (Input.GetMouseButtonDown(LeftMouseButton) && onGizmo) // right mouse button pressed
                 {
                     // start holding
                     holdingGizmo = true;
-                    gizmoLastOffset = (gizmoMode == GizmoMode.Scale) ? 1 : 0;
-                    initialGizmoPosition = hit.point;
+                    gizmoLastOffset = 0;
+                    
                     if (hit.transform.gameObject == GizmoXAxis)
+                    {
                         gizmoMoveDirection = new Vector3(1, 0, 0);
-                    if (hit.transform.gameObject == GizmoYAxis)
+                        GizmoYAxis.SetActive(false);
+                        GizmoZAxis.SetActive(false);
+                    }
+                    else if (hit.transform.gameObject == GizmoYAxis)
+                    {
                         gizmoMoveDirection = new Vector3(0, 1, 0);
-                    if (hit.transform.gameObject == GizmoZAxis)
+                        GizmoXAxis.SetActive(false);
+                        GizmoZAxis.SetActive(false);
+                    }
+                    else if (hit.transform.gameObject == GizmoZAxis)
+                    {
                         gizmoMoveDirection = new Vector3(0, 0, 1);
+                        GizmoXAxis.SetActive(false);
+                        GizmoYAxis.SetActive(false);
+                    }
+
+                    if (gizmoMode == GizmoMode.Rotate)
+                    {
+                        initialGizmoPosition = hit.point;
+                    }
+                    else { initialGizmoPosition = hit.point; }
 
                     MarkAsModified();
                 }
                 if (Input.GetMouseButton(LeftMouseButton) && holdingGizmo)
                 {
+                    // find the true direction of the gizmo
+                    Vector3 gizmoDir = clickGizmo.transform.rotation * gizmoMoveDirection;
+
                     // while holding
                     if (gizmoMode == GizmoMode.Rotate)
                     {
-                        // TODO
+                        Vector3 gizmoPos = clickGizmo.transform.position;
+                        // find the intersection of the ray and the plane defined by the axis normal
+                        float denom = Vector3.Dot(gizmoDir, ray.direction);
+                        float dist = Vector3.Dot(gizmoPos - ray.origin, gizmoDir) / denom;
+                        Vector3 intersect = ray.origin + (ray.direction * dist);
+
+                        // find the angle of the intersection on the plane
+                        float offset = Vector3.SignedAngle(initialGizmoPosition - gizmoPos, intersect - gizmoPos, gizmoDir);
+
+                        SelectedObject.Basic.RotateByGizmo(Quaternion.AngleAxis(offset - gizmoLastOffset, gizmoMoveDirection));
+                        gizmoLastOffset = offset;
                     }
                     else
                     {
                         // find the plane that contains the desired axis and is facing towards the camera
-                        Vector3 camPlaneNormal = Vector3.ProjectOnPlane(Camera.main.transform.forward, gizmoMoveDirection);
+                        Vector3 camPlaneNormal = Vector3.ProjectOnPlane(Camera.main.transform.forward, gizmoDir);
 
                         // find where the ray intersects this plane
                         float denom = Vector3.Dot(camPlaneNormal, ray.direction);
-                        float dist = Vector3.Dot(initialGizmoPosition - ray.origin, camPlaneNormal) / denom;
+                        float dist = Vector3.Dot(clickGizmo.transform.position - ray.origin, camPlaneNormal) / denom;
                         Vector3 intersect = ray.origin + (ray.direction * dist);
 
                         // find the offset along the move direction that is closest to the intersection
-                        float offset = Vector3.Dot(intersect - initialGizmoPosition, gizmoMoveDirection);
+                        float offset = Vector3.Dot(intersect - initialGizmoPosition, gizmoDir);
 
                         if (gizmoMode == GizmoMode.Translate)
                         {
@@ -1126,7 +1158,7 @@ namespace KarlsonMapEditor
                         else
                         {
                             // scale the object by the relative difference in the current and last recorded offset
-                            SelectedObject.Basic.ScaleByGizmo(gizmoMoveDirection * ((++offset / gizmoLastOffset) - 1) + Vector3.one);
+                            SelectedObject.Basic.ScaleByGizmo(gizmoMoveDirection * (offset - gizmoLastOffset));
                         }
                         gizmoLastOffset = offset;
                     }
@@ -1135,6 +1167,11 @@ namespace KarlsonMapEditor
                 {
                     // stop holding
                     holdingGizmo = false;
+
+                    GizmoXAxis.SetActive(true);
+                    GizmoYAxis.SetActive(true);
+                    GizmoZAxis.SetActive(true);
+
                     aligned = false;
                 }
                 
@@ -1552,12 +1589,13 @@ namespace KarlsonMapEditor
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale = Vector3.Scale(go.transform.localScale, delta);
-                data.Scale += go.transform.localScale;
+                go.transform.localScale += delta;
+                data.Scale = go.transform.localScale;
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                // TODO
+                go.transform.localRotation *= delta;
+                data.Rotation = go.transform.localRotation.eulerAngles;
             }
         }
 
@@ -1713,11 +1751,11 @@ namespace KarlsonMapEditor
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale = Vector3.Scale(go.transform.localScale, delta);
+                go.transform.localScale += delta;
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                // TODO
+                go.transform.localRotation *= delta;
             }
         }
     }

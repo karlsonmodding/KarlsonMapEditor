@@ -1084,7 +1084,7 @@ namespace KarlsonMapEditor
                 GizmoZAxis.GetComponent<Renderer>().material.SetColor("_Color", onGizmo && (hitObject == GizmoZAxis) ? zHighlightColor : zColor);
 
                 // gizmo controller
-                if (Input.GetMouseButtonDown(LeftMouseButton) && onGizmo) // right mouse button pressed
+                if (Input.GetMouseButtonDown(LeftMouseButton) && onGizmo)
                 {
                     // start holding
                     holdingGizmo = true;

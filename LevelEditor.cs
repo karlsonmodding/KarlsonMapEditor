@@ -997,8 +997,8 @@ namespace KarlsonMapEditor
                     Workshop_API.Core.UploadLevel(new Workshop_API.KWM_Convert.KWM(name, ss, SaveLevelData()));
                 });
             }
-
-            if (!Input.GetMouseButton(RightMouseButton) && (Input.GetMouseButtonDown(MiddleMouseButton) || ((!onGizmo) && Input.GetMouseButtonDown(LeftMouseButton))))
+            
+            if (!Input.GetMouseButton(RightMouseButton) && Input.GetMouseButtonDown(MiddleMouseButton))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;

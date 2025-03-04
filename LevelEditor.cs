@@ -1125,14 +1125,13 @@ namespace KarlsonMapEditor
                     // while holding
                     if (gizmoMode == GizmoMode.Rotate)
                     {
-                        Vector3 gizmoPos = clickGizmo.transform.position;
                         // find the intersection of the ray and the plane defined by the axis normal
                         float denom = Vector3.Dot(gizmoDir, ray.direction);
-                        float dist = Vector3.Dot(gizmoPos - ray.origin, gizmoDir) / denom;
+                        float dist = Vector3.Dot(pos - ray.origin, gizmoDir) / denom;
                         Vector3 intersect = ray.origin + (ray.direction * dist);
 
                         // find the angle of the intersection on the plane
-                        float offset = Vector3.SignedAngle(initialGizmoPosition - gizmoPos, intersect - gizmoPos, gizmoDir);
+                        float offset = Vector3.SignedAngle(initialGizmoPosition - pos, intersect - pos, gizmoDir);
 
                         SelectedObject.Basic.RotateByGizmo(Quaternion.AngleAxis(offset - gizmoLastOffset, gizmoMoveDirection));
                         gizmoLastOffset = offset;

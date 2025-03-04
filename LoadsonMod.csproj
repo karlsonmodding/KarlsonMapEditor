@@ -257,6 +257,7 @@
     <Compile Include="LevelTimeDB.cs" />
     <Compile Include="LobbyPatch.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="MeshBuilder.cs" />
     <Compile Include="MilkHooks.cs" />
     <Compile Include="NavMeshComponents\NavMeshLink.cs" />
     <Compile Include="NavMeshComponents\NavMeshModifier.cs" />

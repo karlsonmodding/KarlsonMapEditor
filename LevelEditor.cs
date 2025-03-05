@@ -1002,7 +1002,7 @@ namespace KarlsonMapEditor
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
 
-                if (Physics.Raycast(ray, out hit, 100, ~gizmoLayerMask))
+                if (Physics.Raycast(ray, out hit, 1000, ~gizmoLayerMask))
                 {
                     // get kme object
                     var go = hit.collider.gameObject;
@@ -1185,28 +1185,22 @@ namespace KarlsonMapEditor
             startOrientation = spawnObject.aRotation.y;
             
             // grid align
-            if(gridAlign != 0)
+            if(gridAlign != 0 && !aligned)
             {
-                if(gridAlign < 0)
+                MarkAsModified();
+                Loadson.Console.Log("Aligning object");
+
+                IBasicProperties obj = SelectedObject.Basic;
+                obj.aRotation = Vector3Extensions.Snap(obj.aRotation, 15);
+                obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, 0.5f, obj.aRotation);
+
+                // only snap scale if it's a cube
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab)
                 {
-                    gridAlign = 0;
+                    obj.aScale = Vector3Extensions.SnapScale(obj.aScale, 1);
                 }
-                else
-                {
-                    gridAlign = 1;
-                    if (!aligned)
-                    {
-                        MarkAsModified();
-                        Loadson.Console.Log("Aligning objects");
-                        foreach (var obj in globalObject.AllBasicOperableObjects())
-                        {
-                            obj.aRotation = Vector3Extensions.Snap(obj.aRotation, 15);
-                            obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, 0.5f, obj.aRotation);
-                            obj.aScale = Vector3Extensions.SnapScale(obj.aScale, 1);
-                        }
-                        aligned = true;
-                    }
-                }
+                
+                aligned = true;
             }
         }
 

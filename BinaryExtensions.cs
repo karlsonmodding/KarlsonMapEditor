@@ -79,9 +79,9 @@ namespace KarlsonMapEditor
         public static Vector3 SnapScale(Vector3 original, float snap)
         {
             Vector3 snapped = Snap(original, snap);
-            if (Mathf.Abs(original.x) < snap) snapped.x = original.x;
-            if (Mathf.Abs(original.y) < snap) snapped.y = original.y;
-            if (Mathf.Abs(original.z) < snap) snapped.z = original.z;
+            if (Mathf.Abs(original.x) < snap) snapped.x = snap * Mathf.Sign(original.x);
+            if (Mathf.Abs(original.y) < snap) snapped.y = snap * Mathf.Sign(original.y);
+            if (Mathf.Abs(original.z) < snap) snapped.z = snap * Mathf.Sign(original.z);
             return snapped;
         }
 

@@ -26,6 +26,8 @@ namespace KarlsonMapEditor
         private static LevelData levelData;
         private static Automata.Backbone.FunctionRunner mainFunction = null;
         public static ScriptRunner currentScript { get; private set; } = null;
+        private static bool dirtyNavMesh;
+        private static bool needsNavMesh;
 
         static void LoadScript()
         {
@@ -42,6 +44,8 @@ namespace KarlsonMapEditor
             currentLevel = Path.GetFileName(levelPath);
             levelData = new LevelData(File.ReadAllBytes(levelPath));
             LoadScript();
+            dirtyNavMesh = true;
+            needsNavMesh = false;
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }
@@ -50,8 +54,25 @@ namespace KarlsonMapEditor
             currentLevel = name;
             levelData = new LevelData(data);
             LoadScript();
+            dirtyNavMesh = true;
+            needsNavMesh = false;
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
+        }
+
+        public static void GenerateNavMesh()
+        {
+            if (dirtyNavMesh && needsNavMesh)
+            {
+                GameObject navmeshGO = new GameObject("NavMesh Surface");
+                navmeshGO.transform.position = levelData.startPosition;
+                var navmeshs = navmeshGO.AddComponent<NavMeshSurface>();
+                navmeshs.useGeometry = NavMeshCollectGeometry.RenderMeshes;
+                navmeshs.collectObjects = CollectObjects.All;
+                navmeshs.BuildNavMesh();
+                Loadson.Console.Log("navmesh pos: " + navmeshs.navMeshData.position);
+            }
+            dirtyNavMesh = false;
         }
 
         public static void LoadLevelData(Scene arg0, LoadSceneMode arg1)
@@ -92,6 +113,7 @@ namespace KarlsonMapEditor
                             go.transform.parent = null;
                             if (obj.PrefabId == 11)
                             {
+                                needsNavMesh = true;
                                 enemyToFix.Add(obj);
                                 obj._enemyFixY = go.transform.position.y;
                                 Enemy e = go.GetComponent<Enemy>();
@@ -160,15 +182,7 @@ namespace KarlsonMapEditor
                 }
                 ReplicateObjectGroup(levelData.GlobalObject, null);
 
-                // create navmesh
-                GameObject navmeshGO = new GameObject("NavMesh Surface");
-                navmeshGO.transform.position = levelData.startPosition;
-                var navmeshs = navmeshGO.AddComponent<NavMeshSurface>();
-                navmeshs.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-                navmeshs.collectObjects = CollectObjects.All;
-                navmeshs.BuildNavMesh();
-                Loadson.Console.Log("navmesh pos: " + navmeshs.navMeshData.position);
-
+                GenerateNavMesh();
                 IEnumerator enemyFix()
                 {
                     yield return new WaitForEndOfFrame();
@@ -230,14 +244,6 @@ namespace KarlsonMapEditor
                     go.transform.rotation = Quaternion.Euler(obj.Rotation);
                     go.transform.localScale = obj.Scale;
                 }
-                // create navmesh
-                GameObject navmeshGO = new GameObject("NavMesh Surface");
-                navmeshGO.transform.position = levelData.startPosition;
-                var navmeshs = navmeshGO.AddComponent<NavMeshSurface>();
-                navmeshs.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-                navmeshs.collectObjects = CollectObjects.All;
-                navmeshs.BuildNavMesh();
-                Loadson.Console.Log("navmesh pos: " + navmeshs.navMeshData.position);
 
                 foreach (var obj in levelData.Objects)
                 {
@@ -249,6 +255,7 @@ namespace KarlsonMapEditor
                     go.transform.localScale = obj.Scale;
                     if (obj.PrefabId == 11)
                     {
+                        needsNavMesh = true;
                         Enemy e = go.GetComponent<Enemy>();
                         if (obj.PrefabData != 0)
                         {
@@ -262,6 +269,7 @@ namespace KarlsonMapEditor
                         obj._enemyFix = go;
                     }
                 }
+                GenerateNavMesh();
                 IEnumerator enemyFix()
                 {
                     yield return new WaitForEndOfFrame();

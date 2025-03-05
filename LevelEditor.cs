@@ -928,13 +928,12 @@ namespace KarlsonMapEditor
 
             wir[(int)WindowId.LevelData] = GUI.Window(wid[(int)WindowId.LevelData], wir[(int)WindowId.LevelData], (windowId) => {
                 GUI.DragWindow(new Rect(0, 0, 200, 20));
-                GUI.Label(new Rect(5, 20, 100, 20), "Grid Align");
-                result = float.Parse(GUI.TextField(new Rect(95, 20, 50, 20), gridAlign.ToString("0.00")));
-                if(result != gridAlign)
+                if (GUI.Toggle(new Rect(5, 20, 190, 20), gridAlign == 1, "Grid Align"))
                 {
                     MarkAsModified();
-                    gridAlign = result;
+                    gridAlign = 1;
                 }
+                else { gridAlign = 0; }
 
                 GUI.Label(new Rect(5, 40, 100, 20), "Starting Gun");
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
@@ -1194,15 +1193,16 @@ namespace KarlsonMapEditor
                 }
                 else
                 {
+                    gridAlign = 1;
                     if (!aligned)
                     {
                         MarkAsModified();
                         Loadson.Console.Log("Aligning objects");
                         foreach (var obj in globalObject.AllBasicOperableObjects())
                         {
-                            obj.aPosition += Vector3Extensions.Snap(obj.aPosition, gridAlign) - obj.aPosition;
-                            obj.aRotation += Vector3Extensions.Snap(obj.aRotation, gridAlign) - obj.aRotation;
-                            obj.aScale += Vector3Extensions.Snap(obj.aScale, gridAlign) - obj.aScale;
+                            obj.aRotation = Vector3Extensions.Snap(obj.aRotation, 15);
+                            obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, 0.5f, obj.aRotation);
+                            obj.aScale = Vector3Extensions.SnapScale(obj.aScale, 1);
                         }
                         aligned = true;
                     }

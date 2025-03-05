@@ -68,52 +68,28 @@ namespace KarlsonMapEditor
                 return translated.z / direction.z;
             return 0f; // something went wrong. or point == origin
         }
+
+        // snaps to a rotated grid of snap points
+        public static Vector3 SnapPos(Vector3 original, float snap, Vector3 angles)
+        {
+            Quaternion quat = Quaternion.Euler(angles);
+            return quat * Snap(Quaternion.Inverse(quat) * original, snap);
+        }
+        // snaps except when the object is smaller than the snap size
+        public static Vector3 SnapScale(Vector3 original, float snap)
+        {
+            Vector3 snapped = Snap(original, snap);
+            if (Mathf.Abs(original.x) < snap) snapped.x = original.x;
+            if (Mathf.Abs(original.y) < snap) snapped.y = original.y;
+            if (Mathf.Abs(original.z) < snap) snapped.z = original.z;
+            return snapped;
+        }
+
+        static Vector3 HalfOne = Vector3.one * 0.5f;
+        // snaps to the nearest snap point
         public static Vector3 Snap(Vector3 original, float snap)
         {
-            Vector3 result = new Vector3();
-            // x axis
-            if (Mathf.Abs(original.x) < snap / 2) // edge case
-                result.x = 0f;
-            else
-            {
-                float comp = original.x + snap / 2f;
-                if (original.x < 0)
-                    comp = -comp;
-                while (comp >= snap) comp -= snap;
-                result.x = original.x + snap / 2f - comp;
-                if (original.x < 0)
-                    result.x = original.x - snap / 2f + comp;
-            }
-
-            // y axis
-            if (Mathf.Abs(original.y) < snap / 2) // edge case
-                result.y = 0f;
-            else
-            {
-                float comp = original.y + snap / 2f;
-                if (original.y < 0)
-                    comp = -comp;
-                while (comp >= snap) comp -= snap;
-                result.y = original.y + snap / 2f - comp;
-                if (original.y < 0)
-                    result.y = original.y - snap / 2f + comp;
-            }
-
-            // z axis
-            if (Mathf.Abs(original.z) < snap / 2) // edge case
-                result.z = 0f;
-            else
-            {
-                float comp = original.z + snap / 2f;
-                if (original.z < 0)
-                    comp = -comp;
-                while (comp >= snap) comp -= snap;
-                result.z = original.z + snap / 2f - comp;
-                if (original.z < 0)
-                    result.z = original.z - snap / 2f + comp;
-            }
-
-            return result;
+            return snap * (Vector3)Vector3Int.FloorToInt((original / snap) + HalfOne);
         }
     }
 }

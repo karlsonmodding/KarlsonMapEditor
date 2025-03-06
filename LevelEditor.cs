@@ -1185,7 +1185,7 @@ namespace KarlsonMapEditor
             startOrientation = spawnObject.aRotation.y;
             
             // grid align
-            if(gridAlign != 0 && !aligned)
+            if(gridAlign != 0 && !aligned && SelectedObject.Selected)
             {
                 MarkAsModified();
                 Loadson.Console.Log("Aligning object");

@@ -107,9 +107,9 @@ namespace KarlsonMapEditor
         // gizmo handling
         static bool onGizmo = false;
         static bool holdingGizmo = false;
-        static Vector3 initialGizmoPosition;
+        static Vector3 gizmoPos;
+        static Vector3 initialGizmoPoint;
         static Vector3 gizmoMoveDirection;
-        static float gizmoLastOffset;
         public enum GizmoMode
         {
             Translate,
@@ -141,6 +141,10 @@ namespace KarlsonMapEditor
         const int RightMouseButton = 1;
         const int MiddleMouseButton = 2;
 
+        // grid alignmnet
+        const float positionSnap = 0.5f;
+        const float scaleSnap = 1f;
+        const float rotationSnap = 15f;
 
         // non-clickable gizmo
         static Camera gizmoCamera;
@@ -313,7 +317,6 @@ namespace KarlsonMapEditor
             }
         }
         private static float moveStep = 0.05f;
-        private static bool aligned = false;
         private static Vector2 object_browser_scroll = new Vector2(0, 0);
 
         private static float result;
@@ -477,17 +480,23 @@ namespace KarlsonMapEditor
                 else
                 {
                     spawnPrefabDD.Draw(new Rect(100, 20, 150, 20));
+
+                    Vector3 spawnPos = PlayerMovement.Instance.gameObject.transform.position;
+                    if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, 1); }
                     if (spawnPrefabDD.Index != 0)
                     {
                         MarkAsModified();
-                        SelectedObject.Group.AddObject(new EditorObject(spawnPrefabDD.Index - 1, PlayerMovement.Instance.gameObject.transform.position));
-                        SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                        ObjectGroup container = new ObjectGroup("Prefab Container");
+                        SelectedObject.Group.AddGroup(container);
+                        container.AddObject(new EditorObject(spawnPrefabDD.Index - 1, Vector3.zero));
+                        container.go.transform.position = spawnPos;
+                        SelectedObject.SelectGroup(container);
                         spawnPrefabDD.Index = 0;
                     }
                     if (GUI.Button(new Rect(250, 20, 150, 20), "Spawn Cube"))
                     {
                         MarkAsModified();
-                        SelectedObject.Group.AddObject(new EditorObject(PlayerMovement.Instance.gameObject.transform.position));
+                        SelectedObject.Group.AddObject(new EditorObject(spawnPos));
                         dd_level = false;
                         SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                     }
@@ -778,10 +787,6 @@ namespace KarlsonMapEditor
                         if (countGUImove > 5)
                         {
                             oldInGUImove = inGUImove;
-                            if (!inGUImove)
-                            {
-                                aligned = false;
-                            }
                         }
                     }
                     else countGUImove = 0;
@@ -850,12 +855,11 @@ namespace KarlsonMapEditor
                 GUI.EndGroup();
 
                 GUI.Label(new Rect(5, 470, 100, 20), "Editor Step: ");
-                if (gridAlign != 0f && moveStep < gridAlign) moveStep = gridAlign;
                 moveStep = float.Parse(GUI.TextField(new Rect(80, 470, 70, 20), moveStep.ToString("0.00")));
                 if (GUI.Button(new Rect(155, 470, 50, 20), "Reset"))
                 {
                     if (gridAlign != 0f)
-                        moveStep = gridAlign;
+                        moveStep = 1f;
                     else
                         moveStep = 0.05f;
                 }
@@ -928,12 +932,7 @@ namespace KarlsonMapEditor
 
             wir[(int)WindowId.LevelData] = GUI.Window(wid[(int)WindowId.LevelData], wir[(int)WindowId.LevelData], (windowId) => {
                 GUI.DragWindow(new Rect(0, 0, 200, 20));
-                if (GUI.Toggle(new Rect(5, 20, 190, 20), gridAlign == 1, "Grid Align"))
-                {
-                    MarkAsModified();
-                    gridAlign = 1;
-                }
-                else { gridAlign = 0; }
+                gridAlign = GUI.Toggle(new Rect(5, 20, 190, 20), gridAlign == 1, "Grid Align") ? 1 : 0;
 
                 GUI.Label(new Rect(5, 40, 100, 20), "Starting Gun");
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
@@ -1049,25 +1048,25 @@ namespace KarlsonMapEditor
             // update clickable gizmo
             if (SelectedObject.Selected && !(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal))
             {
-                Vector3 pos = SelectedObject.Basic.worldPos;
-                clickGizmo.transform.position = pos;
-                if (gizmoMode == GizmoMode.Translate) { clickGizmo.transform.rotation = Quaternion.identity; }
-                else { clickGizmo.transform.rotation = SelectedObject.Basic.transformRotation; }
                 clickGizmo.SetActive(true);
 
-                // scale up the gizmo so it stays the same size even when the camera gets further away
-                float zDistance = Vector3.Dot(pos - Camera.main.transform.position, Camera.main.transform.forward);
-                float gizmoScale = clickGizmoScaleFactor * zDistance * Mathf.Tan(0.5f * Mathf.Deg2Rad * Camera.main.fieldOfView);
-                clickGizmo.transform.localScale = Vector3.one * gizmoScale;
-
-                // switch modes
                 if (!holdingGizmo)
                 {
+                    // transform the gizmo so its on the slected object
+                    gizmoPos = SelectedObject.Basic.worldPos;
+                    clickGizmo.transform.position = gizmoPos;
+                    if (gizmoMode == GizmoMode.Translate) { clickGizmo.transform.rotation = Quaternion.identity; }
+                    else { clickGizmo.transform.rotation = SelectedObject.Basic.transformRotation; }
+                    // switch to the correct mode
                     if (Input.GetKey(scaleGizmoKey)) { gizmoMode = GizmoMode.Scale; }
                     else if (Input.GetKey(rotateGizmoKey)) { gizmoMode = GizmoMode.Rotate; }
                     else { gizmoMode = GizmoMode.Translate; }
                 }
-                
+
+                // scale up the gizmo so it stays the same size even when the camera gets further away
+                float zDistance = Vector3.Dot(gizmoPos - Camera.main.transform.position, Camera.main.transform.forward);
+                float gizmoScale = clickGizmoScaleFactor * zDistance * Mathf.Tan(0.5f * Mathf.Deg2Rad * Camera.main.fieldOfView);
+                clickGizmo.transform.localScale = Vector3.one * gizmoScale;
 
                 // check for hovering gizmo
                 Ray ray = gizmoCamera.ScreenPointToRay(Input.mousePosition);
@@ -1087,7 +1086,7 @@ namespace KarlsonMapEditor
                 {
                     // start holding
                     holdingGizmo = true;
-                    gizmoLastOffset = 0;
+                    SelectedObject.Basic.PreEdit();
                     
                     if (hit.transform.gameObject == GizmoXAxis)
                     {
@@ -1110,9 +1109,9 @@ namespace KarlsonMapEditor
 
                     if (gizmoMode == GizmoMode.Rotate)
                     {
-                        initialGizmoPosition = hit.point;
+                        initialGizmoPoint = hit.point;
                     }
-                    else { initialGizmoPosition = hit.point; }
+                    else { initialGizmoPoint = hit.point; }
 
                     MarkAsModified();
                 }
@@ -1126,14 +1125,13 @@ namespace KarlsonMapEditor
                     {
                         // find the intersection of the ray and the plane defined by the axis normal
                         float denom = Vector3.Dot(gizmoDir, ray.direction);
-                        float dist = Vector3.Dot(pos - ray.origin, gizmoDir) / denom;
+                        float dist = Vector3.Dot(gizmoPos - ray.origin, gizmoDir) / denom;
                         Vector3 intersect = ray.origin + (ray.direction * dist);
 
                         // find the angle of the intersection on the plane
-                        float offset = Vector3.SignedAngle(initialGizmoPosition - pos, intersect - pos, gizmoDir);
+                        float offset = Vector3.SignedAngle(initialGizmoPoint - gizmoPos, intersect - gizmoPos, gizmoDir);
 
-                        SelectedObject.Basic.RotateByGizmo(Quaternion.AngleAxis(offset - gizmoLastOffset, gizmoMoveDirection));
-                        gizmoLastOffset = offset;
+                        SelectedObject.Basic.RotateByGizmo(Quaternion.AngleAxis(offset, gizmoMoveDirection));
                     }
                     else
                     {
@@ -1146,19 +1144,19 @@ namespace KarlsonMapEditor
                         Vector3 intersect = ray.origin + (ray.direction * dist);
 
                         // find the offset along the move direction that is closest to the intersection
-                        float offset = Vector3.Dot(intersect - initialGizmoPosition, gizmoDir);
+                        float offset = Vector3.Dot(intersect - initialGizmoPoint, gizmoDir);
 
                         if (gizmoMode == GizmoMode.Translate)
                         {
                             // move the object by the relative difference in the current and last recorded offset
-                            SelectedObject.Basic.MoveByGizmo(gizmoMoveDirection * (offset - gizmoLastOffset));
+                            SelectedObject.Basic.MoveByGizmo(gizmoMoveDirection * offset);
+                            clickGizmo.transform.position = gizmoPos + gizmoMoveDirection * offset;
                         }
                         else
                         {
                             // scale the object by the relative difference in the current and last recorded offset
-                            SelectedObject.Basic.ScaleByGizmo(gizmoMoveDirection * (offset - gizmoLastOffset));
+                            SelectedObject.Basic.ScaleByGizmo(gizmoMoveDirection * offset);
                         }
-                        gizmoLastOffset = offset;
                     }
                 }
                 if (Input.GetMouseButtonUp(LeftMouseButton) && holdingGizmo)
@@ -1169,8 +1167,6 @@ namespace KarlsonMapEditor
                     GizmoXAxis.SetActive(true);
                     GizmoYAxis.SetActive(true);
                     GizmoZAxis.SetActive(true);
-
-                    aligned = false;
                 }
                 
             }
@@ -1183,24 +1179,19 @@ namespace KarlsonMapEditor
             EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
             startPosition = spawnObject.aPosition;
             startOrientation = spawnObject.aRotation.y;
-            
-            // grid align
-            if(gridAlign != 0 && !aligned && SelectedObject.Selected)
+        }
+
+        private static void AlignObject(IBasicProperties obj)
+        {
+            MarkAsModified();
+
+            obj.aRotation = Vector3Extensions.Snap(obj.aRotation, rotationSnap);
+            obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, positionSnap, obj.aRotation);
+
+            // only snap scale if it's not a prefab
+            if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.data.IsPrefab)
             {
-                MarkAsModified();
-                Loadson.Console.Log("Aligning object");
-
-                IBasicProperties obj = SelectedObject.Basic;
-                obj.aRotation = Vector3Extensions.Snap(obj.aRotation, 15);
-                obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, 0.5f, obj.aRotation);
-
-                // only snap scale if it's a cube
-                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab)
-                {
-                    obj.aScale = Vector3Extensions.SnapScale(obj.aScale, 1);
-                }
-                
-                aligned = true;
+                obj.aScale = Vector3Extensions.SnapScale(obj.aScale, scaleSnap);
             }
         }
 
@@ -1381,7 +1372,6 @@ namespace KarlsonMapEditor
             dd_level = true;
             Time.timeScale = 0f;
             SelectedObject.Deselect();
-            aligned = false;
             IEnumerator markAsSaved()
             {
                 yield return new WaitForSecondsRealtime(0.1f); // because Time.timeScale is 0 in editor
@@ -1435,6 +1425,7 @@ namespace KarlsonMapEditor
             Vector3 transformUp { get; }
             Vector3 transformRight { get; }
             Vector3 worldPos { get; }
+            void PreEdit();
             void MoveByGizmo(Vector3 delta);
             void ScaleByGizmo(Vector3 delta);
             void RotateByGizmo(Quaternion delta);
@@ -1575,19 +1566,34 @@ namespace KarlsonMapEditor
             public Vector3 transformUp => go.transform.up;
             public Vector3 transformRight => go.transform.right;
             public Vector3 worldPos => go.transform.position;
+
+            private Vector3 preMove;
+            private Vector3 preScale;
+            private Quaternion preRotate;
+            public void PreEdit()
+            {
+                preMove = go.transform.position;
+                preScale = go.transform.localScale;
+                preRotate = go.transform.localRotation;
+            }
+
             public void MoveByGizmo(Vector3 delta)
             {
-                go.transform.position += delta;
+                go.transform.position = preMove + delta;
+                if (gridAlign != 0) { AlignObject(this); }
                 data.Position = go.transform.localPosition;
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale += delta;
+                go.transform.localScale = preScale + delta;
+                if (gridAlign != 0) { AlignObject(this); }
                 data.Scale = go.transform.localScale;
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                go.transform.localRotation *= delta;
+                go.transform.position = preMove; // align can change the position, it needs to start from where it was initially
+                go.transform.localRotation = preRotate * delta;
+                if (gridAlign != 0) { AlignObject(this); }
                 data.Rotation = go.transform.localRotation.eulerAngles;
             }
         }
@@ -1738,17 +1744,32 @@ namespace KarlsonMapEditor
             public Vector3 transformUp => go.transform.up;
             public Vector3 transformRight => go.transform.right;
             public Vector3 worldPos => go.transform.position;
+
+            private Vector3 preMove;
+            private Vector3 preScale;
+            private Quaternion preRotate;
+            public void PreEdit()
+            {
+                preMove = go.transform.position;
+                preScale = go.transform.localScale;
+                preRotate = go.transform.localRotation;
+            }
+
             public void MoveByGizmo(Vector3 delta)
             {
-                go.transform.position += delta;
+                go.transform.position = preMove + delta;
+                if (gridAlign != 0) { AlignObject(this); }
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale += delta;
+                go.transform.localScale = preScale + delta;
+                if (gridAlign != 0) { AlignObject(this); }
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                go.transform.localRotation *= delta;
+                go.transform.position = preMove; // align can change the position, it needs to start from where it was initially
+                go.transform.localRotation = preRotate * delta;
+                if (gridAlign != 0) { AlignObject(this); }
             }
         }
     }

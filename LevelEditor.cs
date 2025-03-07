@@ -485,12 +485,20 @@ namespace KarlsonMapEditor
                     if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, 1); }
                     if (spawnPrefabDD.Index != 0)
                     {
+                        if (spawnPrefabDD.Index == 11) // milk
+                        {
+                            ObjectGroup container = new ObjectGroup("Prefab Container");
+                            SelectedObject.Group.AddGroup(container);
+                            container.AddObject(new EditorObject(spawnPrefabDD.Index - 1, Vector3.zero));
+                            container.go.transform.position = spawnPos;
+                            SelectedObject.SelectGroup(container);
+                        }
+                        else
+                        {
+                            SelectedObject.Group.AddObject(new EditorObject(spawnPrefabDD.Index - 1, spawnPos));
+                            SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                        }
                         MarkAsModified();
-                        ObjectGroup container = new ObjectGroup("Prefab Container");
-                        SelectedObject.Group.AddGroup(container);
-                        container.AddObject(new EditorObject(spawnPrefabDD.Index - 1, Vector3.zero));
-                        container.go.transform.position = spawnPos;
-                        SelectedObject.SelectGroup(container);
                         spawnPrefabDD.Index = 0;
                     }
                     if (GUI.Button(new Rect(250, 20, 150, 20), "Spawn Cube"))

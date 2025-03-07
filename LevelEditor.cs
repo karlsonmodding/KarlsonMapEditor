@@ -1172,27 +1172,12 @@ namespace KarlsonMapEditor
             }
             else
             {
-                // clickGizmo.transform.position = new Vector3(5000, 5000, 5100);
                 clickGizmo.SetActive(false);
             }
 
             EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
             startPosition = spawnObject.aPosition;
             startOrientation = spawnObject.aRotation.y;
-        }
-
-        private static void AlignObject(IBasicProperties obj)
-        {
-            MarkAsModified();
-
-            obj.aRotation = Vector3Extensions.Snap(obj.aRotation, rotationSnap);
-            obj.aPosition = Vector3Extensions.SnapPos(obj.aPosition, positionSnap, obj.aRotation);
-
-            // only snap scale if it's not a prefab
-            if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.data.IsPrefab)
-            {
-                obj.aScale = Vector3Extensions.SnapScale(obj.aScale, scaleSnap);
-            }
         }
 
         private static void ExitEditor()
@@ -1580,20 +1565,20 @@ namespace KarlsonMapEditor
             public void MoveByGizmo(Vector3 delta)
             {
                 go.transform.position = preMove + delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                if (gridAlign != 0) { aPosition = Vector3Extensions.SnapPos(aPosition, positionSnap, aRotation); }
                 data.Position = go.transform.localPosition;
             }
             public void ScaleByGizmo(Vector3 delta)
             {
                 go.transform.localScale = preScale + delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                // only snap scale if it's not a prefab
+                if (gridAlign != 0 && !data.IsPrefab) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
                 data.Scale = go.transform.localScale;
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                go.transform.position = preMove; // align can change the position, it needs to start from where it was initially
                 go.transform.localRotation = preRotate * delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                if (gridAlign != 0) { aRotation = Vector3Extensions.Snap(aRotation, rotationSnap); }
                 data.Rotation = go.transform.localRotation.eulerAngles;
             }
         }
@@ -1758,18 +1743,17 @@ namespace KarlsonMapEditor
             public void MoveByGizmo(Vector3 delta)
             {
                 go.transform.position = preMove + delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                if (gridAlign != 0) { aPosition = Vector3Extensions.SnapPos(aPosition, positionSnap, aRotation); }
             }
             public void ScaleByGizmo(Vector3 delta)
             {
                 go.transform.localScale = preScale + delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                if (gridAlign != 0) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
             }
             public void RotateByGizmo(Quaternion delta)
             {
-                go.transform.position = preMove; // align can change the position, it needs to start from where it was initially
                 go.transform.localRotation = preRotate * delta;
-                if (gridAlign != 0) { AlignObject(this); }
+                if (gridAlign != 0) { aRotation = Vector3Extensions.Snap(aRotation, rotationSnap); }
             }
         }
     }

@@ -19,6 +19,7 @@ using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Google.Protobuf;
 
 namespace KarlsonMapEditor
 {
@@ -223,9 +224,9 @@ namespace KarlsonMapEditor
             spawnPrefabDD.Index = 0;
         }
 
+        static EditorObject clipboardObj;
         public static string levelName { get; private set; } = "";
         private static ObjectGroup globalObject;
-        private static List<Texture2D> textures = new List<Texture2D>();
         private static float gridAlign;
         private static int startingGun;
         private static Vector3 startPosition;
@@ -273,7 +274,7 @@ namespace KarlsonMapEditor
                 Selected = true;
 
                 if (!obj.data.IsPrefab)
-                    picker.color = obj.go.GetComponent<MeshRenderer>().material.color;
+                    picker.color = obj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
 
                 Identify();
 
@@ -388,7 +389,7 @@ namespace KarlsonMapEditor
                                 globalObject = new ObjectGroup(name);
                                 globalObject.isGlobal = true;
                                 globalObject.AddObject(new EditorObject(new Vector3(0f, 2f, 0f), 0f));
-                                textures.Clear();
+                                MaterialManager.Init();
                                 dd_level = true;
                                 Time.timeScale = 0f;
                                 SelectedObject.Deselect();
@@ -435,7 +436,7 @@ namespace KarlsonMapEditor
             if (GUI.Button(new Rect(0, 0, 100, 20), "File")) { dd_file = !dd_file; dd_level = false; }
             if (GUI.Button(new Rect(100, 0, 100, 20), "Map")) { dd_level = !dd_level; dd_file = false; }
             if (GUI.Button(new Rect(200, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
-            if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, textures);
+            if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, MaterialManager.GetExternalTextures());
             GUI.Label(new Rect(405, 0, 1000, 20), $"<b>Karlson Map Editor</b> v3.1 | Current map: <b>{(unsaved ? (levelName + '*') : levelName)}</b> | Object count: <b>{_countAll.Item1 + _countAll.Item2}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
             if (GUI.Button(new Rect(Screen.width - 100, 0, 100, 20), "Open Script")) Process.Start(Path.Combine(Main.directory, "_temp.amta"));
 
@@ -489,13 +490,13 @@ namespace KarlsonMapEditor
                         {
                             ObjectGroup container = new ObjectGroup("Prefab Container");
                             SelectedObject.Group.AddGroup(container);
-                            container.AddObject(new EditorObject(spawnPrefabDD.Index - 1, Vector3.zero));
+                            container.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), Vector3.zero));
                             container.go.transform.position = spawnPos;
                             SelectedObject.SelectGroup(container);
                         }
                         else
                         {
-                            SelectedObject.Group.AddObject(new EditorObject(spawnPrefabDD.Index - 1, spawnPos));
+                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), spawnPos));
                             SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                         }
                         MarkAsModified();
@@ -522,49 +523,38 @@ namespace KarlsonMapEditor
                         Texture2D tex = new Texture2D(1, 1);
                         tex.LoadImage(File.ReadAllBytes(picked));
                         tex.name = Path.GetFileName(picked);
-                        textures.Add(tex);
+                        MaterialManager.AddTexture(tex);
 
                         MarkAsModified();
                     }
                 }
                 tex_browser_scroll = GUI.BeginScrollView(new Rect(0, 20, 900, 800), tex_browser_scroll, new Rect(0, 0, 800, 10000));
                 int i = 0;
-                foreach (var t in Main.gameTex.Concat(textures))
+                bool[] texturesUsed = MaterialManager.TexturesInUse();
+                foreach (Texture2D t in MaterialManager.Textures)
                 {
+                    // creating the display of textures to choose from
                     GUI.DrawTexture(new Rect(200 * (i % 4), 200 * (i / 4), 200, 200), t);
                     GUI.Box(new Rect(200 * (i % 4), 180 + 200 * (i / 4), 200, 20), "");
                     GUI.Label(new Rect(5 + 200 * (i % 4), 180 + 200 * (i / 4), 200, 20), "<size=9>" + t.name + "</size>");
-                    if(SelectedObject.Selected && SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
+                    // if the selected texture is this one, make the text color green
+                    string color = "^";
+                    if (MaterialManager.SelectedTexture == t)
+                        color = "<color=green>^</color>";
+                    // select a texture
+                    if (GUI.Button(new Rect(180 + 200 * (i % 4), 180 + 200 * (i / 4), 20, 20), color))
                     {
-                        if (!SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
-                        {
-                            string color = "^";
-                            if (SelectedObject.Object.data.TextureId == i)
-                                color = "<color=green>^</color>";
-                            if (GUI.Button(new Rect(180 + 200 * (i % 4), 180 + 200 * (i / 4), 20, 20), color))
-                            {
-                                MarkAsModified();
-                                SelectedObject.Object.data.TextureId = i;
-                                SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = t;
-                            }
-                        }
+                        MarkAsModified();
+                        MaterialManager.SelectedTexture = t;
+                        MaterialManager.updateSelectedTexture();
                     }
-                    if(i >= Main.gameTex.Length)
+
+                    if (!texturesUsed[i]) // texture is not used in any materials
                     {
-                        int usecount = 0;
-                        foreach(var o in globalObject.AllEditorObjects())
-                            if (o.data.TextureId == i)
-                                usecount++;
-                        if(usecount == 0)
+                        if (GUI.Button(new Rect(200 * (i % 4) + 130, 200 * (i / 4) + 160, 70, 20), "Remove"))
                         {
-                            if(GUI.Button(new Rect(200 * (i % 4) + 130, 200 * (i / 4) + 160, 70, 20), "Remove"))
-                            {
-                                MarkAsModified();
-                                textures.RemoveAt(i - Main.gameTex.Length);
-                                foreach (var o in globalObject.AllEditorObjects())
-                                    if (o.data.TextureId > i)
-                                        o.data.TextureId--;
-                            }
+                            MarkAsModified();
+                            MaterialManager.RemoveTexture(t);
                         }
                     }
                     i++;
@@ -593,7 +583,7 @@ namespace KarlsonMapEditor
                     {
                         if (GUI.Button(new Rect(depth * 20 + 20, j * 25, 20, 20), "S"))
                             SelectedObject.SelectObject(obj);
-                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? LevelPlayer.LevelData.PrefabToName(obj.data.PrefabId) : "Cube") + " | " + obj.go.name);
+                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? obj.data.PrefabId.ToString() : "Cube") + " | " + obj.go.name);
                         ++j;
                     }
                     // close group
@@ -673,7 +663,7 @@ namespace KarlsonMapEditor
                     SelectedObject.Identify();
                 if (GUI.Button(new Rect(245, 40, 50, 20), "Find")) { PlayerMovement.Instance.gameObject.transform.position = SelectedObject.Basic.worldPos + Camera.main.transform.forward * -5f; SelectedObject.Identify(); }
 
-                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.PrefabId == 11)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.PrefabId == PrefabType.Enemey)
                 {
                     GUI.Label(new Rect(5, 60, 40, 20), "Gun");
                     enemyGun.Draw(new Rect(35, 60, 100, 20));
@@ -684,7 +674,31 @@ namespace KarlsonMapEditor
                     }
                 }
 
-                GUI.BeginGroup(new Rect(0, 100, 300, 80));
+                bool hasMat = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab;
+                if (hasMat)
+                {
+                    // buttons to copy and paste materials between geometry objects
+                    GUI.BeginGroup(new Rect(0, 100, 300, 20));
+                    GUI.Label(new Rect(5, 0, 95, 20), "Material");
+                    if (GUI.Button(new Rect(150, 0, 50, 20), "New") && hasMat)
+                    {
+                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
+                        picker.color = Color.white;
+                    }
+                    if (GUI.Button(new Rect(200, 0, 50, 20), "Copy") && hasMat)
+                    {
+                        clipboardObj = SelectedObject.Object;
+                    }
+                    if (GUI.Button(new Rect(250, 0, 50, 20), "Paste") && hasMat)
+                    {
+                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
+                        SelectedObject.Object.data.MaterialId = clipboardObj.data.MaterialId;
+                        picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
+                    }
+                    GUI.EndGroup();
+                }
+
+                GUI.BeginGroup(new Rect(0, 120, 300, 80));
                 GUI.Label(new Rect(5, 0, 290, 20), "[Pos] X: " + SelectedObject.Basic.aPosition.x + " Y: " + SelectedObject.Basic.aPosition.y + " Z: " + SelectedObject.Basic.aPosition.z);
                 GUI.Label(new Rect(5, 20, 20, 20), "X:");
                 if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(-moveStep, 0, 0); }
@@ -719,7 +733,7 @@ namespace KarlsonMapEditor
                 GUI.EndGroup();
                 if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
                 {
-                    GUI.BeginGroup(new Rect(0, 190, 300, 80));
+                    GUI.BeginGroup(new Rect(0, 210, 300, 80));
                     GUI.Label(new Rect(5, 0, 290, 20), "[Rot] X: " + SelectedObject.Basic.aRotation.x + " Y: " + SelectedObject.Basic.aRotation.y + " Z: " + SelectedObject.Basic.aRotation.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
                     if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(-moveStep, 0f, 0f); }
@@ -753,7 +767,7 @@ namespace KarlsonMapEditor
                     if (GUI.Button(new Rect(265, 60, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(0f, 0f, moveStep); }
                     GUI.EndGroup();
 
-                    GUI.BeginGroup(new Rect(0, 280, 300, 80));
+                    GUI.BeginGroup(new Rect(0, 300, 300, 80));
                     GUI.Label(new Rect(5, 0, 290, 20), "[Scale] X: " + SelectedObject.Basic.aScale.x + " Y: " + SelectedObject.Basic.aScale.y + " Z: " + SelectedObject.Basic.aScale.z);
                     GUI.Label(new Rect(5, 20, 20, 20), "X:");
                     if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(-moveStep, 0f, 0f); }
@@ -801,7 +815,7 @@ namespace KarlsonMapEditor
                     inGUImove = false;
                 }
 
-                GUI.BeginGroup(new Rect(5, 370, 300, 80));
+                GUI.BeginGroup(new Rect(5, 390, 300, 80));
                 GUI.Label(new Rect(0, 0, 300, 20), "Numerical values:");
                 GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
                 {
@@ -894,43 +908,53 @@ namespace KarlsonMapEditor
                         bRes = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
                         if (SelectedObject.Object.data.Lava != bRes) { MarkAsModified(); SelectedObject.Object.data.Lava = bRes; }
                     }
-                    if((SelectedObject.Object.data.Glass || SelectedObject.Object.data.Lava) && SelectedObject.Object.go.GetComponent<Glass>() == null)
+                    // get the editor object
+                    EditorObject obj = SelectedObject.Object;
+
+                    // if the object is glass or lava and doesnt have the trigger component
+                    if ((obj.data.Glass || obj.data.Lava) && obj.go.GetComponent<Glass>() == null)
                     {
-                        string name = SelectedObject.Object.go.name;
-                        Color c = SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color;
-                        UnityEngine.Object.Destroy(SelectedObject.Object.go);
-                        SelectedObject.Object.go = LoadsonAPI.PrefabManager.NewGlass();
-                        if (SelectedObject.Object.data.TextureId < Main.gameTex.Length)
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[SelectedObject.Object.data.TextureId];
-                        else
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = textures[SelectedObject.Object.data.TextureId - Main.gameTex.Length];
-                        SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = c;
-                        SelectedObject.Object.go.transform.position = SelectedObject.Object.data.Position;
-                        SelectedObject.Object.go.transform.rotation = Quaternion.Euler(SelectedObject.Object.data.Rotation);
-                        SelectedObject.Object.go.transform.localScale = SelectedObject.Object.data.Scale;
-                        SelectedObject.Object.go.name = name;
+                        // create a new glass instance
+                        GameObject glassInstance = LoadsonAPI.PrefabManager.NewGlass();
+                        glassInstance.AddComponent<KME_Object>();
+
+                        // copy the properties
+                        glassInstance.name = obj.go.name; // cant have 2 objects with the same name
+                        glassInstance.GetComponent<MeshRenderer>().sharedMaterial = obj.go.GetComponent<MeshRenderer>().sharedMaterial;
+                        glassInstance.transform.parent = obj.go.transform.parent;
+                        glassInstance.transform.localPosition = obj.go.transform.localPosition;
+                        glassInstance.transform.localRotation = obj.go.transform.localRotation;
+                        glassInstance.transform.localScale = obj.go.transform.localScale;
+
+                        // destroy the old object and replace it with the new
+                        UnityEngine.Object.Destroy(obj.go);
+                        obj.go = glassInstance;
                     }
-                    if(!SelectedObject.Object.data.Glass && !SelectedObject.Object.data.Lava && SelectedObject.Object.go.GetComponent<Glass>() != null)
+
+                    // if the object is not lava or glass, but has the component
+                    if(!obj.data.Glass && !obj.data.Lava && obj.go.GetComponent<Glass>() != null)
                     {
-                        string name = SelectedObject.Object.go.name;
-                        Color c = SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color;
-                        UnityEngine.Object.Destroy(SelectedObject.Object.go);
-                        SelectedObject.Object.go = LoadsonAPI.PrefabManager.NewCube();
-                        if (SelectedObject.Object.data.TextureId < Main.gameTex.Length)
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[SelectedObject.Object.data.TextureId];
-                        else
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().material.mainTexture = textures[SelectedObject.Object.data.TextureId - Main.gameTex.Length];
-                        SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = c;
-                        SelectedObject.Object.go.transform.position = SelectedObject.Object.data.Position;
-                        SelectedObject.Object.go.transform.rotation = Quaternion.Euler(SelectedObject.Object.data.Rotation);
-                        SelectedObject.Object.go.transform.localScale = SelectedObject.Object.data.Scale;
-                        SelectedObject.Object.go.name = name;
+                        // create a new cube instance
+                        GameObject cubeInstance = LoadsonAPI.PrefabManager.NewCube();
+                        cubeInstance.AddComponent<KME_Object>();
+
+                        // copy the properties
+                        cubeInstance.name = obj.go.name;
+                        cubeInstance.GetComponent<MeshRenderer>().sharedMaterial = obj.go.GetComponent<MeshRenderer>().sharedMaterial;
+                        cubeInstance.transform.parent = obj.go.transform.parent;
+                        cubeInstance.transform.localPosition = obj.go.transform.localPosition;
+                        cubeInstance.transform.localRotation = obj.go.transform.localRotation;
+                        cubeInstance.transform.localScale = obj.go.transform.localScale;
+
+                        // destroy the old object and replace it with the new
+                        UnityEngine.Object.Destroy(obj.go);
+                        obj.go = cubeInstance;
                     }
                     // TODO: add hint labels to every option
                 }
                 else
                 {
-                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.IsPrefab && SelectedObject.Object.data.PrefabId == 11) // only draw, so it appears on top
+                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.IsPrefab && SelectedObject.Object.data.PrefabId == PrefabType.Enemey) // only draw, so it appears on top
                         enemyGun.Draw(new Rect(35, 60, 100, 20));
                     // for some reason, the first button rendered takes priority over the mouse click
                     // even if it is below .. idk
@@ -969,10 +993,10 @@ namespace KarlsonMapEditor
             if (SelectedObject.Selected && SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
             {
                 picker.DrawWindow();
-                if(SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color != picker.color)
+                if(SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.color != picker.color)
                 {
                     MarkAsModified();
-                    SelectedObject.Object.go.GetComponent<MeshRenderer>().material.color = picker.color;
+                    SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.color = picker.color;
                 }
             }
 
@@ -1221,75 +1245,33 @@ namespace KarlsonMapEditor
             return screenShot.EncodeToPNG();
         }
 
-        private static byte[] SaveObjectGroup(ObjectGroup objGroup)
-        {
-            using(MemoryStream ms = new MemoryStream())
-            using(BinaryWriter bw = new BinaryWriter(ms))
-            {
-                bw.Write(objGroup.go.name);
-                bw.Write(objGroup.aPosition);
-                bw.Write(objGroup.aRotation);
-                bw.Write(objGroup.aScale);
-                if(objGroup.isGlobal)
-                    bw.Write(objGroup.editorObjects.Count - 1);
-                else
-                    bw.Write(objGroup.editorObjects.Count);
-                foreach (var obj in objGroup.editorObjects)
-                {
-                    if (obj.internalObject) continue;
-                    bw.Write(obj.data.IsPrefab);
-                    bw.Write(obj.go.name);
-                    if (obj.data.IsPrefab)
-                    {
-                        bw.Write(obj.data.PrefabId);
-                        bw.Write(obj.aPosition);
-                        bw.Write(obj.aRotation);
-                        bw.Write(obj.aScale);
-                        bw.Write(obj.data.PrefabData);
-                    }
-                    else
-                    {
-                        bw.Write(obj.aPosition);
-                        bw.Write(obj.aRotation);
-                        bw.Write(obj.aScale);
-                        bw.Write(obj.data.TextureId);
-                        bw.Write(obj.go.GetComponent<MeshRenderer>().material.color);
-                        bw.Write(obj.data.Bounce);
-                        bw.Write(obj.data.Glass);
-                        bw.Write(obj.data.Lava);
-                        bw.Write(obj.data.DisableTrigger);
-                        bw.Write(obj.data.MarkAsObject);
-                    }
-                }
-                bw.Write(objGroup.objectGroups.Count);
-                foreach (var group in objGroup.objectGroups)
-                    bw.WriteByteArray(SaveObjectGroup(group));
-                bw.Flush();
-                return ms.ToArray();
-            }
-        }
-
+        // saver
         private static byte[] SaveLevelData()
         {
+            Map map = new Map
+            {
+                // editor data
+                GridAlign = gridAlign,
+
+                // starting state
+                StartingGun = startingGun,
+                StartPosition = startPosition,
+                StartOrientation = startOrientation,
+
+                // level data
+                Script = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
+            };
+            map.SaveTree(globalObject);
+            // rendering
+            map.SaveMaterials(MaterialManager.Textures, MaterialManager.Materials);
+            if (RenderSettings.fog) { map.Fog = RenderSettings.fogColor; }
+
+                // export
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                bw.Write(4);
-                bw.Write(gridAlign);
-                bw.Write(startingGun);
-                bw.Write(startPosition);
-                bw.Write(startOrientation);
-                bw.Write(textures.Count);
-                foreach (var t in textures)
-                {
-                    bw.Write(t.name);
-                    byte[] data = t.EncodeToPNG();
-                    bw.Write(data.Length);
-                    bw.Write(data);
-                }
-                bw.Write(File.ReadAllText(Path.Combine(Main.directory, "_temp.amta")));
-                bw.WriteByteArray(SaveObjectGroup(globalObject));
-                bw.Flush();
+                bw.Write(LevelSerializer.SaveVersion);
+                map.WriteTo(ms);
                 return SevenZipHelper.Compress(ms.ToArray());
             }
         }
@@ -1345,7 +1327,6 @@ namespace KarlsonMapEditor
             startGunDD.Index = startingGun;
             startPosition = data.startPosition;
             startOrientation = data.startOrientation;
-            textures = data.Textures.ToList();
             // kme v1 compatibility
             if (!data.isKMEv2)
             {
@@ -1430,14 +1411,14 @@ namespace KarlsonMapEditor
             {
                 go = LoadsonAPI.PrefabManager.NewCube();
                 go.AddComponent<KME_Object>();
-                go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[6];
                 go.transform.position = position;
                 go.transform.rotation = Quaternion.identity;
                 go.transform.localScale = Vector3.one;
                 data = new LevelPlayer.LevelData.LevelObject(go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, 6, Color.white, go.name, false, false, false, false, false);
+                go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[data.MaterialId];
             }
 
-            public EditorObject(int _prefabId, Vector3 position)
+            public EditorObject(PrefabType _prefabId, Vector3 position)
             {
                 go = LevelPlayer.LevelData.MakePrefab(_prefabId);
                 go.AddComponent<KME_Object>();
@@ -1461,11 +1442,7 @@ namespace KarlsonMapEditor
                         go = LoadsonAPI.PrefabManager.NewGlass();
                     else
                         go = LoadsonAPI.PrefabManager.NewCube();
-                    if (playObj.TextureId < Main.gameTex.Length)
-                        go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[playObj.TextureId];
-                    else
-                        go.GetComponent<MeshRenderer>().material.mainTexture = textures[playObj.TextureId - Main.gameTex.Length];
-                    go.GetComponent<MeshRenderer>().material.color = playObj._Color;
+                    go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[playObj.MaterialId];
                 }
                 go.AddComponent<KME_Object>();
                 go.transform.position = data.Position;
@@ -1476,7 +1453,15 @@ namespace KarlsonMapEditor
 
             public EditorObject(Vector3 pos, float orientation)
             {
-                data = new LevelPlayer.LevelData.LevelObject(pos, Vector3.zero, Vector3.one, 6, Color.white, "Player Spawn", "_internal", false, false, false, false, false);
+                data = new LevelPlayer.LevelData.LevelObject
+                {
+                    Name = "Player Spawn",
+                    GroupName = "_internal",
+                    Position = pos,
+                    Rotation = Vector3.zero,
+                    Scale = Vector3.one,
+                    IsPrefab = false,
+                };
                 go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 go.AddComponent<KME_Object>();
                 go.transform.localScale = new Vector3(1f, 1.5f, 1f);
@@ -1499,13 +1484,9 @@ namespace KarlsonMapEditor
                 else
                 {
                     toAdd = new EditorObject(aPosition);
-                    toAdd.data.TextureId = data.TextureId;
-                    if (data.TextureId < Main.gameTex.Length)
-                        toAdd.go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[data.TextureId];
-                    else
-                        toAdd.go.GetComponent<MeshRenderer>().material.mainTexture = textures[data.TextureId - Main.gameTex.Length];
-                    toAdd.go.GetComponent<MeshRenderer>().material.color = go.GetComponent<MeshRenderer>().material.color;
-
+                    toAdd.data.MaterialId = data.MaterialId;
+                    toAdd.go.GetComponent<MeshRenderer>().sharedMaterial = go.GetComponent<MeshRenderer>().sharedMaterial;
+                    
                     toAdd.data.Bounce = data.Bounce;
                     toAdd.data.Glass = data.Glass;
                     toAdd.data.Lava = data.Lava;
@@ -1762,6 +1743,96 @@ namespace KarlsonMapEditor
             {
                 go.transform.localRotation = preRotate * delta;
                 if (gridAlign != 0) { aRotation = Vector3Extensions.Snap(aRotation, rotationSnap); }
+            }
+        }
+
+        public static class MaterialManager
+        {
+            public static List<Texture2D> Textures { get { return textures; } }
+            private static List<Texture2D> textures;
+            public static List<Material> Materials { get { return materials; } }
+            private static List<Material> materials;
+
+            public static Texture2D SelectedTexture; // for choosing textures in a context menu
+            public static void updateSelectedTexture() // TODO
+            {
+
+            }
+            
+            static readonly Shader defaultShader = Shader.Find("Standard");
+
+            public static void Init()
+            {
+                textures = Main.gameTex.ToList();
+                materials = new List<Material>();
+            }
+
+            public static void AddTexture(Texture2D tex)
+            {
+                textures.Add(tex);
+            }
+
+            public static bool[] TexturesInUse()
+            {
+                bool[] used = new bool[textures.Count];
+                for (int i = 0; i < Main.gameTex.Length; i++)
+                {
+                    used[i] = true;
+                }
+                foreach (Material mat in materials)
+                {
+                    used[textures.IndexOf((Texture2D)mat.mainTexture)] = true;
+                    used[textures.IndexOf((Texture2D)mat.GetTexture("_BumpMap"))] = true;
+                }
+                return used;
+            }
+            public static void RemoveTexture(Texture2D tex)
+            {
+                textures.Remove(tex);
+            }
+
+            public static Material InstanceMaterial()
+            {
+                Material mat = new Material(defaultShader)
+                {
+                    mainTexture = textures[6]
+                };
+                materials.Add(mat);
+                return mat;
+            }
+            public static int InstanceMaterial(int TextureId, Color color)
+            {
+                Material mat = new Material(defaultShader)
+                {
+                    mainTexture = textures[TextureId],
+                    color = color
+                };
+                materials.Add(mat);
+                return materials.Count - 1;
+            }
+            public static void ClearMaterial(Material mat)
+            {
+                int index = materials.IndexOf(mat);
+                List<EditorObject> allObjects = globalObject.AllEditorObjects();
+
+                // check if the mat is used by any object
+                foreach (EditorObject eo in allObjects)
+                {
+                    if (eo.data.MaterialId == index) return;
+                }
+
+                // if not, remove the mat
+                materials.RemoveAt(index);
+                foreach (EditorObject eo in allObjects)
+                    if (eo.data.MaterialId > index) eo.data.MaterialId--;
+            }
+            public static int GetMainTextureIndex(int materialId)
+            {
+                return textures.IndexOf((Texture2D)materials[materialId].mainTexture);
+            }
+            public static List<Texture2D> GetExternalTextures()
+            {
+                return textures.Skip(Main.gameTex.Length).ToList();
             }
         }
     }

@@ -19,6 +19,36 @@ using static KarlsonMapEditor.LevelEditor;
 
 namespace KarlsonMapEditor
 {
+    public enum GeometryShape
+    {
+        Cube,
+        Sphere,
+        SphereOctant,
+        Cylinder,
+        QuarterCylinder,
+        QuarterPipe,
+        RightTrianglePrism,
+        SquarePyramid,
+        QuarterSquarePyramid,
+        Plane,
+    }
+
+    public enum PrefabType
+    {
+        Pistol,
+        Ak47,
+        Shotgun,
+        Boomer,
+        Grappler,
+        DummyGrappler,
+        Table,
+        Barrel,
+        Locker,
+        Screen,
+        Milk,
+        Enemey
+    }
+
     public static class LevelPlayer
     {
         public static string currentLevel { get; private set; } = "";
@@ -80,7 +110,7 @@ namespace KarlsonMapEditor
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
             if(levelData.startingGun != 0)
-                PlayerMovement.Instance.spawnWeapon = LevelData.MakePrefab(levelData.startingGun - 1);
+                PlayerMovement.Instance.spawnWeapon = LevelData.MakePrefab((PrefabType)(levelData.startingGun - 1));
 
             PlayerMovement.Instance.transform.position = levelData.startPosition;
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
@@ -111,7 +141,7 @@ namespace KarlsonMapEditor
                             go.transform.localRotation = Quaternion.Euler(obj.Rotation);
                             go.transform.localScale = obj.Scale;
                             go.transform.parent = null;
-                            if (obj.PrefabId == 11)
+                            if (obj.PrefabId == PrefabType.Enemey)
                             {
                                 needsNavMesh = true;
                                 enemyToFix.Add(obj);
@@ -119,7 +149,7 @@ namespace KarlsonMapEditor
                                 Enemy e = go.GetComponent<Enemy>();
                                 if (obj.PrefabData != 0)
                                 {
-                                    e.startGun = LevelData.MakePrefab(obj.PrefabData - 1);
+                                    e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
                                     typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
 
                                     go.GetComponent<NavMeshAgent>().enabled = true;
@@ -153,11 +183,7 @@ namespace KarlsonMapEditor
                         if (obj.MarkAsObject)
                             // set layer to object so you can't wallrun / grapple
                             go.layer = LayerMask.NameToLayer("Object");
-                        if (obj.TextureId < Main.gameTex.Length)
-                            go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
-                        else
-                            go.GetComponent<MeshRenderer>().material.mainTexture = levelData.Textures[obj.TextureId - Main.gameTex.Length];
-                        go.GetComponent<MeshRenderer>().material.color = obj._Color;
+                        go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
                         if (obj.Bounce)
                             go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
                         go.name = obj.Name;
@@ -188,7 +214,7 @@ namespace KarlsonMapEditor
                     yield return new WaitForEndOfFrame();
                     foreach (var obj in enemyToFix)
                     {
-                        if (obj.PrefabId == 11)
+                        if (obj.PrefabId == PrefabType.Enemey)
                         {
                             float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj._enemyFixY;
                             Loadson.Console.Log("delta: " + deltaY);
@@ -233,11 +259,7 @@ namespace KarlsonMapEditor
                     if (obj.MarkAsObject)
                         // set layer to object so you can't wallrun / grapple
                         go.layer = LayerMask.NameToLayer("Object");
-                    if (obj.TextureId < Main.gameTex.Length)
-                        go.GetComponent<MeshRenderer>().material.mainTexture = Main.gameTex[obj.TextureId];
-                    else
-                        go.GetComponent<MeshRenderer>().material.mainTexture = levelData.Textures[obj.TextureId - Main.gameTex.Length];
-                    go.GetComponent<MeshRenderer>().material.color = obj._Color;
+                    go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
                     if (obj.Bounce)
                         go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
                     go.transform.position = obj.Position;
@@ -253,13 +275,13 @@ namespace KarlsonMapEditor
                     go.transform.position = obj.Position;
                     go.transform.rotation = Quaternion.Euler(obj.Rotation);
                     go.transform.localScale = obj.Scale;
-                    if (obj.PrefabId == 11)
+                    if (obj.PrefabId == PrefabType.Enemey)
                     {
                         needsNavMesh = true;
                         Enemy e = go.GetComponent<Enemy>();
                         if (obj.PrefabData != 0)
                         {
-                            e.startGun = LevelData.MakePrefab(obj.PrefabData - 1);
+                            e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
                             typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
 
                             go.GetComponent<NavMeshAgent>().enabled = true;
@@ -275,7 +297,7 @@ namespace KarlsonMapEditor
                     yield return new WaitForEndOfFrame();
                     foreach (var obj in levelData.Objects)
                     {
-                        if (obj.PrefabId == 11)
+                        if (obj.PrefabId == PrefabType.Enemey)
                         {
                             float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj.Position.y;
                             Loadson.Console.Log("delta: " + deltaY);
@@ -307,6 +329,8 @@ namespace KarlsonMapEditor
                         LoadLevel_Version3(br);
                     else if (version == 4)
                         LoadLevel_Version4(br);
+                    else if (version == 5)
+                        LoadLevel_Version5(data);
                     else
                     {
                         Loadson.Console.Log("<color=red>Unknown level version " + version + "</color>");
@@ -330,7 +354,7 @@ namespace KarlsonMapEditor
                         bool prefab = br.ReadBoolean();
                         string name = br.ReadString();
                         if (prefab)
-                            objGroup.Objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                            objGroup.Objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
                         else
                             objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                         Loadson.Console.Log(objGroup.Objects.Last().ToString());
@@ -350,17 +374,17 @@ namespace KarlsonMapEditor
                 startPosition = br.ReadVector3();
                 startOrientation = br.ReadSingle();
                 int _len;
-                List<Texture2D> list = new List<Texture2D>();
                 int _texl = br.ReadInt32();
                 while (_texl-- > 0)
                 {
                     string _name = br.ReadString();
                     _len = br.ReadInt32();
-                    list.Add(new Texture2D(1, 1));
-                    list.Last().LoadImage(br.ReadBytes(_len));
-                    list.Last().name = _name;
+                    Texture2D tex = new Texture2D(1, 1);
+                    tex.LoadImage(br.ReadBytes(_len));
+                    tex.name = _name;
+                    MaterialManager.AddTexture(tex);
                 }
-                Textures = list.ToArray();
+                
                 List<LevelObject> objects = new List<LevelObject>();
                 _texl = br.ReadInt32();
                 while (_texl-- > 0)
@@ -369,7 +393,7 @@ namespace KarlsonMapEditor
                     string name = br.ReadString();
                     string group = br.ReadString();
                     if (prefab)
-                        objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
+                        objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
                     else
                         objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), false));
                 }
@@ -385,17 +409,16 @@ namespace KarlsonMapEditor
                 startPosition = br.ReadVector3();
                 startOrientation = br.ReadSingle();
                 int _len;
-                List<Texture2D> list = new List<Texture2D>();
                 int _texl = br.ReadInt32();
                 while (_texl-- > 0)
                 {
                     string _name = br.ReadString();
                     _len = br.ReadInt32();
-                    list.Add(new Texture2D(1, 1));
-                    list.Last().LoadImage(br.ReadBytes(_len));
-                    list.Last().name = _name;
+                    Texture2D tex = new Texture2D(1, 1);
+                    tex.LoadImage(br.ReadBytes(_len));
+                    tex.name = _name;
+                    MaterialManager.AddTexture(tex);
                 }
-                Textures = list.ToArray();
                 List<LevelObject> objects = new List<LevelObject>();
                 _texl = br.ReadInt32();
                 while (_texl-- > 0)
@@ -404,7 +427,7 @@ namespace KarlsonMapEditor
                     string name = br.ReadString();
                     string group = br.ReadString();
                     if (prefab)
-                        objects.Add(new LevelObject(br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
+                        objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
                     else
                         objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
                 }
@@ -420,17 +443,16 @@ namespace KarlsonMapEditor
                 startPosition = br.ReadVector3();
                 startOrientation = br.ReadSingle();
                 int _len;
-                List<Texture2D> list = new List<Texture2D>();
                 int _texl = br.ReadInt32();
                 while (_texl-- > 0)
                 {
                     string _name = br.ReadString();
                     _len = br.ReadInt32();
-                    list.Add(new Texture2D(1, 1));
-                    list.Last().LoadImage(br.ReadBytes(_len));
-                    list.Last().name = _name;
+                    Texture2D tex = new Texture2D(1, 1);
+                    tex.LoadImage(br.ReadBytes(_len));
+                    tex.name = _name;
+                    MaterialManager.AddTexture(tex);
                 }
-                Textures = list.ToArray();
                 GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
                 AutomataScript = "";
             }
@@ -443,19 +465,30 @@ namespace KarlsonMapEditor
                 startPosition = br.ReadVector3();
                 startOrientation = br.ReadSingle();
                 int _len;
-                List<Texture2D> list = new List<Texture2D>();
                 int _texl = br.ReadInt32();
                 while (_texl-- > 0)
                 {
                     string _name = br.ReadString();
                     _len = br.ReadInt32();
-                    list.Add(new Texture2D(1, 1));
-                    list.Last().LoadImage(br.ReadBytes(_len));
-                    list.Last().name = _name;
+                    Texture2D tex = new Texture2D(1, 1);
+                    tex.LoadImage(br.ReadBytes(_len));
+                    tex.name = _name;
+                    MaterialManager.AddTexture(tex);
                 }
-                Textures = list.ToArray();
                 AutomataScript = br.ReadString();
                 GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
+            }
+
+            private void LoadLevel_Version5(byte[] data)
+            {
+                Map map = Map.Parser.ParseFrom(data);
+                gridAlign = map.GridAlign;
+                startingGun = map.StartingGun;
+                startPosition = map.StartPosition;
+                startOrientation = map.StartOrientation;
+                AutomataScript = map.Script;
+                GlobalObject = map.LoadTree();
+                map.LoadMaterials();
             }
 
             public bool isKMEv2;
@@ -464,7 +497,6 @@ namespace KarlsonMapEditor
             public Vector3 startPosition;
             public float startOrientation;
 
-            public Texture2D[] Textures;
             public LevelObject[] Objects;
             public ObjectGroup GlobalObject;
 
@@ -473,7 +505,7 @@ namespace KarlsonMapEditor
             public class LevelObject
             {
                 // kme v2 removed group names
-                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, int prefabData)
+                public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, int prefabData)
                 {
                     IsPrefab = true;
                     PrefabId = prefabId;
@@ -489,12 +521,11 @@ namespace KarlsonMapEditor
                 public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject)
                 {
                     IsPrefab = false;
-                    TextureId = textureId;
+                    MaterialId = MaterialManager.InstanceMaterial(textureId, color);
 
                     Position = position;
                     Rotation = rotation;
                     Scale = scale;
-                    _Color = color;
 
                     Name = name;
                     Bounce = bounce;
@@ -504,7 +535,7 @@ namespace KarlsonMapEditor
                     MarkAsObject = markAsObject;
                 }
 
-                public LevelObject(int prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName, int prefabData)
+                public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName, int prefabData)
                 {
                     IsPrefab = true;
                     PrefabId = prefabId;
@@ -521,12 +552,11 @@ namespace KarlsonMapEditor
                 public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject)
                 {
                     IsPrefab = false;
-                    TextureId = textureId;
+                    MaterialId = MaterialManager.InstanceMaterial(textureId, color);
 
                     Position = position;
                     Rotation = rotation;
                     Scale = scale;
-                    _Color = color;
 
                     Name = name;
                     GroupName = groupName;
@@ -536,27 +566,30 @@ namespace KarlsonMapEditor
                     DisableTrigger = disableTrigger;
                     MarkAsObject = markAsObject;
                 }
+                public LevelObject() { }
 
+                // common to all level objects
                 public bool IsPrefab;
                 public Vector3 Position;
                 public Vector3 Rotation;
                 public Vector3 Scale;
-                public Color _Color;
                 public string Name;
                 public string GroupName;
 
-                public int PrefabId;
+                // prefab specific
+                public PrefabType PrefabId;
+                public int PrefabData;
+                public GameObject _enemyFix;
+                public float _enemyFixY;
 
-                public int TextureId;
+                // geometry specific
+                public GeometryShape ShapeId;
+                public int MaterialId;
                 public bool Bounce;
                 public bool Glass;
                 public bool Lava;
                 public bool DisableTrigger;
                 public bool MarkAsObject;
-
-                public int PrefabData;
-                public GameObject _enemyFix;
-                public float _enemyFixY;
 
                 public override string ToString()
                 {
@@ -565,7 +598,7 @@ namespace KarlsonMapEditor
                         st += " " + PrefabId;
                     st += " " + Position + " " + Rotation + " " + Scale;
                     if (!IsPrefab)
-                        st += " tex:" + TextureId;
+                        st += " mat:" + MaterialId;
                     st += ")";
                     return st;
                 }
@@ -587,66 +620,35 @@ namespace KarlsonMapEditor
                 }
             }
 
-            public static GameObject MakePrefab(int id)
+            public static GameObject MakePrefab(PrefabType prefab)
             {
-                switch (id)
+                switch (prefab)
                 {
                     default:
-                    case 0:
+                    case PrefabType.Pistol:
                         return LoadsonAPI.PrefabManager.NewPistol();
-                    case 1:
+                    case PrefabType.Ak47:
                         return LoadsonAPI.PrefabManager.NewAk47();
-                    case 2:
+                    case PrefabType.Shotgun:
                         return LoadsonAPI.PrefabManager.NewShotgun();
-                    case 3:
+                    case PrefabType.Boomer:
                         return LoadsonAPI.PrefabManager.NewBoomer();
-                    case 4:
+                    case PrefabType.Grappler:
                         return LoadsonAPI.PrefabManager.NewGrappler();
-                    case 5:
+                    case PrefabType.DummyGrappler:
                         return LoadsonAPI.PrefabManager.NewDummyGrappler();
-                    case 6:
+                    case PrefabType.Table:
                         return LoadsonAPI.PrefabManager.NewTable();
-                    case 7:
+                    case PrefabType.Barrel:
                         return LoadsonAPI.PrefabManager.NewBarrel();
-                    case 8:
+                    case PrefabType.Locker:
                         return LoadsonAPI.PrefabManager.NewLocker();
-                    case 9:
+                    case PrefabType.Screen:
                         return LoadsonAPI.PrefabManager.NewScreen();
-                    case 10:
+                    case PrefabType.Milk:
                         return LoadsonAPI.PrefabManager.NewMilk();
-                    case 11:
+                    case PrefabType.Enemey:
                         return LoadsonAPI.PrefabManager.NewEnemy();
-                }
-            }
-            public static string PrefabToName(int id)
-            {
-                switch (id)
-                {
-                    default:
-                    case 0:
-                        return "Pistol";
-                    case 1:
-                        return "Ak47";
-                    case 2:
-                        return "Shotgun";
-                    case 3:
-                        return "Boomer";
-                    case 4:
-                        return "Grappler";
-                    case 5:
-                        return "Dummy Grappler";
-                    case 6:
-                        return "Table";
-                    case 7:
-                        return "Barrel";
-                    case 8:
-                        return "Locker";
-                    case 9:
-                        return "Screen";
-                    case 10:
-                        return "Milk";
-                    case 11:
-                        return "Enemy";
                 }
             }
         }

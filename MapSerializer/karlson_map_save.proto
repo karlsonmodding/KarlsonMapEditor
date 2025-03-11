@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package KarlsonMapEditor;
+
+message MapGeometry {
+  int32 shape_id = 1;
+  int32 material_id = 2;
+
+  // flags
+  bool bounce = 10;
+  bool glass = 11;
+  bool lava = 12;
+  bool disable_trigger = 13;
+  bool object_layer = 14;
+}
+
+message MapPrefab {
+  int32 prefab_id = 1;
+  int32 prefab_data = 2;
+}
+
+message MapGroup { repeated MapObject children = 1; }
+
+message MapObject {
+  string name = 1;
+
+  // transform
+  repeated float position_vector = 2;
+  repeated float rotation_vector = 3;
+  repeated float scale_vector = 4;
+
+  // content
+  oneof type {
+    MapGeometry geometry = 5;
+    MapPrefab prefab = 6;
+    MapGroup group = 7;
+  }
+}
+
+message MapTexture {
+  string name = 1;
+  bytes image_data = 2;
+}
+
+message MapMaterial {
+  string name = 1;
+  int32 texture_id = 2;
+  repeated float albedo_color = 3;
+  float smoothness = 4;
+  float metallic = 5;
+  bool specular_highlight = 6;
+  int32 normal_map_texture_id = 7;
+}
+
+message MapSixSidedSkybox { repeated bytes textures = 1; }
+
+message MapProceduralSkybox {
+  // sky
+  float sun_size = 1;
+  float sun_size_convergence = 2;
+  float atmosphere_thickness = 3;
+  // colors
+  repeated float sky_tint_color = 4;
+  repeated float ground_color = 5;
+  float exposure = 6;
+}
+
+message Map {
+  // starting state
+  int32 starting_gun = 1;
+  repeated float start_position_vector = 2;
+  float start_orientation = 3;
+
+  // level data
+  MapObject root = 4;
+  string script = 5;
+  repeated MapTexture textures = 6;
+  repeated MapMaterial materials = 7;
+  oneof skybox {
+    MapSixSidedSkybox six_sided = 8;
+    MapProceduralSkybox procedural = 9;
+  }
+  repeated float fog_color = 10;
+
+  // editor
+  float grid_align = 11;
+}

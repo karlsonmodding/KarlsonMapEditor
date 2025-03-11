@@ -98,7 +98,7 @@ namespace KarlsonMapEditor
                     bw.Write(obj.go.transform.position);
                     bw.Write(obj.go.transform.rotation.eulerAngles);
                     bw.Write(obj.go.transform.lossyScale);
-                    bw.Write(obj.data.TextureId);
+                    bw.Write(LevelEditor.MaterialManager.GetMainTextureIndex(obj.data.MaterialId));
                     bw.Write(obj.go.GetComponent<MeshRenderer>().material.color);
                     bw.Write(obj.data.Bounce);
                     bw.Write(obj.data.Glass);

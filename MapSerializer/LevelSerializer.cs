@@ -116,6 +116,7 @@ namespace KarlsonMapEditor
             }
             foreach (EditorObject childObject in group.editorObjects)
             {
+                if (childObject.internalObject) continue;
                 MapObject mo = new MapObject();
                 mo.SaveEditorObject(childObject);
                 Group.Children.Add(mo);

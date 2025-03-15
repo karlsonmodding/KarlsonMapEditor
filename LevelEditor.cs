@@ -20,6 +20,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Google.Protobuf;
+using System.Buffers;
 
 namespace KarlsonMapEditor
 {
@@ -1263,14 +1264,13 @@ namespace KarlsonMapEditor
             };
             map.SaveTree(globalObject);
             // rendering
-            map.SaveMaterials(MaterialManager.Textures, MaterialManager.Materials);
+            map.SaveMaterials(MaterialManager.GetExternalTextures(), MaterialManager.Materials);
             if (RenderSettings.fog) { map.Fog = RenderSettings.fogColor; }
 
                 // export
             using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                bw.Write(LevelSerializer.SaveVersion);
+                ms.Write(BitConverter.GetBytes(LevelSerializer.SaveVersion), 0, 4);
                 map.WriteTo(ms);
                 return SevenZipHelper.Compress(ms.ToArray());
             }
@@ -1781,8 +1781,10 @@ namespace KarlsonMapEditor
                 }
                 foreach (Material mat in materials)
                 {
-                    used[textures.IndexOf((Texture2D)mat.mainTexture)] = true;
-                    used[textures.IndexOf((Texture2D)mat.GetTexture("_BumpMap"))] = true;
+                    if (mat.mainTexture)
+                        used[textures.IndexOf((Texture2D)mat.mainTexture)] = true;
+                    if (mat.GetTexture("_BumpMap"))
+                        used[textures.IndexOf((Texture2D)mat.GetTexture("_BumpMap"))] = true;
                 }
                 return used;
             }

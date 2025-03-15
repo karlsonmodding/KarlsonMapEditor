@@ -317,10 +317,12 @@ namespace KarlsonMapEditor
             {
                 // decompress
                 byte[] data = SevenZipHelper.Decompress(_data);
-                using(BinaryReader br = new BinaryReader(new MemoryStream(data)))
+                MemoryStream stream = new MemoryStream(data);
+                using (BinaryReader br = new BinaryReader(stream))
                 {
                     int version = br.ReadInt32();
                     Loadson.Console.Log("Loading level version " + version);
+                    MaterialManager.Init();
                     if (version == 1)
                         LoadLevel_Version1(br);
                     else if (version == 2)
@@ -330,7 +332,7 @@ namespace KarlsonMapEditor
                     else if (version == 4)
                         LoadLevel_Version4(br);
                     else if (version == 5)
-                        LoadLevel_Version5(data);
+                        LoadLevel_Version5(stream);
                     else
                     {
                         Loadson.Console.Log("<color=red>Unknown level version " + version + "</color>");
@@ -479,9 +481,10 @@ namespace KarlsonMapEditor
                 GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
             }
 
-            private void LoadLevel_Version5(byte[] data)
+            private void LoadLevel_Version5(Stream stream)
             {
-                Map map = Map.Parser.ParseFrom(data);
+                isKMEv2 = true;
+                Map map = Map.Parser.ParseFrom(stream);
                 gridAlign = map.GridAlign;
                 startingGun = map.StartingGun;
                 startPosition = map.StartPosition;

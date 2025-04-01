@@ -21,12 +21,17 @@ namespace KarlsonMapEditor
 
         public class Dropdown
         {
+
+            private static readonly Texture2D BackgroundTex = new Texture2D(1, 1, TextureFormat.RGBAFloat, false);
+
             public Dropdown(string[] options, int defaultIdx)
             {
                 Options = options;
                 Index = defaultIdx;
+                BackgroundTex.SetPixel(0, 0, Color.black);
+                BackgroundTex.Apply();
                 buttonText = new GUIStyle();
-                buttonText.normal.background = Texture2D.blackTexture;
+                buttonText.normal.background = BackgroundTex;
                 buttonText.alignment = TextAnchor.MiddleCenter;
             }
             public string[] Options;
@@ -35,7 +40,7 @@ namespace KarlsonMapEditor
             GUIStyle buttonText;
             public void Draw(Rect pos)
             {
-                if(!dropped)
+                if (!dropped)
                 {
                     if (GUI.Button(pos, Options[Index])) dropped = true;
                     GUI.Label(new Rect(pos.x + pos.width - pos.height, pos.y, pos.height, pos.height), "▼");

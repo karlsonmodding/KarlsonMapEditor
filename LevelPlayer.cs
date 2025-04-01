@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
@@ -23,14 +24,12 @@ namespace KarlsonMapEditor
     {
         Cube,
         Sphere,
-        SphereOctant,
         Cylinder,
-        QuarterCylinder,
-        QuarterPipe,
-        RightTrianglePrism,
-        SquarePyramid,
-        QuarterSquarePyramid,
         Plane,
+        SquarePyramid,
+        TrianglePrism,
+        QuarterPyramid,
+        QuarterPipe,
     }
 
     public enum PrefabType
@@ -107,206 +106,143 @@ namespace KarlsonMapEditor
 
         public static void LoadLevelData(Scene arg0, LoadSceneMode arg1)
         {
+            Loadson.Console.Log("loading level data...");
+
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
             if(levelData.startingGun != 0)
                 PlayerMovement.Instance.spawnWeapon = LevelData.MakePrefab((PrefabType)(levelData.startingGun - 1));
 
+            RenderSettings.sun = levelData.GlobalLight;
+
             PlayerMovement.Instance.transform.position = levelData.startPosition;
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
 
+
             if (!levelData.isKMEv2)
-                LoadLevelData_v2();
-            else
             {
-                List<LevelData.LevelObject> enemyToFix = new List<LevelData.LevelObject>();
-                void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
+                // convert to kmev2 format
+                // create a global group root with the objects
+                levelData.GlobalObject = new LevelData.ObjectGroup() { Objects = levelData.Objects.ToList()};
+            }
+            List<LevelData.LevelObject> enemyToFix = new List<LevelData.LevelObject>();
+            void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
+            {
+                GameObject objGroup = new GameObject(group.Name);
+                if (parentObject != null)
+                    objGroup.transform.parent = parentObject.transform;
+                objGroup.transform.localPosition = group.Position;
+                objGroup.transform.localRotation = Quaternion.Euler(group.Rotation);
+                objGroup.transform.localScale = group.Scale;
+                foreach (var obj in group.Objects)
                 {
-                    GameObject objGroup = new GameObject(group.Name);
-                    if (parentObject != null)
-                        objGroup.transform.parent = parentObject.transform;
-                    objGroup.transform.localPosition = group.Position;
-                    objGroup.transform.localRotation = Quaternion.Euler(group.Rotation);
-                    objGroup.transform.localScale = group.Scale;
-                    foreach (var obj in group.Objects)
+                    GameObject go;
+                    if (obj.IsPrefab)
                     {
-                        GameObject go;
-                        if (obj.IsPrefab)
+                        go = LevelData.MakePrefab(obj.PrefabId);
+                        if (obj.PrefabId == PrefabType.Enemey)
                         {
-                            go = LevelData.MakePrefab(obj.PrefabId);
-                            go.name = obj.Name;
-                            go.transform.parent = objGroup.transform;
-                            go.transform.localPosition = obj.Position;
-                            go.transform.localRotation = Quaternion.Euler(obj.Rotation);
-                            go.transform.localScale = obj.Scale;
-                            go.transform.parent = null;
-                            if (obj.PrefabId == PrefabType.Enemey)
+                            needsNavMesh = true;
+                            enemyToFix.Add(obj);
+                            obj._enemyFixY = go.transform.position.y;
+                            Enemy e = go.GetComponent<Enemy>();
+                            if (obj.PrefabData != 0)
                             {
-                                needsNavMesh = true;
-                                enemyToFix.Add(obj);
-                                obj._enemyFixY = go.transform.position.y;
-                                Enemy e = go.GetComponent<Enemy>();
-                                if (obj.PrefabData != 0)
-                                {
-                                    e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
-                                    typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
+                                e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
+                                typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
 
-                                    go.GetComponent<NavMeshAgent>().enabled = true;
-                                    go.GetComponent<NavMeshAgent>().enabled = false;
-                                    go.GetComponent<NavMeshAgent>().enabled = true;
-                                }
-                                obj._enemyFix = go;
+                                go.GetComponent<NavMeshAgent>().enabled = true;
+                                go.GetComponent<NavMeshAgent>().enabled = false;
+                                go.GetComponent<NavMeshAgent>().enabled = true;
                             }
-                            continue;
+                            obj._enemyFix = go;
                         }
-
-                        if (obj.Glass)
-                        {
-                            go = LoadsonAPI.PrefabManager.NewGlass();
-                            // fix collider
-                            go.GetComponent<BoxCollider>().size = Vector3.one;
-                            if (obj.DisableTrigger)
-                            {
-                                go.GetComponent<BoxCollider>().isTrigger = false;
-                                UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                            }
-                        }
-                        else if (obj.Lava)
-                        {
-                            go = LoadsonAPI.PrefabManager.NewGlass();
-                            UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                            go.AddComponent<Lava>();
-                        }
-                        else
-                            go = LoadsonAPI.PrefabManager.NewCube();
-                        if (obj.MarkAsObject)
-                            // set layer to object so you can't wallrun / grapple
-                            go.layer = LayerMask.NameToLayer("Object");
+                        continue;
+                    }
+                    else // not a prefab
+                    {
+                        go = MeshBuilder.GetGeometryGO(obj.ShapeId);
                         go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
-                        if (obj.Bounce)
-                            go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                        go.name = obj.Name;
-                        go.transform.parent = objGroup.transform;
-                        go.transform.localPosition = obj.Position;
-                        go.transform.localRotation = Quaternion.Euler(obj.Rotation);
-                        go.transform.localScale = obj.Scale;
-                        if(obj.Glass)
+                        go.GetComponent<KMETextureScaling>().Scale = obj.UVNormalizedScale;
+                        Loadson.Console.Log("uv scale " + obj.UVNormalizedScale.ToString());
+                        if (obj.Glass && !obj.DisableTrigger)
                         {
+                            // change to trigger collider
+                            go.GetComponent<Collider>().isTrigger = true;
+
+                            // instance a glass component
+                            Glass newGlass = go.AddComponent<Glass>();
+
+                            // copy in the required GOs
+                            GameObject prefabGlassCube = LoadsonAPI.PrefabManager.NewGlass();
+                            Glass prefabGlass = prefabGlassCube.GetComponent<Glass>();
+                            newGlass.glass = prefabGlass.glass;
+                            newGlass.glassSfx = prefabGlass.glassSfx;
+                            Object.Destroy(prefabGlass);
+                            Object.Destroy(prefabGlassCube);
+
+                            // reset the transform
+                            newGlass.glass.transform.SetParent(go.transform);
+                            newGlass.glass.transform.localPosition = Vector3.zero;
+                            newGlass.glass.transform.localScale = Vector3.one;
+                            newGlass.glass.transform.localRotation = Quaternion.identity;
+
                             // fix particle system
-                            var ps = go.GetComponent<Glass>().glass.GetComponent<ParticleSystem>();
-                            var shape = ps.shape;
+                            ParticleSystem ps = newGlass.glass.GetComponent<ParticleSystem>();
+                            ParticleSystem.ShapeModule shape = ps.shape;
                             shape.scale = go.transform.lossyScale;
-                            var volume = (shape.scale.x * shape.scale.y * shape.scale.z);
-                            var main = ps.main;
+                            float volume = (shape.scale.x * shape.scale.y * shape.scale.z);
+                            ParticleSystem.MainModule main = ps.main;
                             main.maxParticles = Math.Max((int)(1000f * volume / 160f), 1);
                             main.startSpeed = 0.5f;
                         }
-                    }
-                    foreach (var grp in group.Groups)
-                        ReplicateObjectGroup(grp, objGroup);
-                }
-                ReplicateObjectGroup(levelData.GlobalObject, null);
-
-                GenerateNavMesh();
-                IEnumerator enemyFix()
-                {
-                    yield return new WaitForEndOfFrame();
-                    foreach (var obj in enemyToFix)
-                    {
-                        if (obj.PrefabId == PrefabType.Enemey)
+                        else if (obj.Lava)
                         {
-                            float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj._enemyFixY;
-                            Loadson.Console.Log("delta: " + deltaY);
-                            obj._enemyFix.AddComponent<Enemy_ProjectPos>().delta = deltaY;
+                            go.GetComponent<Collider>().isTrigger = true;
+                            go.AddComponent<Lava>();
                         }
+                        if (obj.MarkAsObject)
+                            // set layer to object so you can't wallrun / grapple
+                            go.layer = LayerMask.NameToLayer("Object");
+                        if (obj.Bounce)
+                            go.GetComponent<Collider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
                     }
+                    go.name = obj.Name;
+                    go.transform.parent = objGroup.transform;
+                    go.transform.localPosition = obj.Position;
+                    go.transform.localRotation = Quaternion.Euler(obj.Rotation);
+                    go.transform.localScale = obj.Scale;
+                    
+                       
                 }
-                Coroutines.StartCoroutine(enemyFix());
-
-                // load script
-                if (mainFunction != null)
-                    currentScript = new ScriptRunner(mainFunction);
-                else
-                    currentScript = null;
+                foreach (var grp in group.Groups)
+                    ReplicateObjectGroup(grp, objGroup);
             }
+            ReplicateObjectGroup(levelData.GlobalObject, null);
 
-            void LoadLevelData_v2()
+            GenerateNavMesh();
+            IEnumerator enemyFix()
             {
-                foreach (var obj in levelData.Objects)
+                yield return new WaitForEndOfFrame();
+                foreach (var obj in enemyToFix)
                 {
-                    if (obj.IsPrefab) continue;
-                    GameObject go;
-                    if (obj.Glass)
-                    {
-                        go = LoadsonAPI.PrefabManager.NewGlass();
-                        if (obj.DisableTrigger)
-                        {
-                            // fix collider
-                            go.GetComponent<BoxCollider>().isTrigger = false;
-                            go.GetComponent<BoxCollider>().size = Vector3.one;
-                            UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                        }
-                    }
-                    else if (obj.Lava)
-                    {
-                        go = LoadsonAPI.PrefabManager.NewGlass();
-                        UnityEngine.Object.Destroy(go.GetComponent<Glass>());
-                        go.AddComponent<Lava>();
-                    }
-                    else
-                        go = LoadsonAPI.PrefabManager.NewCube();
-                    if (obj.MarkAsObject)
-                        // set layer to object so you can't wallrun / grapple
-                        go.layer = LayerMask.NameToLayer("Object");
-                    go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
-                    if (obj.Bounce)
-                        go.GetComponent<BoxCollider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                    go.transform.position = obj.Position;
-                    go.transform.rotation = Quaternion.Euler(obj.Rotation);
-                    go.transform.localScale = obj.Scale;
-                }
-
-                foreach (var obj in levelData.Objects)
-                {
-                    if (!obj.IsPrefab) continue;
-                    GameObject go;
-                    go = LevelData.MakePrefab(obj.PrefabId);
-                    go.transform.position = obj.Position;
-                    go.transform.rotation = Quaternion.Euler(obj.Rotation);
-                    go.transform.localScale = obj.Scale;
                     if (obj.PrefabId == PrefabType.Enemey)
                     {
-                        needsNavMesh = true;
-                        Enemy e = go.GetComponent<Enemy>();
-                        if (obj.PrefabData != 0)
-                        {
-                            e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
-                            typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
-
-                            go.GetComponent<NavMeshAgent>().enabled = true;
-                            go.GetComponent<NavMeshAgent>().enabled = false;
-                            go.GetComponent<NavMeshAgent>().enabled = true;
-                        }
-                        obj._enemyFix = go;
+                        float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj._enemyFixY;
+                        Loadson.Console.Log("delta: " + deltaY);
+                        obj._enemyFix.AddComponent<Enemy_ProjectPos>().delta = deltaY;
                     }
                 }
-                GenerateNavMesh();
-                IEnumerator enemyFix()
-                {
-                    yield return new WaitForEndOfFrame();
-                    foreach (var obj in levelData.Objects)
-                    {
-                        if (obj.PrefabId == PrefabType.Enemey)
-                        {
-                            float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj.Position.y;
-                            Loadson.Console.Log("delta: " + deltaY);
-                            obj._enemyFix.AddComponent<Enemy_ProjectPos>().delta = deltaY;
-                        }
-                    }
-                }
-                Coroutines.StartCoroutine(enemyFix());
             }
+            Coroutines.StartCoroutine(enemyFix());
+
+            // load script
+            if (mainFunction != null)
+                currentScript = new ScriptRunner(mainFunction);
+            else
+                currentScript = null;
+            
         }
 
         public class LevelData
@@ -492,6 +428,7 @@ namespace KarlsonMapEditor
                 AutomataScript = map.Script;
                 GlobalObject = map.LoadTree();
                 map.LoadMaterials();
+                GlobalLight = map.LoadGlobalLight();
             }
 
             public bool isKMEv2;
@@ -500,6 +437,7 @@ namespace KarlsonMapEditor
             public Vector3 startPosition;
             public float startOrientation;
 
+            public Light GlobalLight;
             public LevelObject[] Objects;
             public ObjectGroup GlobalObject;
 
@@ -521,11 +459,12 @@ namespace KarlsonMapEditor
 
                     PrefabData = prefabData;
                 }
-                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject)
+                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube)
                 {
                     IsPrefab = false;
-                    MaterialId = MaterialManager.InstanceMaterial(textureId, color);
-
+                    MaterialId = MaterialManager.InstanceMaterial(textureId, color, glass | lava);
+                    ShapeId = shape;
+                    
                     Position = position;
                     Rotation = rotation;
                     Scale = scale;
@@ -552,10 +491,11 @@ namespace KarlsonMapEditor
 
                     PrefabData = prefabData;
                 }
-                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject)
+                public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube)
                 {
                     IsPrefab = false;
-                    MaterialId = MaterialManager.InstanceMaterial(textureId, color);
+                    MaterialId = MaterialManager.InstanceMaterial(textureId, color, glass | lava);
+                    ShapeId = shape;
 
                     Position = position;
                     Rotation = rotation;
@@ -588,6 +528,7 @@ namespace KarlsonMapEditor
                 // geometry specific
                 public GeometryShape ShapeId;
                 public int MaterialId;
+                public float UVNormalizedScale = 5f;
                 public bool Bounce;
                 public bool Glass;
                 public bool Lava;

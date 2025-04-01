@@ -8,10 +8,10 @@ namespace KarlsonMapEditor
 {
     public partial class Map
     {
-        public void SaveMaterials(List<Texture2D> textures, List<Material> materials)
+        public void SaveMaterials(List<Texture2D> externalTextures, List<Material> materials, Material skybox)
         {
             // save textures to the map
-            foreach (Texture2D texture in textures)
+            foreach (Texture2D texture in externalTextures)
             {
                 MapTexture mt = new MapTexture
                 {
@@ -25,15 +25,52 @@ namespace KarlsonMapEditor
             {
                 MapMaterial mm = new MapMaterial
                 {
-                    Name = material.name,
+                    Mode = (MapMaterial.Types.RenderingMode)material.GetFloat("_Mode"),
                     Albedo = material.color,
                     Smoothness = material.GetFloat("_Glossiness"),
                     Metallic = material.GetFloat("_Metallic"),
                     SpecularHighlight = material.GetFloat("_SpecularHighlights") != 0,
-                    TextureId = textures.IndexOf((Texture2D)material.mainTexture),
-                    NormalMapTextureId = textures.IndexOf((Texture2D)material.GetTexture("_BumpMap")),
+                    AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
+                    NormalMapTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_BumpMap")),
+                    MetallicTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_MetallicGlossMap")),
+                    SmoothnessSource = (int)material.GetFloat("_SmoothnessTextureChannel"),
+                    Scale = material.mainTextureScale,
+                    Offset = material.mainTextureOffset,
+                    Emission = material.GetColor("_EmissionColor"),
                 };
                 Materials.Add(mm);
+            }
+
+            // save skybox material
+            if (skybox == Main.defaultSkybox)
+            {
+                ClearSkybox();
+            }
+            else if (skybox == SixSidedSkybox)
+            {
+                SixSided = new MapSixSidedSkybox()
+                {
+                    FrontTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_FrontTex")),
+                    BackTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_BackTex")),
+                    LeftTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_LeftTex")),
+                    RightTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_RightTex")),
+                    UpTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_UpTex")),
+                    DownTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_DownTex")),
+                    Rotation = skybox.GetFloat("_Rotation"),
+                    Exposure = skybox.GetFloat("_Exposure"),
+                };
+            }
+            else if (skybox == ProceduralSkybox)
+            {
+                Procedural = new MapProceduralSkybox()
+                {
+                    SunSize = skybox.GetFloat("_SunSize"),
+                    SunSizeConvergence = skybox.GetFloat("_SunSizeConvergence"),
+                    AtmosphereThickness = skybox.GetFloat("_AtmosphereThickness"),
+                    SkyTint = skybox.GetColor("_SkyTint"),
+                    Ground = skybox.GetColor("_GroundColor"),
+                    Exposure = skybox.GetFloat("_Exposure"),
+                };
             }
         }
         public void LoadMaterials()
@@ -49,31 +86,50 @@ namespace KarlsonMapEditor
                 Material material = MaterialManager.InstanceMaterial();
 
                 // set properties
-                material.name = mm.Name;
+                MaterialManager.UpdateMode(material, (MaterialManager.ShaderBlendMode)mm.Mode);
                 material.color = mm.Albedo;
                 material.SetFloat("_Glossiness", mm.Smoothness);
                 material.SetFloat("_Metallic", mm.Metallic);
                 material.SetFloat("_SpecularHighlights", mm.SpecularHighlight ? 1 : 0);
+                material.SetFloat("_SmoothnessTextureChannel", mm.SmoothnessSource);
+                material.mainTextureScale = mm.Scale;
+                material.mainTextureOffset = mm.Offset;
+                material.SetColor("_EmissionColor", mm.Emission);
 
                 // set textures
-                if (mm.TextureId > 0)
-                    material.mainTexture = MaterialManager.Textures[mm.TextureId];
+                if (mm.AlbedoTextureId > 0)
+                    material.mainTexture = MaterialManager.Textures[mm.AlbedoTextureId];
                 if (mm.NormalMapTextureId > 0)
                     material.SetTexture("_BumpMap", MaterialManager.Textures[mm.NormalMapTextureId]);
+                if (mm.MetallicTextureId > 0)
+                    material.SetTexture("_MetallicGlossMap", MaterialManager.Textures[mm.MetallicTextureId]);
             }
-        }
 
-
-        public Vector3 StartPosition
-        {
-            get { return LevelSerializer.ReadVector(StartPositionVector); }
-            set { LevelSerializer.WriteVector(value, StartPositionVector); }
-        }
-        
-        public Color Fog
-        {
-            get { return LevelSerializer.ReadColor(FogColor); }
-            set { LevelSerializer.WriteColor(value, FogColor); }
+            // load skybox
+            switch (SkyboxCase)
+            {
+                case SkyboxOneofCase.None:
+                    RenderSettings.skybox = Main.defaultSkybox; break;
+                case SkyboxOneofCase.SixSided:
+                    RenderSettings.skybox = SixSidedSkybox;
+                    SixSidedSkybox.SetTexture("_FrontTex", MaterialManager.Textures[SixSided.FrontTextureId]);
+                    SixSidedSkybox.SetTexture("_BackTex", MaterialManager.Textures[SixSided.BackTextureId]);
+                    SixSidedSkybox.SetTexture("_LeftTex", MaterialManager.Textures[SixSided.LeftTextureId]);
+                    SixSidedSkybox.SetTexture("_RightTex", MaterialManager.Textures[SixSided.RightTextureId]);
+                    SixSidedSkybox.SetTexture("_UpTex", MaterialManager.Textures[SixSided.UpTextureId]);
+                    SixSidedSkybox.SetTexture("_DownTex", MaterialManager.Textures[SixSided.DownTextureId]);
+                    SixSidedSkybox.SetFloat("_Rotation", SixSided.Rotation);
+                    SixSidedSkybox.SetFloat("_Exposure", SixSided.Exposure);
+                    break;
+                case SkyboxOneofCase.Procedural:
+                    ProceduralSkybox.SetFloat("_SunSize", Procedural.SunSize);
+                    ProceduralSkybox.SetFloat("_SunSizeConvergence", Procedural.SunSizeConvergence);
+                    ProceduralSkybox.SetFloat("_AtmosphereThickness", Procedural.AtmosphereThickness);
+                    ProceduralSkybox.SetColor("_SkyTint", Procedural.SkyTint);
+                    ProceduralSkybox.SetColor("_GroundColor", Procedural.Ground);
+                    ProceduralSkybox.SetFloat("_Exposure", Procedural.Exposure);
+                    break;
+            }
         }
 
         // saves all the KME objects in the tree that are children of the root object
@@ -82,13 +138,55 @@ namespace KarlsonMapEditor
             Root = new MapObject();
             Root.SaveObjectGroup(root);
         }
-
         // generates from the tree
         public LevelPlayer.LevelData.ObjectGroup LoadTree()
         {
             return Root.LoadLevelGroup();
         }
 
+        public void SaveGlobalLight(Light light)
+        {
+            if (light == null) return;
+            LightDirection = light.transform.forward * light.intensity;
+            GlobalLight = light.color;
+        }
+        public Light LoadGlobalLight()
+        {
+            if (LightDirection == Vector3.zero)
+            {
+                return null;
+            }
+            else
+            {
+                Light light = new Light();
+                light.type = LightType.Directional;
+                light.transform.rotation = Quaternion.LookRotation(LightDirection);
+                light.color = GlobalLight;
+                light.intensity = LightDirection.magnitude;
+                return light;
+            }
+        }
+
+        public Vector3 StartPosition
+        {
+            get { return LevelSerializer.ReadVector3(StartPositionVector); }
+            set { LevelSerializer.WriteVector3(value, StartPositionVector); }
+        }
+        public Vector3 LightDirection
+        {
+            get { return LevelSerializer.ReadVector3(LightDirectionVector); }
+            set { LevelSerializer.WriteVector3(value, LightDirectionVector); }
+        }
+        public Color GlobalLight
+        {
+            get { return LevelSerializer.ReadColor(GlobalLightColor); }
+            set { LevelSerializer.WriteColor(value, GlobalLightColor); }
+        }
+        public Color Fog
+        {
+            get { return LevelSerializer.ReadColor(FogColor); }
+            set { LevelSerializer.WriteColor(value, FogColor); }
+        }
     }
 
     public partial class MapMaterial
@@ -98,8 +196,36 @@ namespace KarlsonMapEditor
             get { return LevelSerializer.ReadColor(AlbedoColor); }
             set { LevelSerializer.WriteColor(value, AlbedoColor); }
         }
+        public Color Emission
+        {
+            get { return LevelSerializer.ReadColor(EmissionColor); }
+            set { LevelSerializer.WriteColor(value, EmissionColor); }
+        }
+        public Vector2 Scale
+        {
+            get { return LevelSerializer.ReadVector2(ScaleVector); }
+            set { LevelSerializer.WriteVector2(value, ScaleVector); }
+        }
+        public Vector2 Offset
+        {
+            get { return LevelSerializer.ReadVector2(OffsetVector); }
+            set { LevelSerializer.WriteVector2(value, OffsetVector); }
+        }
     }
 
+    public partial class MapProceduralSkybox
+    {
+        public Color SkyTint
+        {
+            get { return LevelSerializer.ReadColor(SkyTintColor); }
+            set { LevelSerializer.WriteColor(value, SkyTintColor); }
+        }
+        public Color Ground
+        {
+            get { return LevelSerializer.ReadColor(GroundColor); }
+            set { LevelSerializer.WriteColor(value, GroundColor); }
+        }
+    }
 
     public partial class MapObject
     {
@@ -130,7 +256,7 @@ namespace KarlsonMapEditor
             {
                 Prefab = new MapPrefab
                 {
-                    PrefabId = (int)obj.data.PrefabId,
+                    PrefabType = (MapPrefab.Types.PrefabType)obj.data.PrefabId,
                     PrefabData = obj.data.PrefabData
                 };
             }
@@ -138,8 +264,9 @@ namespace KarlsonMapEditor
             {
                 Geometry = new MapGeometry
                 {
-                    ShapeId = (int)obj.data.ShapeId,
+                    Shape = (MapGeometry.Types.Shape)obj.data.ShapeId,
                     MaterialId = obj.data.MaterialId,
+                    UvNormalizedScale = obj.data.UVNormalizedScale,
                     // flags
                     Bounce = obj.data.Bounce,
                     Glass = obj.data.Glass,
@@ -193,14 +320,15 @@ namespace KarlsonMapEditor
             if (TypeCase == TypeOneofCase.Prefab)
             {
                 levelObject.IsPrefab = true;
-                levelObject.PrefabId = (PrefabType)Prefab.PrefabId;
+                levelObject.PrefabId = (PrefabType)Prefab.PrefabType;
                 levelObject.PrefabData = Prefab.PrefabData;
             }
             if (TypeCase == TypeOneofCase.Geometry)
             {
                 levelObject.IsPrefab = false;
-                levelObject.ShapeId = (GeometryShape)Geometry.ShapeId;
+                levelObject.ShapeId = (GeometryShape)Geometry.Shape;
                 levelObject.MaterialId = Geometry.MaterialId;
+                levelObject.UVNormalizedScale = Geometry.UvNormalizedScale;
                 levelObject.Bounce = Geometry.Bounce;
                 levelObject.Glass = Geometry.Glass;
                 levelObject.Lava = Geometry.Lava;
@@ -213,18 +341,18 @@ namespace KarlsonMapEditor
 
         public Vector3 Position
         {
-            get { return LevelSerializer.ReadVector(PositionVector); }
-            set { LevelSerializer.WriteVector(value, PositionVector); }
+            get { return LevelSerializer.ReadVector3(PositionVector); }
+            set { LevelSerializer.WriteVector3(value, PositionVector); }
         }
         public Vector3 Rotation
         {
-            get { return LevelSerializer.ReadVector(RotationVector); }
-            set { LevelSerializer.WriteVector(value, RotationVector); }
+            get { return LevelSerializer.ReadVector3(RotationVector); }
+            set { LevelSerializer.WriteVector3(value, RotationVector); }
         }
         public Vector3 Scale
         {
-            get { return LevelSerializer.ReadVector(ScaleVector); }
-            set { LevelSerializer.WriteVector(value, ScaleVector); }
+            get { return LevelSerializer.ReadVector3(ScaleVector); }
+            set { LevelSerializer.WriteVector3(value, ScaleVector); }
         }
     }
 
@@ -234,12 +362,13 @@ namespace KarlsonMapEditor
     {
         public const int SaveVersion = 5;
 
-        public static Vector3 ReadVector(Google.Protobuf.Collections.RepeatedField<float> floats)
+        public static Vector3 ReadVector3(Google.Protobuf.Collections.RepeatedField<float> floats)
         {
+            if (floats.Count != 3)
+                return Vector3.zero;
             return new Vector3(floats[0], floats[1], floats[2]);
         }
-
-        public static void WriteVector(Vector3 value, Google.Protobuf.Collections.RepeatedField<float> destination)
+        public static void WriteVector3(Vector3 value, Google.Protobuf.Collections.RepeatedField<float> destination)
         {
             destination.Clear();
             destination.Add(value.x);
@@ -247,8 +376,23 @@ namespace KarlsonMapEditor
             destination.Add(value.z);
         }
 
+        public static Vector2 ReadVector2(Google.Protobuf.Collections.RepeatedField<float> floats)
+        {
+            if (floats.Count != 2)
+                return Vector2.zero;
+            return new Vector2(floats[0], floats[1]);
+        }
+        public static void WriteVector2(Vector2 value, Google.Protobuf.Collections.RepeatedField<float> destination)
+        {
+            destination.Clear();
+            destination.Add(value.x);
+            destination.Add(value.y);
+        }
+
         public static Color ReadColor(Google.Protobuf.Collections.RepeatedField<float> floats)
         {
+            if (floats.Count != 4)
+                return new Color(0, 0, 0, 0);
             return new Color(floats[0], floats[1], floats[2], floats[3]);
         }
 

@@ -21,6 +21,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Google.Protobuf;
 using System.Buffers;
+using static KarlsonMapEditor.MapGeometry.Types;
 
 namespace KarlsonMapEditor
 {
@@ -31,19 +32,29 @@ namespace KarlsonMapEditor
         private static bool _initd = false;
         private static void _init()
         {
-            if(_initd) return;
+            if (_initd) return;
             _initd = true;
-            wid = new int[]{ ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId(), ImGUI_WID.GetWindowId() };
-            wir = new Rect[6];
-            wir[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
-            wir[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
-            wir[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
-            wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
-            wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 520);
-            wir[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);
+
+            const int WindowCount = 7;
+            wid = new int[WindowCount];
+            wirInitial = new Rect[WindowCount];
+            wir = new Rect[WindowCount];
+
+            for (int i = 0; i < WindowCount; i++)
+                wid[i] = ImGUI_WID.GetWindowId();
+
+            wirInitial[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
+            wirInitial[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
+            wirInitial[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
+            wirInitial[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 480);
+            wirInitial[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 520, 300, 550);
+            wirInitial[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);
+            wirInitial[(int)WindowId.SkyboxEdit] = new Rect(Screen.width - 610, 220, 300, 650);
+
+            wir = wirInitial.ToArray();
 
             multiPick = new GUIStyle();
-            Texture2D orange = new Texture2D(1,1);
+            Texture2D orange = new Texture2D(1, 1);
             orange.SetPixel(0, 0, new Color(1f, 0.64f, 0f));
             orange.Apply();
             multiPick.active.background = orange;
@@ -54,10 +65,15 @@ namespace KarlsonMapEditor
             multiPick.hover.background = orange;
 
             picker = new ColorPicker(Color.white, Screen.width - 475, 540);
+            groundColorPicker = new ColorPicker(ProceduralSkybox.GetColor("_SkyTint"), Screen.width - 475, 540);
+            skyColorPicker = new ColorPicker(ProceduralSkybox.GetColor("_GroundColor"), Screen.width - 475, 540);
 
             enemyGun = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer" }, 0);
             startGunDD = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer", "Grappler" }, 0);
             spawnPrefabDD = new GUIex.Dropdown(new string[] { "Spawn Prefab", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer", "Grappler", "Dummy Grappler", "Table", "Barrel", "Locker", "Screen", "Milk", "Enemy" }, 0);
+            materialMode = new GUIex.Dropdown(Enum.GetNames(typeof(MaterialManager.ShaderBlendMode)), 0);
+            skyboxMode = new GUIex.Dropdown(Enum.GetNames(typeof(SkyboxMode)), 0);
+            spawnGeometry = new GUIex.Dropdown(Enum.GetNames(typeof(GeometryShape)).Prepend("Spawn Geometry").ToArray(), 0);
         }
         private enum WindowId
         {
@@ -67,13 +83,17 @@ namespace KarlsonMapEditor
             LevelBrowser,
             ObjectManip,
             LevelData,
+            SkyboxEdit,
         }
 
         private static GUIStyle multiPick;
         private static ColorPicker picker;
+        private static ColorPicker groundColorPicker;
+        private static ColorPicker skyColorPicker;
 
         private static int[] wid;
         private static Rect[] wir;
+        private static Rect[] wirInitial;
 
         public static bool editorMode { get; private set; } = false;
         static Coroutine fileWatcher = null;
@@ -154,6 +174,9 @@ namespace KarlsonMapEditor
         static GUIex.Dropdown enemyGun;
         static GUIex.Dropdown startGunDD;
         static GUIex.Dropdown spawnPrefabDD;
+        static GUIex.Dropdown materialMode;
+        static GUIex.Dropdown skyboxMode;
+        static GUIex.Dropdown spawnGeometry;
         private static void InitEditor(Scene arg0, LoadSceneMode arg1)
         {
             AudioListener.volume = 0;
@@ -249,6 +272,20 @@ namespace KarlsonMapEditor
             dg_enabled = true;
         }
 
+        // skybox window
+        private enum SkyboxMode
+        {
+            Default,
+            Procedural,
+            SixSided,
+        }
+        private static readonly string[] ordinalDirecitons = new string[] { "Front", "Back", "Left", "Right", "Up", "Down" };
+
+        public static Material ProceduralSkybox;
+        public static Material SixSidedSkybox;
+        private static bool skyboxEditorEnabled = false;
+
+        // texture browser window
         private static bool tex_browser_enabled = false;
         private static Vector2 tex_browser_scroll = new Vector2(0, 0);
         private static int recent_select = 0;
@@ -318,12 +355,9 @@ namespace KarlsonMapEditor
                 Type = SelectedType.EditorObject;
             }
         }
-        private static float moveStep = 0.05f;
         private static Vector2 object_browser_scroll = new Vector2(0, 0);
 
-        private static float result;
-        private static bool unsaved = false, inGUImove = false, oldInGUImove = false;
-        private static int countGUImove = 0;
+        private static bool unsaved = false;
         private static void MarkAsModified()
         { // function because i might add stuff later here (such as ctrl+z)
             unsaved = true;
@@ -340,18 +374,11 @@ namespace KarlsonMapEditor
             // check for windows out of bound (if the user right clicks them, they glitch
             // out because also right-clicking enables camera move, which locks cursor)
 
-            if (wir[(int)WindowId.Startup].x < 0 || wir[(int)WindowId.Startup].y < 0)
-                wir[(int)WindowId.Startup] = new Rect((Screen.width - 600) / 2, (Screen.height - 300) / 2, 600, 300);
-            if (wir[(int)WindowId.Prompt].x < 0 || wir[(int)WindowId.Prompt].y < 0)
-                wir[(int)WindowId.Prompt] = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 35, 200, 70);
-            if (wir[(int)WindowId.TexBrowser].x < 0 || wir[(int)WindowId.TexBrowser].y < 0)
-                wir[(int)WindowId.TexBrowser] = new Rect((Screen.width - 800) / 2, (Screen.height - 860) / 2, 800, 860);
-            if (wir[(int)WindowId.LevelBrowser].x < 0 || wir[(int)WindowId.LevelBrowser].y < 0)
-                wir[(int)WindowId.LevelBrowser] = new Rect(Screen.width - 305, 30, 300, 500);
-            if (wir[(int)WindowId.ObjectManip].x < 0 || wir[(int)WindowId.ObjectManip].y < 0)
-                wir[(int)WindowId.ObjectManip] = new Rect(Screen.width - 305, 540, 300, 520);
-            if (wir[(int)WindowId.LevelData].x < 0 || wir[(int)WindowId.LevelData].y < 0)
-                wir[(int)WindowId.LevelData] = new Rect(Screen.width - 510, 30, 200, 185);
+            foreach (WindowId windowId in Enum.GetValues(typeof(WindowId)))
+            {
+                if (wir[(int)windowId].x < 0 || wir[(int)windowId].y < 0)
+                    wir[(int)windowId] = wirInitial[(int)windowId];
+            }
 
             if (dg_screenshot)
             {
@@ -407,7 +434,7 @@ namespace KarlsonMapEditor
                     {
                         void recurence(string file)
                         {
-                            if(!File.Exists(Path.Combine(Main.directory, "Levels", file + ".kme")))
+                            if (!File.Exists(Path.Combine(Main.directory, "Levels", file + ".kme")))
                                 Dialog("Enter map name:", recurence, "File doesn't exist");
                             else
                                 LoadLevel(Path.Combine(Main.directory, "Levels", file + ".kme"));
@@ -415,13 +442,13 @@ namespace KarlsonMapEditor
 
                         Dialog("Enter map name:", recurence);
                     }
-                        
+
                     if (GUI.Button(new Rect(404f, 29f, 184f, 40f), "Exit editor")) ExitEditor();
                     GUI.Label(new Rect(5f, 75f, 500f, 20f), "Recent Maps:");
                     List<string> oldList = Main.prefs["edit_recent"].Split(';').ToList();
                     while (oldList.Count < 5) oldList.Insert(0, "");
                     recent_select = GUI.SelectionGrid(new Rect(5f, 95f, 590f, 175f), recent_select, new string[] { oldList[4], oldList[3], oldList[2], oldList[1], oldList[0] }, 1);
-                    if(GUI.Button(new Rect(5f, 275f, 590f, 20f), "Load Map"))
+                    if (GUI.Button(new Rect(5f, 275f, 590f, 20f), "Load Map"))
                     {
                         if (oldList[4 - recent_select] != "" && File.Exists(Path.Combine(Main.directory, "Levels", oldList[4 - recent_select])))
                             LoadLevel(Path.Combine(Main.directory, "Levels", oldList[4 - recent_select]));
@@ -436,7 +463,7 @@ namespace KarlsonMapEditor
             GUI.Box(new Rect(-5, 0, Screen.width + 10, 20), "");
             if (GUI.Button(new Rect(0, 0, 100, 20), "File")) { dd_file = !dd_file; dd_level = false; }
             if (GUI.Button(new Rect(100, 0, 100, 20), "Map")) { dd_level = !dd_level; dd_file = false; }
-            if (GUI.Button(new Rect(200, 0, 100, 20), "Tex Browser")) tex_browser_enabled = !tex_browser_enabled;
+            if (GUI.Button(new Rect(200, 0, 100, 20), "Skybox Editor")) skyboxEditorEnabled = !skyboxEditorEnabled;
             if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, MaterialManager.GetExternalTextures());
             GUI.Label(new Rect(405, 0, 1000, 20), $"<b>Karlson Map Editor</b> v3.1 | Current map: <b>{(unsaved ? (levelName + '*') : levelName)}</b> | Object count: <b>{_countAll.Item1 + _countAll.Item2}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
             if (GUI.Button(new Rect(Screen.width - 100, 0, 100, 20), "Open Script")) Process.Start(Path.Combine(Main.directory, "_temp.amta"));
@@ -447,7 +474,7 @@ namespace KarlsonMapEditor
                 if (GUI.Button(new Rect(0, 20, 150, 20), "Save Map")) { SaveLevel(); dd_file = false; }
                 if (GUI.Button(new Rect(0, 40, 150, 20), "Close Map"))
                 {
-                    if(unsaved)
+                    if (unsaved)
                     {
                         Dialog("Unsaved edits!", (_) => StartEdit(), "Close map anyway?");
                     }
@@ -472,10 +499,10 @@ namespace KarlsonMapEditor
                 }
             }
 
-            if(dd_level)
+            if (dd_level)
             {
                 GUI.Box(new Rect(100, 20, 300, 20), "");
-                if(!SelectedObject.Selected)
+                if (!SelectedObject.Selected)
                 {
                     GUI.Label(new Rect(105, 20, 300, 20), "Select an Object / Object Group to spawn objects");
                 }
@@ -487,27 +514,31 @@ namespace KarlsonMapEditor
                     if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, 1); }
                     if (spawnPrefabDD.Index != 0)
                     {
-                        if (spawnPrefabDD.Index == 11) // milk
+                        if ((PrefabType)(--spawnPrefabDD.Index) == PrefabType.Milk)
                         {
                             ObjectGroup container = new ObjectGroup("Prefab Container");
                             SelectedObject.Group.AddGroup(container);
-                            container.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), Vector3.zero));
+                            container.AddObject(new EditorObject(PrefabType.Milk, Vector3.zero));
                             container.go.transform.position = spawnPos;
                             SelectedObject.SelectGroup(container);
                         }
                         else
                         {
-                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), spawnPos));
+                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(--spawnPrefabDD.Index), spawnPos));
                             SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                         }
                         MarkAsModified();
                         spawnPrefabDD.Index = 0;
                     }
-                    if (GUI.Button(new Rect(250, 20, 150, 20), "Spawn Cube"))
+                    
+                    spawnGeometry.Draw(new Rect(250, 20, 150, 20));
+
+                    if (spawnGeometry.Index > 0)
                     {
+                        GeometryShape shape = (GeometryShape)(spawnGeometry.Index - 1);
+                        spawnGeometry.Index = 0;
                         MarkAsModified();
-                        SelectedObject.Group.AddObject(new EditorObject(spawnPos));
-                        dd_level = false;
+                        SelectedObject.Group.AddObject(new EditorObject(spawnPos, shape));
                         SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                     }
                 }
@@ -519,7 +550,7 @@ namespace KarlsonMapEditor
                 if (GUI.Button(new Rect(650, 0, 100, 20), "Load Texture"))
                 {
                     string picked = FilePicker.PickFile("Select the texture you wish to import", "Images\0*.png;*.jpg;*.jpeg;*.bmp\0All Files\0*.*\0\0");
-                    if(picked != "null")
+                    if (picked != "null")
                     {
                         Texture2D tex = new Texture2D(1, 1);
                         tex.LoadImage(File.ReadAllBytes(picked));
@@ -547,7 +578,7 @@ namespace KarlsonMapEditor
                     {
                         MarkAsModified();
                         MaterialManager.SelectedTexture = t;
-                        MaterialManager.updateSelectedTexture();
+                        MaterialManager.UpdateSelectedTexture(t);
                     }
 
                     if (!texturesUsed[i]) // texture is not used in any materials
@@ -593,10 +624,10 @@ namespace KarlsonMapEditor
                     ++j;
                     return j;
                 }
-                
+
                 GUI.DragWindow(new Rect(0, 0, 1000, 20));
-                if(SelectedObject.Selected)
-                    if(GUI.Button(new Rect(260, 20, 20, 20), "+"))
+                if (SelectedObject.Selected)
+                    if (GUI.Button(new Rect(260, 20, 20, 20), "+"))
                     {
                         MarkAsModified();
                         SelectedObject.Group.AddGroup(new ObjectGroup());
@@ -605,7 +636,7 @@ namespace KarlsonMapEditor
                     }
 
                 object_browser_scroll = GUI.BeginScrollView(new Rect(0, 20, 300, 480), object_browser_scroll, new Rect(0, 0, 280, _countAll.Item1 * 50 + _countAll.Item2 * 25));
-                
+
                 renderObjectGroup(globalObject, 0, 0);
 
                 GUI.EndScrollView();
@@ -618,14 +649,14 @@ namespace KarlsonMapEditor
                     GUI.Label(new Rect(5, 20, 300, 20), "No object selected");
                     return;
                 }
-                if(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal)
                 {
                     GUI.Label(new Rect(5, 20, 300, 20), "You can't modify the global object.");
                     GUI.Label(new Rect(5, 35, 300, 20), "You can only add objects (Prefabs / Cube) and groups (+ in the top right)");
                     return;
                 }
                 string newName = GUI.TextField(new Rect(5f, 20f, 290f, 20f), SelectedObject.Basic.aName);
-                if(newName != SelectedObject.Basic.aName)
+                if (newName != SelectedObject.Basic.aName)
                 {
                     MarkAsModified();
                     SelectedObject.Basic.aName = newName;
@@ -668,156 +699,14 @@ namespace KarlsonMapEditor
                 {
                     GUI.Label(new Rect(5, 60, 40, 20), "Gun");
                     enemyGun.Draw(new Rect(35, 60, 100, 20));
-                    if(SelectedObject.Object.data.PrefabData != enemyGun.Index)
+                    if (SelectedObject.Object.data.PrefabData != enemyGun.Index)
                     {
                         MarkAsModified();
                         SelectedObject.Object.data.PrefabData = enemyGun.Index;
                     }
                 }
 
-                bool hasMat = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab;
-                if (hasMat)
-                {
-                    // buttons to copy and paste materials between geometry objects
-                    GUI.BeginGroup(new Rect(0, 100, 300, 20));
-                    GUI.Label(new Rect(5, 0, 95, 20), "Material");
-                    if (GUI.Button(new Rect(150, 0, 50, 20), "New") && hasMat)
-                    {
-                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
-                        picker.color = Color.white;
-                    }
-                    if (GUI.Button(new Rect(200, 0, 50, 20), "Copy") && hasMat)
-                    {
-                        clipboardObj = SelectedObject.Object;
-                    }
-                    if (GUI.Button(new Rect(250, 0, 50, 20), "Paste") && hasMat)
-                    {
-                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
-                        SelectedObject.Object.data.MaterialId = clipboardObj.data.MaterialId;
-                        picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
-                    }
-                    GUI.EndGroup();
-                }
-
-                GUI.BeginGroup(new Rect(0, 120, 300, 80));
-                GUI.Label(new Rect(5, 0, 290, 20), "[Pos] X: " + SelectedObject.Basic.aPosition.x + " Y: " + SelectedObject.Basic.aPosition.y + " Z: " + SelectedObject.Basic.aPosition.z);
-                GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(-moveStep, 0, 0); }
-                if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
-                {
-                    MarkAsModified();
-                    inGUImove = true;
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    SelectedObject.Basic.aPosition += new Vector3(x / 450, 0, 0);
-                }
-                if (GUI.Button(new Rect(265, 20, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(moveStep, 0, 0); }
-                GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                if (GUI.Button(new Rect(20, 40, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(0, -moveStep, 0); }
-                if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
-                {
-                    MarkAsModified();
-                    inGUImove = true;
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    SelectedObject.Basic.aPosition += new Vector3(0, x / 450, 0);
-                }
-                if (GUI.Button(new Rect(265, 40, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(0, moveStep, 0); }
-                GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                if (GUI.Button(new Rect(20, 60, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(0, 0, -moveStep); }
-                if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
-                {
-                    MarkAsModified();
-                    inGUImove = true;
-                    float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                    SelectedObject.Basic.aPosition += new Vector3(0, 0, x / 450);
-                }
-                if (GUI.Button(new Rect(265, 60, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aPosition += new Vector3(0, 0, moveStep); }
-                GUI.EndGroup();
-                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
-                {
-                    GUI.BeginGroup(new Rect(0, 210, 300, 80));
-                    GUI.Label(new Rect(5, 0, 290, 20), "[Rot] X: " + SelectedObject.Basic.aRotation.x + " Y: " + SelectedObject.Basic.aRotation.y + " Z: " + SelectedObject.Basic.aRotation.z);
-                    GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(-moveStep, 0f, 0f); }
-                    if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aRotation += new Vector3(x / 450, 0f, 0f);
-                    }
-                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(moveStep, 0f, 0f); }
-                    GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(0f, -moveStep, 0f); }
-                    if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aRotation += new Vector3(0f, x / 450, 0f);
-                    }
-                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(0f, moveStep, 0f); }
-                    GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(0f, 0f, -moveStep); }
-                    if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aRotation += new Vector3(0f, 0f, x / 450);
-                    }
-                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aRotation += new Vector3(0f, 0f, moveStep); }
-                    GUI.EndGroup();
-
-                    GUI.BeginGroup(new Rect(0, 300, 300, 80));
-                    GUI.Label(new Rect(5, 0, 290, 20), "[Scale] X: " + SelectedObject.Basic.aScale.x + " Y: " + SelectedObject.Basic.aScale.y + " Z: " + SelectedObject.Basic.aScale.z);
-                    GUI.Label(new Rect(5, 20, 20, 20), "X:");
-                    if (GUI.Button(new Rect(20, 20, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(-moveStep, 0f, 0f); }
-                    if (GUI.RepeatButton(new Rect(40, 20, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aScale += new Vector3(x / 450, 0, 0);
-                    }
-                    if (GUI.Button(new Rect(265, 20, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(moveStep, 0f, 0f); }
-                    GUI.Label(new Rect(5, 40, 20, 20), "Y:");
-                    if (GUI.Button(new Rect(20, 40, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(0f, -moveStep, 0f); }
-                    if (GUI.RepeatButton(new Rect(40, 40, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aScale += new Vector3(0, x / 450, 0);
-                    }
-                    if (GUI.Button(new Rect(265, 40, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(0f, moveStep, 0f); }
-                    GUI.Label(new Rect(5, 60, 20, 20), "Z:");
-                    if (GUI.Button(new Rect(20, 60, 20, 20), "-")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(0f, 0f, -moveStep); }
-                    if (GUI.RepeatButton(new Rect(40, 60, 225, 20), "<----------------|---------------->"))
-                    {
-                        MarkAsModified();
-                        inGUImove = true;
-                        float x = Input.mousePosition.x - wir[(int)WindowId.ObjectManip].x - 152;
-                        SelectedObject.Basic.aScale += new Vector3(0, 0, x / 450);
-                    }
-                    if (GUI.Button(new Rect(265, 60, 20, 20), "+")) { MarkAsModified(); SelectedObject.Basic.aScale += new Vector3(0f, 0f, moveStep); }
-                    GUI.EndGroup();
-
-                    if (oldInGUImove != inGUImove)
-                    {
-                        if (inGUImove)
-                            oldInGUImove = true;
-                        countGUImove++;
-                        if (countGUImove > 5)
-                        {
-                            oldInGUImove = inGUImove;
-                        }
-                    }
-                    else countGUImove = 0;
-                    inGUImove = false;
-                }
-
-                GUI.BeginGroup(new Rect(5, 390, 300, 80));
-                GUI.Label(new Rect(0, 0, 300, 20), "Numerical values:");
+                GUI.BeginGroup(new Rect(5, 80, 300, 80));
                 GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
                 {
                     float x = SelectedObject.Basic.aPosition.x, y = SelectedObject.Basic.aPosition.y, z = SelectedObject.Basic.aPosition.z;
@@ -825,13 +714,13 @@ namespace KarlsonMapEditor
                     y = float.Parse(GUI.TextField(new Rect(125, 20, 70, 20), y.ToString("0.00")));
                     z = float.Parse(GUI.TextField(new Rect(200, 20, 70, 20), z.ToString("0.00")));
                     var newPos = new Vector3(x, y, z);
-                    if(newPos != SelectedObject.Basic.aPosition)
+                    if (newPos != SelectedObject.Basic.aPosition)
                     {
                         MarkAsModified();
                         SelectedObject.Basic.aPosition = newPos;
                     }
                 }
-                if(SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
                 {
                     GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
                     {
@@ -840,7 +729,7 @@ namespace KarlsonMapEditor
                         y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
                         z = float.Parse(GUI.TextField(new Rect(200, 40, 70, 20), z.ToString("0.00")));
                         var newRot = new Vector3(x, y, z);
-                        if(SelectedObject.Basic.aRotation != newRot)
+                        if (SelectedObject.Basic.aRotation != newRot)
                         {
                             MarkAsModified();
                             SelectedObject.Basic.aRotation = newRot;
@@ -854,7 +743,7 @@ namespace KarlsonMapEditor
                         y = float.Parse(GUI.TextField(new Rect(125, 60, 70, 20), y.ToString("0.00")));
                         z = float.Parse(GUI.TextField(new Rect(200, 60, 70, 20), z.ToString("0.00")));
                         var newScale = new Vector3(x, y, z);
-                        if(SelectedObject.Basic.aScale != newScale)
+                        if (SelectedObject.Basic.aScale != newScale)
                         {
                             MarkAsModified();
                             SelectedObject.Basic.aScale = newScale;
@@ -867,91 +756,194 @@ namespace KarlsonMapEditor
                     {
                         float y = SelectedObject.Basic.aRotation.y;
                         y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
-                        if(SelectedObject.Basic.aRotation.y != y)
+                        if (SelectedObject.Basic.aRotation.y != y)
                         {
                             MarkAsModified();
                             SelectedObject.Basic.aRotation = new Vector3(0, y, 0);
                         }
                     }
                 }
-                
                 GUI.EndGroup();
 
-                GUI.Label(new Rect(5, 470, 100, 20), "Editor Step: ");
-                moveStep = float.Parse(GUI.TextField(new Rect(80, 470, 70, 20), moveStep.ToString("0.00")));
-                if (GUI.Button(new Rect(155, 470, 50, 20), "Reset"))
+                GUILayout.BeginArea(new Rect(5, 165, 300, 400));
+                bool hasMat = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.internalObject && !SelectedObject.Object.data.IsPrefab;
+                if (hasMat)
                 {
-                    if (gridAlign != 0f)
-                        moveStep = 1f;
-                    else
-                        moveStep = 0.05f;
+                    GUILayout.BeginHorizontal();
+
+                    KMETextureScaling ts = SelectedObject.Object.go.GetComponent<KMETextureScaling>();
+
+                    ts.Enabled = GUILayout.Toggle(ts.Enabled, "UV Normalize");
+                    if (ts.Enabled)
+                    {
+                        ts.Scale = float.Parse(GUILayout.TextField(ts.Scale.ToString("0.00")));
+                    }
+                    SelectedObject.Object.data.UVNormalizedScale = ts.Scale;
+                    
+                    GUILayout.EndHorizontal();
+
+                    GUIStyle matStyle = new GUIStyle();
+                    matStyle.padding.left = 0;
+                    matStyle.padding.right = 0;
+                    matStyle.padding.top = 1;
+                    matStyle.padding.bottom = 0;
+                    matStyle.normal.textColor = Color.white;
+
+                    GUILayout.BeginVertical(matStyle);
+
+                    GUILayout.Label("Material", matStyle);
+
+                    // material label and buttons
+                    GUILayout.BeginHorizontal(matStyle);
+
+                    if (GUILayout.Button("New", GUILayout.Width(50)) && hasMat)
+                    {
+                        MarkAsModified();
+                        SelectedObject.Object.data.MaterialId = MaterialManager.Materials.Count();
+                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
+                        picker.color = Color.white;
+                    }
+                    if (GUILayout.Button("Copy", GUILayout.Width(50)) && hasMat)
+                    {
+                        clipboardObj = SelectedObject.Object;
+                    }
+                    if (clipboardObj != null)
+                    {
+                        if (GUILayout.Button("Paste") && hasMat)
+                        {
+                            MarkAsModified();
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.CopyPropertiesFromMaterial(clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial);
+                            picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
+                        }
+                        if (GUILayout.Button("Reference") && hasMat)
+                        {
+                            MarkAsModified();
+                            MaterialManager.ClearMaterial(SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial);
+                            SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
+                            SelectedObject.Object.data.MaterialId = clipboardObj.data.MaterialId;
+                            picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
+                        }
+                    }
+                    Material selectedMat = SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial;
+
+                    GUILayout.EndHorizontal();
+
+                    // material properties
+                    GUILayout.BeginHorizontal(matStyle);
+
+                    // color and mat sliders
+                    GUILayout.BeginVertical(matStyle);
+
+                    picker.DrawLayout();
+                    if (selectedMat.color != picker.color)
+                    {
+                        MarkAsModified();
+                        selectedMat.color = picker.color;
+                    }
+
+                    int lastMode = (int)selectedMat.GetFloat("_Mode");
+                    materialMode.Index = lastMode;
+
+                    Rect matModeRect = GUILayoutUtility.GetRect(120, 20);
+                    materialMode.Draw(matModeRect);
+
+                    if (lastMode != materialMode.Index)
+                    {
+                        MarkAsModified();
+                        MaterialManager.UpdateMode(selectedMat, (MaterialManager.ShaderBlendMode)materialMode.Index);
+                    }
+
+                    // label and slider
+                    GUILayout.BeginHorizontal(matStyle);
+                    GUILayout.Label("Gloss", matStyle);
+                    selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1, GUILayout.Width(100)));
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal(matStyle);
+                    GUILayout.Label("Metal", matStyle);
+                    selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1, GUILayout.Width(100)));
+                    GUILayout.EndHorizontal();
+
+                    selectedMat.SetFloat("_SpecularHighlights", GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights") ? 1 : 0);
+                    selectedMat.SetFloat("_GlossyReflections", GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Specular Reflections") ? 1 : 0);
+
+                    GUILayout.EndVertical();
+
+                    // textures
+                    GUILayout.BeginVertical(matStyle);
+
+                    // image
+                    const int imageButtonSize = 100;
+                    GUILayout.Label("Main Texture", matStyle);
+                    if (GUILayout.Button(selectedMat.mainTexture, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                    {
+                        tex_browser_enabled = true;
+                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
+                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
+                    }
+                    GUILayout.Label("Normal Map", matStyle);
+                    if (GUILayout.Button(selectedMat.GetTexture("_BumpMap"), GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                    {
+                        tex_browser_enabled = true;
+                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.GetTexture("_BumpMap");
+                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_BumpMap", tex); MarkAsModified(); };
+                    }
+
+                    // scale and offset
+                    Vector2 textureScale = Vector2.one / selectedMat.GetTextureScale("_MainTex");
+                    Vector2 textureOffset = selectedMat.GetTextureOffset("_MainTex");
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Scale");
+                    textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
+                    textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Offset");
+                    textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
+                    textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
+                    GUILayout.EndHorizontal();
+
+                    selectedMat.SetTextureScale("_MainTex", Vector2.one / textureScale);
+                    selectedMat.SetTextureOffset("_MainTex", textureOffset);
+
+                    GUILayout.EndVertical();
+
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndVertical();
+
+                    // draw over
+                    materialMode.Draw(matModeRect);
                 }
+                GUILayout.EndArea();
+
                 if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
                 {
-                    if (GUI.Button(new Rect(5, 490, 200, 20), "Update texture scailing"))
-                    {
-                        SelectedObject.Object.go.GetComponent<TextureScaling>().Calculate();
-                    }
                     bool bRes;
                     bRes = GUI.Toggle(new Rect(5, 60, 75, 20), SelectedObject.Object.data.Bounce, "Bounce");
-                    if(SelectedObject.Object.data.Bounce != bRes) { MarkAsModified(); SelectedObject.Object.data.Bounce = bRes; }
-                    bRes = GUI.Toggle(new Rect(85, 60, 75, 20), SelectedObject.Object.data.Glass, "Glass");
-                    if (SelectedObject.Object.data.Glass != bRes) { MarkAsModified(); SelectedObject.Object.data.Glass = bRes; }
+                    if (SelectedObject.Object.data.Bounce != bRes) { MarkAsModified(); SelectedObject.Object.data.Bounce = bRes; }
+                    
+                    // only convex objects can be used as triggers (whyyyy???)
+                    MeshCollider mColl = SelectedObject.Object.go.GetComponent<MeshCollider>();
+                    if (mColl == null || mColl.convex)
+                    {
+                        bRes = GUI.Toggle(new Rect(85, 60, 75, 20), SelectedObject.Object.data.Glass, "Glass");
+                        if (SelectedObject.Object.data.Glass != bRes) { MarkAsModified(); SelectedObject.Object.data.Glass = bRes; }
+                        
+                        if (SelectedObject.Object.data.Glass)
+                        {
+                            bRes = GUI.Toggle(new Rect(165, 60, 120, 20), SelectedObject.Object.data.DisableTrigger, "Disable Trigger");
+                            if (SelectedObject.Object.data.DisableTrigger != bRes) { MarkAsModified(); SelectedObject.Object.data.DisableTrigger = bRes; }
+                        }
+                        else
+                        {
+                            bRes = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
+                            if (SelectedObject.Object.data.Lava != bRes) { MarkAsModified(); SelectedObject.Object.data.Lava = bRes; }
+                        }
+                    }
                     bRes = GUI.Toggle(new Rect(5, 80, 120, 20), SelectedObject.Object.data.MarkAsObject, "Mark as Object");
                     if (SelectedObject.Object.data.MarkAsObject != bRes) { MarkAsModified(); SelectedObject.Object.data.MarkAsObject = bRes; }
-                    if (SelectedObject.Object.data.Glass)
-                    {
-                        bRes = GUI.Toggle(new Rect(165, 60, 120, 20), SelectedObject.Object.data.DisableTrigger, "Disable Trigger");
-                        if (SelectedObject.Object.data.DisableTrigger != bRes) { MarkAsModified(); SelectedObject.Object.data.DisableTrigger = bRes; }
-                    }
-                    else
-                    {
-                        bRes = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
-                        if (SelectedObject.Object.data.Lava != bRes) { MarkAsModified(); SelectedObject.Object.data.Lava = bRes; }
-                    }
-                    // get the editor object
-                    EditorObject obj = SelectedObject.Object;
-
-                    // if the object is glass or lava and doesnt have the trigger component
-                    if ((obj.data.Glass || obj.data.Lava) && obj.go.GetComponent<Glass>() == null)
-                    {
-                        // create a new glass instance
-                        GameObject glassInstance = LoadsonAPI.PrefabManager.NewGlass();
-                        glassInstance.AddComponent<KME_Object>();
-
-                        // copy the properties
-                        glassInstance.name = obj.go.name; // cant have 2 objects with the same name
-                        glassInstance.GetComponent<MeshRenderer>().sharedMaterial = obj.go.GetComponent<MeshRenderer>().sharedMaterial;
-                        glassInstance.transform.parent = obj.go.transform.parent;
-                        glassInstance.transform.localPosition = obj.go.transform.localPosition;
-                        glassInstance.transform.localRotation = obj.go.transform.localRotation;
-                        glassInstance.transform.localScale = obj.go.transform.localScale;
-
-                        // destroy the old object and replace it with the new
-                        UnityEngine.Object.Destroy(obj.go);
-                        obj.go = glassInstance;
-                    }
-
-                    // if the object is not lava or glass, but has the component
-                    if(!obj.data.Glass && !obj.data.Lava && obj.go.GetComponent<Glass>() != null)
-                    {
-                        // create a new cube instance
-                        GameObject cubeInstance = LoadsonAPI.PrefabManager.NewCube();
-                        cubeInstance.AddComponent<KME_Object>();
-
-                        // copy the properties
-                        cubeInstance.name = obj.go.name;
-                        cubeInstance.GetComponent<MeshRenderer>().sharedMaterial = obj.go.GetComponent<MeshRenderer>().sharedMaterial;
-                        cubeInstance.transform.parent = obj.go.transform.parent;
-                        cubeInstance.transform.localPosition = obj.go.transform.localPosition;
-                        cubeInstance.transform.localRotation = obj.go.transform.localRotation;
-                        cubeInstance.transform.localScale = obj.go.transform.localScale;
-
-                        // destroy the old object and replace it with the new
-                        UnityEngine.Object.Destroy(obj.go);
-                        obj.go = cubeInstance;
-                    }
-                    // TODO: add hint labels to every option
                 }
                 else
                 {
@@ -969,10 +961,11 @@ namespace KarlsonMapEditor
 
                 GUI.Label(new Rect(5, 40, 100, 20), "Starting Gun");
                 startGunDD.Draw(new Rect(95, 40, 100, 20));
-                if(startingGun != startGunDD.Index)
+                if (startingGun != startGunDD.Index)
                 {
                     MarkAsModified();
                     startingGun = startGunDD.Index;
+
                 }
 
                 EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
@@ -991,14 +984,101 @@ namespace KarlsonMapEditor
 
             }, "Map Settings");
 
-            if (SelectedObject.Selected && SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
+            if (skyboxEditorEnabled)
             {
-                picker.DrawWindow();
-                if(SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.color != picker.color)
+                wir[(int)WindowId.SkyboxEdit] = GUI.Window(wid[(int)WindowId.SkyboxEdit], wir[(int)WindowId.SkyboxEdit], (windowId) =>
                 {
-                    MarkAsModified();
-                    SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.color = picker.color;
-                }
+                    GUI.DragWindow(new Rect(0, 0, 1000, 20));
+
+                    GUILayout.BeginVertical();
+
+                    Rect skyboxModeRect = GUILayoutUtility.GetRect(200, 20);
+                    skyboxMode.Draw(skyboxModeRect);
+
+                    switch ((SkyboxMode)skyboxMode.Index)
+                    {
+                        case SkyboxMode.Procedural:
+                            RenderSettings.skybox = ProceduralSkybox;
+
+                            GUILayout.BeginHorizontal();
+
+                            GUILayout.Label("Sun Size");
+                            ProceduralSkybox.SetFloat("_SunSize", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_SunSize"), 0, 1, GUILayout.Width(120)));
+
+                            GUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
+
+                            GUILayout.Label("Sun Size Convergence");
+                            ProceduralSkybox.SetFloat("_SunSizeConvergence", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_SunSizeConvergence"), 1, 10, GUILayout.Width(120)));
+
+                            GUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
+
+                            GUILayout.Label("Atmosphere Thickness");
+                            ProceduralSkybox.SetFloat("_AtmosphereThickness", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_AtmosphereThickness"), 0, 5, GUILayout.Width(120)));
+
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.Label("Sky Tint");
+                            skyColorPicker.DrawLayout();
+                            ProceduralSkybox.SetColor("_SkyTint", skyColorPicker.color);
+
+                            GUILayout.Label("Ground Color");
+                            groundColorPicker.DrawLayout();
+                            ProceduralSkybox.SetColor("_GroundColor", groundColorPicker.color);
+
+                            GUILayout.Label("Exposure");
+                            ProceduralSkybox.SetFloat("_Exposure", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_Exposure"), 0, 5));
+
+                            break;
+                        case SkyboxMode.SixSided:
+                            RenderSettings.skybox = SixSidedSkybox;
+
+
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                string direction = ordinalDirecitons[i];
+                                string shaderKey = "_" + direction + "Tex";
+
+                                if (i == 0) GUILayout.BeginHorizontal();
+                                else if (i % 2 == 0)
+                                {
+                                    GUILayout.EndHorizontal();
+                                    GUILayout.BeginHorizontal();
+                                }
+
+                                GUILayout.BeginVertical();
+
+                                // texture label and button
+                                GUILayout.Label(direction);
+                                if (GUILayout.Button(SixSidedSkybox.GetTexture(shaderKey), GUILayout.Width(100), GUILayout.Height(100)))
+                                {
+                                    tex_browser_enabled = true;
+                                    MaterialManager.SelectedTexture = (Texture2D)SixSidedSkybox.GetTexture(shaderKey);
+                                    MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { SixSidedSkybox.SetTexture(shaderKey, tex); };
+                                }
+
+                                GUILayout.EndVertical();
+                            }
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.Label("Exposure");
+                            SixSidedSkybox.SetFloat("_Exposure", GUILayout.HorizontalSlider(SixSidedSkybox.GetFloat("_Exposure"), 0, 5));
+
+                            GUILayout.Label("Rotation");
+                            SixSidedSkybox.SetFloat("_Rotation", GUILayout.HorizontalSlider(SixSidedSkybox.GetFloat("_Rotation"), 0, 360));
+
+                            break;
+
+                        case SkyboxMode.Default:
+                            RenderSettings.skybox = Main.defaultSkybox;
+                            break;
+                    }
+                    GUILayout.EndVertical();
+
+                    skyboxMode.Draw(skyboxModeRect);
+                }, "Skybox Editor");
             }
 
             GUI.DrawTexture(new Rect(5, Screen.height - 125, 100, 100), gizmoRender);
@@ -1047,6 +1127,10 @@ namespace KarlsonMapEditor
                             SelectedObject.SelectObject(obj);
                         }
                     }
+                }
+                else
+                {
+                    SelectedObject.Deselect();
                 }
             }
 
@@ -1220,6 +1304,7 @@ namespace KarlsonMapEditor
             dd_file = false;
             dd_level = false;
             tex_browser_enabled = false;
+            skyboxEditorEnabled = false;
             editorMode = false;
             Game.Instance.MainMenu();
             if(fileWatcher != null)
@@ -1262,9 +1347,10 @@ namespace KarlsonMapEditor
                 // level data
                 Script = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
             };
+            map.SaveGlobalLight(RenderSettings.sun);
             map.SaveTree(globalObject);
             // rendering
-            map.SaveMaterials(MaterialManager.GetExternalTextures(), MaterialManager.Materials);
+            map.SaveMaterials(MaterialManager.GetExternalTextures(), MaterialManager.Materials, RenderSettings.skybox);
             if (RenderSettings.fog) { map.Fog = RenderSettings.fogColor; }
 
                 // export
@@ -1356,7 +1442,6 @@ namespace KarlsonMapEditor
             // scripting
             File.WriteAllText(Path.Combine(Main.directory, "_temp.amta"), data.AutomataScript.Trim().Length > 0 ? data.AutomataScript : "# Any code written below will be executed every time the level is (re)started.\n# Be sure to use LF instead of CRLF line endings.\n# Any modifications to this file will be reflected by marking the level as modified (unsaved).\n# Saving the level will also save this script.\n# Automata documentation: https://github.com/devilExE3/automataV2/blob/master/automata.md\n# KME API: https://github.com/karlsonmodding/KarlsonMapEditor/wiki/Scripting-API\n$:print(\"Hello, world!\")");
             fileWatcher = Coroutines.StartCoroutine(FileWatcher());
-            //Process.Start(Path.Combine(Main.directory, "_temp.amta"));
         }
 
         static IEnumerator FileWatcher()
@@ -1407,16 +1492,7 @@ namespace KarlsonMapEditor
 
         public class EditorObject : IBasicProperties
         {
-            public EditorObject(Vector3 position)
-            {
-                go = LoadsonAPI.PrefabManager.NewCube();
-                go.AddComponent<KME_Object>();
-                go.transform.position = position;
-                go.transform.rotation = Quaternion.identity;
-                go.transform.localScale = Vector3.one;
-                data = new LevelPlayer.LevelData.LevelObject(go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, 6, Color.white, go.name, false, false, false, false, false);
-                go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[data.MaterialId];
-            }
+            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "geometry object", false, false, false, false, false, shape)) { }
 
             public EditorObject(PrefabType _prefabId, Vector3 position)
             {
@@ -1438,11 +1514,13 @@ namespace KarlsonMapEditor
                 }
                 else
                 {
-                    if (playObj.Glass || playObj.Lava)
-                        go = LoadsonAPI.PrefabManager.NewGlass();
-                    else
-                        go = LoadsonAPI.PrefabManager.NewCube();
+                    go = MeshBuilder.GetGeometryGO(playObj.ShapeId);
+                    go.GetComponent<KMETextureScaling>().Scale = playObj.UVNormalizedScale;
                     go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[playObj.MaterialId];
+                    if (playObj.Glass)
+                        go.AddComponent<Glass>();
+                    if (playObj.Lava)
+                        go.AddComponent<Lava>();
                 }
                 go.AddComponent<KME_Object>();
                 go.transform.position = data.Position;
@@ -1451,6 +1529,7 @@ namespace KarlsonMapEditor
                 go.name = data.Name;
             }
 
+            // player spawn constructor
             public EditorObject(Vector3 pos, float orientation)
             {
                 data = new LevelPlayer.LevelData.LevelObject
@@ -1483,10 +1562,10 @@ namespace KarlsonMapEditor
                     toAdd = new EditorObject(data.PrefabId, aPosition);
                 else
                 {
-                    toAdd = new EditorObject(aPosition);
+                    toAdd = new EditorObject(aPosition, data.ShapeId);
                     toAdd.data.MaterialId = data.MaterialId;
                     toAdd.go.GetComponent<MeshRenderer>().sharedMaterial = go.GetComponent<MeshRenderer>().sharedMaterial;
-                    
+                    toAdd.go.GetComponent<KMETextureScaling>().Scale = go.GetComponent<KMETextureScaling>().Scale;
                     toAdd.data.Bounce = data.Bounce;
                     toAdd.data.Glass = data.Glass;
                     toAdd.data.Lava = data.Lava;
@@ -1529,7 +1608,11 @@ namespace KarlsonMapEditor
                         data.Scale = go.transform.localScale;
                     return go.transform.localScale;
                 }
-                set { go.transform.localScale = value; data.Scale = value; }
+                set {
+                    go.transform.localScale = value;
+                    data.Scale = value;
+                    if (!data.IsPrefab) { go.GetComponent<KMETextureScaling>().UpdateScale(); }
+                }
             }
             public string aName
             {
@@ -1754,21 +1837,31 @@ namespace KarlsonMapEditor
             private static List<Material> materials;
 
             public static Texture2D SelectedTexture; // for choosing textures in a context menu
-            public static void updateSelectedTexture() // TODO
-            {
 
-            }
+            public static Action<Texture2D> UpdateSelectedTexture;
             
             static readonly Shader defaultShader = Shader.Find("Standard");
+
+            public enum ShaderBlendMode
+            {
+                Opaque,
+                Cutout,
+                Fade,   // Old school alpha-blending mode, fresnel does not affect amount of transparency
+                Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
+            };
 
             public static void Init()
             {
                 textures = Main.gameTex.ToList();
+                foreach (Texture2D tex in textures)
+                    tex.wrapMode = TextureWrapMode.Repeat;
+
                 materials = new List<Material>();
             }
 
             public static void AddTexture(Texture2D tex)
             {
+                tex.wrapMode = TextureWrapMode.Repeat;
                 textures.Add(tex);
             }
 
@@ -1785,6 +1878,14 @@ namespace KarlsonMapEditor
                         used[textures.IndexOf((Texture2D)mat.mainTexture)] = true;
                     if (mat.GetTexture("_BumpMap"))
                         used[textures.IndexOf((Texture2D)mat.GetTexture("_BumpMap"))] = true;
+                    if (mat.GetTexture("_MetallicGlossMap"))
+                        used[textures.IndexOf((Texture2D)mat.GetTexture("_MetallicGlossMap"))] = true;
+                }
+                foreach (string direction in ordinalDirecitons)
+                {
+                    Texture t = SixSidedSkybox.GetTexture("_" + direction + "Tex");
+                    if (t)
+                        used[textures.IndexOf((Texture2D)t)] = true;
                 }
                 return used;
             }
@@ -1802,13 +1903,15 @@ namespace KarlsonMapEditor
                 materials.Add(mat);
                 return mat;
             }
-            public static int InstanceMaterial(int TextureId, Color color)
+            // instancing materials for save versions without material data
+            public static int InstanceMaterial(int TextureId, Color color, bool transparent)
             {
                 Material mat = new Material(defaultShader)
                 {
                     mainTexture = textures[TextureId],
                     color = color
                 };
+                if (transparent) UpdateMode(mat, ShaderBlendMode.Transparent);
                 materials.Add(mat);
                 return materials.Count - 1;
             }
@@ -1835,6 +1938,50 @@ namespace KarlsonMapEditor
             public static List<Texture2D> GetExternalTextures()
             {
                 return textures.Skip(Main.gameTex.Length).ToList();
+            }
+
+            public static void UpdateMode(Material mat, ShaderBlendMode mode)
+            {
+                mat.SetFloat("_Mode", (int)mode);
+                switch (mode)
+                {
+                    case ShaderBlendMode.Opaque:
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        mat.SetInt("_ZWrite", 1);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.DisableKeyword("_ALPHABLEND_ON");
+                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        mat.renderQueue = -1;
+                        break;
+                    case ShaderBlendMode.Cutout:
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        mat.SetInt("_ZWrite", 1);
+                        mat.EnableKeyword("_ALPHATEST_ON");
+                        mat.DisableKeyword("_ALPHABLEND_ON");
+                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        mat.renderQueue = 2450;
+                        break;
+                    case ShaderBlendMode.Fade:
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        mat.SetInt("_ZWrite", 0);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.EnableKeyword("_ALPHABLEND_ON");
+                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        mat.renderQueue = 3000;
+                        break;
+                    case ShaderBlendMode.Transparent:
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        mat.SetInt("_ZWrite", 0);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.DisableKeyword("_ALPHABLEND_ON");
+                        mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                        mat.renderQueue = 3000;
+                        break;
+                }
             }
         }
     }

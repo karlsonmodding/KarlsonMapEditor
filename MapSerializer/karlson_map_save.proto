@@ -3,8 +3,20 @@ syntax = "proto3";
 package KarlsonMapEditor;
 
 message MapGeometry {
-  int32 shape_id = 1;
+  enum Shape {
+    cube = 0;
+    sphere = 1;
+    cylinder = 2;
+    plane = 3;
+    square_pyramid = 4;
+    right_triangle_prism = 5;
+    quarter_square_pyramid = 6;
+    quarter_pipe = 7;
+  }
+
+  Shape shape = 1;
   int32 material_id = 2;
+  float uv_normalized_scale = 3;
 
   // flags
   bool bounce = 10;
@@ -15,7 +27,22 @@ message MapGeometry {
 }
 
 message MapPrefab {
-  int32 prefab_id = 1;
+  enum PrefabType {
+    pistol = 0;
+    ak47 = 1;
+    shotgun = 2;
+    boomer = 3;
+    grappler = 4;
+    dummy_grappler = 5;
+    table = 6;
+    barrel = 7;
+    locker = 8;
+    screen = 9;
+    milk = 10;
+    enemey = 11;
+  }
+
+  PrefabType prefab_type = 1;
   int32 prefab_data = 2;
 }
 
@@ -43,16 +70,43 @@ message MapTexture {
 }
 
 message MapMaterial {
-  string name = 1;
-  int32 texture_id = 2;
-  repeated float albedo_color = 3;
-  float smoothness = 4;
-  float metallic = 5;
-  bool specular_highlight = 6;
-  int32 normal_map_texture_id = 7;
+  enum RenderingMode {
+    opaque = 0;
+    cutout = 1;
+    fade = 2;
+    transparent = 3;
+  }
+
+  RenderingMode mode = 1;
+  // textures
+  int32 albedo_texture_id = 2;
+  int32 metallic_texture_id = 3;
+  int32 normal_map_texture_id = 4;
+  // uv mapping
+  repeated float scale_vector = 5;
+  repeated float offset_vector = 6;
+  // colors
+  repeated float albedo_color = 7;
+  repeated float emission_color = 8;
+  // visual properties
+  float metallic = 9;
+  float smoothness = 10;
+  int32 smoothnessSource = 11;
+  bool specular_highlight = 12;
+  bool specular_reflection = 13;
 }
 
-message MapSixSidedSkybox { repeated bytes textures = 1; }
+message MapSixSidedSkybox {
+  int32 front_texture_id = 1; // +z
+  int32 back_texture_id = 2;  // -z
+  int32 left_texture_id = 3;  // +x
+  int32 right_texture_id = 4; // -x
+  int32 up_texture_id = 5;    // +y
+  int32 down_texture_id = 6;  // -y
+
+  float rotation = 7;
+  float exposure = 8;
+}
 
 message MapProceduralSkybox {
   // sky
@@ -62,7 +116,8 @@ message MapProceduralSkybox {
   // colors
   repeated float sky_tint_color = 4;
   repeated float ground_color = 5;
-  float exposure = 6;
+
+  float exposure = 8;
 }
 
 message Map {
@@ -81,7 +136,9 @@ message Map {
     MapProceduralSkybox procedural = 9;
   }
   repeated float fog_color = 10;
+  repeated float light_direction_vector = 11; // 0 is no directional light
+  repeated float global_light_color = 12;
 
   // editor
-  float grid_align = 11;
+  float grid_align = 13;
 }

@@ -348,5 +348,26 @@ namespace KarlsonMapEditor
             }
         }
         #endregion
+
+        public void DrawLayout()
+        {
+            using (new GUILayout.VerticalScope())
+            {
+                GUILayout.Space(5f);
+                DrawPreview(color);
+
+                GUILayout.Space(5f);
+                DrawHSVPicker(ref color);
+
+                GUILayout.Space(5f);
+                DrawManualInput(ref color);
+
+                // update for custom color
+                float oldh = h, olds = s, oldv = v;
+                UpdateColor();
+                if (h != oldh || s != olds || v != oldv)
+                    UpdateSVTexture(color, svTexture);
+            }
+        }
     }
 }

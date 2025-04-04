@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -396,6 +397,18 @@ namespace KarlsonMapEditor
             mesh.SetTriangles(tris, 0);
 
             mesh.RecalculateNormals();
+            // fix the slope normals
+            Vector3[] normals = mesh.normals;
+            for (int i = 0; i < curvature + 1; i++)
+            {
+                int index = (4 * i) + 2;
+                float angle = i * (Mathf.PI / 2) / curvature;
+
+                normals[index] = new Vector3(0, Mathf.Cos(angle), Mathf.Sin(angle));
+                normals[index + 1] = new Vector3(0, Mathf.Cos(angle), Mathf.Sin(angle));
+            }
+            mesh.normals = normals;
+
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
             return mesh;

@@ -414,8 +414,6 @@ namespace KarlsonMapEditor
             return mesh;
         }
 
-
-
         #endregion
 
         #region Gizmo Meshes

@@ -59,6 +59,7 @@ namespace KarlsonMapEditor
             {
                 if (GUI.Button(new Rect(115, 0, 50, 20), "close")) close();
 
+                Color oldColor = color;
                 using (new GUILayout.VerticalScope())
                 {
                     GUILayout.Space(5f);
@@ -76,8 +77,11 @@ namespace KarlsonMapEditor
                     if(h != oldh || s != olds || v != oldv)
                     {
                         UpdateSVTexture(color, svTexture);
-                        changeColor(color);
                     }
+                }
+                if (color != oldColor)
+                {
+                    changeColor(color);
                 }
 
                 GUI.DragWindow(new Rect(0, 0, 115, 20));

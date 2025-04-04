@@ -438,8 +438,11 @@ namespace KarlsonMapEditor
                                 globalObject = new ObjectGroup(name);
                                 globalObject.isGlobal = true;
                                 globalObject.AddObject(new EditorObject(new Vector3(0f, 2f, 0f), 0f));
-                                MaterialManager.InitInternalTextures();
 
+                                MaterialManager.InitInternalTextures();
+                                sun.Reset();
+                                sun.enabled = false;
+                                sun.gameObject.transform.rotation = Quaternion.Euler(70, 0, 0);
                                 skyboxMode.Index = (int)SkyboxMode.Default;
                                 dd_level = true;
                                 Time.timeScale = 0f;

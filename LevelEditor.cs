@@ -65,8 +65,6 @@ namespace KarlsonMapEditor
             multiPick.hover.background = orange;
 
             picker = new ColorPicker(Color.white, Screen.width - 475, 540);
-            groundColorPicker = new ColorPicker(ProceduralSkybox.GetColor("_SkyTint"), Screen.width - 475, 540);
-            skyColorPicker = new ColorPicker(ProceduralSkybox.GetColor("_GroundColor"), Screen.width - 475, 540);
 
             enemyGun = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer" }, 0);
             startGunDD = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer", "Grappler" }, 0);
@@ -88,8 +86,6 @@ namespace KarlsonMapEditor
 
         private static GUIStyle multiPick;
         private static ColorPicker picker;
-        private static ColorPicker groundColorPicker;
-        private static ColorPicker skyColorPicker;
 
         private static int[] wid;
         private static Rect[] wir;
@@ -186,6 +182,14 @@ namespace KarlsonMapEditor
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().useGravity = false; //eh
             PlayerMovement.Instance.gameObject.GetComponent<Collider>().enabled = false;
+
+            // lighting and reflections
+            GameObject bakerGO = new GameObject();
+            baker = bakerGO.AddComponent<EnvironmentBaker>();
+            GameObject sunGO = new GameObject();
+            sun = sunGO.AddComponent<Light>();
+            sun.type = LightType.Directional;
+            sun.enabled = false;
 
             // create gizmo
             GameObject go1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -285,6 +289,10 @@ namespace KarlsonMapEditor
         public static Material SixSidedSkybox;
         private static bool skyboxEditorEnabled = false;
 
+        // lighting
+        private static Light sun;
+        private static EnvironmentBaker baker;
+
         // texture browser window
         private static bool tex_browser_enabled = false;
         private static Vector2 tex_browser_scroll = new Vector2(0, 0);
@@ -367,6 +375,19 @@ namespace KarlsonMapEditor
             unsaved = false;
         }
 
+        private static bool EnablePicker = false;
+        private static Action<Color> UpdateSourceColor;
+        private static void ColorButton(Color source, Action<Color> updateSource, int width = 100, int height = 15)
+        {
+            if (picker.DrawPreviewButton(source, width, height))
+            {
+                picker.color = source;
+                EnablePicker = true;
+
+                UpdateSourceColor = updateSource;
+            }
+        }
+
         public static void _ongui()
         {
             if (!editorMode) return;
@@ -417,7 +438,9 @@ namespace KarlsonMapEditor
                                 globalObject = new ObjectGroup(name);
                                 globalObject.isGlobal = true;
                                 globalObject.AddObject(new EditorObject(new Vector3(0f, 2f, 0f), 0f));
-                                MaterialManager.Init();
+                                MaterialManager.InitInternalTextures();
+
+                                skyboxMode.Index = (int)SkyboxMode.Default;
                                 dd_level = true;
                                 Time.timeScale = 0f;
                                 SelectedObject.Deselect();
@@ -542,6 +565,14 @@ namespace KarlsonMapEditor
                         SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                     }
                 }
+            }
+
+            if (EnablePicker)
+            {
+                picker.DrawWindow(
+                    delegate { EnablePicker = false; },
+                    delegate (Color c) { MarkAsModified(); UpdateSourceColor(c); }
+                    );
             }
 
             if (tex_browser_enabled) wir[(int)WindowId.TexBrowser] = GUI.Window(wid[(int)WindowId.TexBrowser], wir[(int)WindowId.TexBrowser], (windowId) => {
@@ -801,7 +832,6 @@ namespace KarlsonMapEditor
                         MarkAsModified();
                         SelectedObject.Object.data.MaterialId = MaterialManager.Materials.Count();
                         SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
-                        picker.color = Color.white;
                     }
                     if (GUILayout.Button("Copy", GUILayout.Width(50)) && hasMat)
                     {
@@ -813,7 +843,6 @@ namespace KarlsonMapEditor
                         {
                             MarkAsModified();
                             SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.CopyPropertiesFromMaterial(clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial);
-                            picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
                         }
                         if (GUILayout.Button("Reference") && hasMat)
                         {
@@ -821,7 +850,6 @@ namespace KarlsonMapEditor
                             MaterialManager.ClearMaterial(SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial);
                             SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
                             SelectedObject.Object.data.MaterialId = clipboardObj.data.MaterialId;
-                            picker.color = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
                         }
                     }
                     Material selectedMat = SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial;
@@ -834,13 +862,8 @@ namespace KarlsonMapEditor
                     // color and mat sliders
                     GUILayout.BeginVertical(matStyle);
 
-                    picker.DrawLayout();
-                    if (selectedMat.color != picker.color)
-                    {
-                        MarkAsModified();
-                        selectedMat.color = picker.color;
-                    }
-
+                    ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; });
+                    
                     int lastMode = (int)selectedMat.GetFloat("_Mode");
                     materialMode.Index = lastMode;
 
@@ -864,9 +887,26 @@ namespace KarlsonMapEditor
                     selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1, GUILayout.Width(100)));
                     GUILayout.EndHorizontal();
 
-                    selectedMat.SetFloat("_SpecularHighlights", GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights") ? 1 : 0);
-                    selectedMat.SetFloat("_GlossyReflections", GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Specular Reflections") ? 1 : 0);
-
+                    if (GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights"))
+                    {
+                        selectedMat.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
+                        selectedMat.SetFloat("_SpecularHighlights", 1f);
+                    }
+                    else
+                    {
+                        selectedMat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+                        selectedMat.SetFloat("_SpecularHighlights", 0f);
+                    }
+                    if (GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Specular Highlights"))
+                    {
+                        selectedMat.DisableKeyword("_GLOSSYREFLECTIONS_OFF");
+                        selectedMat.SetFloat("_GlossyReflections", 1f);
+                    }
+                    else
+                    {
+                        selectedMat.EnableKeyword("_GLOSSYREFLECTIONS_OFF");
+                        selectedMat.SetFloat("_GlossyReflections", 0f);
+                    }
                     GUILayout.EndVertical();
 
                     // textures
@@ -992,8 +1032,37 @@ namespace KarlsonMapEditor
 
                     GUILayout.BeginVertical();
 
+                    if (GUILayout.Toggle(sun.enabled, "Sun"))
+                    {
+                        if (RenderSettings.sun == null)
+                        {
+                            sun.enabled = true;
+                            RenderSettings.sun = sun;
+                        }
+
+                        ColorButton(sun.color, delegate (Color c) { sun.color = c; });
+
+                        GUILayout.Label("Intensity");
+                        sun.intensity = GUILayout.HorizontalSlider(sun.intensity, 0, 5);
+
+                        GUILayout.Label("Angle");
+                        Vector2 sunAngle = (Vector2)sun.gameObject.transform.rotation.eulerAngles;
+                        sun.gameObject.transform.rotation = Quaternion.Euler(GUILayout.HorizontalSlider(((sunAngle.x + 90) % 360) - 90, -90, 90), GUILayout.HorizontalSlider(sunAngle.y, 0, 360), 0);
+                    }
+                    else
+                    {
+                        sun.enabled = false;
+                        RenderSettings.sun = null;
+                    }
+
                     Rect skyboxModeRect = GUILayoutUtility.GetRect(200, 20);
+                    float oldSkyboxIndex = skyboxMode.Index;
                     skyboxMode.Draw(skyboxModeRect);
+                    if (skyboxMode.Index != oldSkyboxIndex)
+                    {
+                        MarkAsModified();
+                        baker.UpdateEnvironment();
+                    }
 
                     switch ((SkyboxMode)skyboxMode.Index)
                     {
@@ -1003,7 +1072,7 @@ namespace KarlsonMapEditor
                             GUILayout.BeginHorizontal();
 
                             GUILayout.Label("Sun Size");
-                            ProceduralSkybox.SetFloat("_SunSize", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_SunSize"), 0, 1, GUILayout.Width(120)));
+                            ProceduralSkybox.SetFloat("_SunSize", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_SunSize"), 0, 0.5f, GUILayout.Width(120)));
 
                             GUILayout.EndHorizontal();
                             GUILayout.BeginHorizontal();
@@ -1015,26 +1084,36 @@ namespace KarlsonMapEditor
                             GUILayout.BeginHorizontal();
 
                             GUILayout.Label("Atmosphere Thickness");
-                            ProceduralSkybox.SetFloat("_AtmosphereThickness", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_AtmosphereThickness"), 0, 5, GUILayout.Width(120)));
+                            float oldThickness = ProceduralSkybox.GetFloat("_AtmosphereThickness");
+                            float newThickness = GUILayout.HorizontalSlider(oldThickness, 0, 5, GUILayout.Width(120));
+                            if (oldThickness != newThickness)
+                            {
+                                MarkAsModified();
+                                ProceduralSkybox.SetFloat("_AtmosphereThickness", newThickness);
+                                baker.UpdateEnvironment();
+                            }
 
                             GUILayout.EndHorizontal();
 
                             GUILayout.Label("Sky Tint");
-                            skyColorPicker.DrawLayout();
-                            ProceduralSkybox.SetColor("_SkyTint", skyColorPicker.color);
+                            ColorButton(ProceduralSkybox.GetColor("_SkyTint"), delegate (Color c) { ProceduralSkybox.SetColor("_SkyTint", c); baker.UpdateEnvironment(); });
+
 
                             GUILayout.Label("Ground Color");
-                            groundColorPicker.DrawLayout();
-                            ProceduralSkybox.SetColor("_GroundColor", groundColorPicker.color);
+                            ColorButton(ProceduralSkybox.GetColor("_GroundColor"), delegate (Color c) { ProceduralSkybox.SetColor("_GroundColor", c); baker.UpdateEnvironment(); });
 
                             GUILayout.Label("Exposure");
-                            ProceduralSkybox.SetFloat("_Exposure", GUILayout.HorizontalSlider(ProceduralSkybox.GetFloat("_Exposure"), 0, 5));
-
+                            float oldExposure = ProceduralSkybox.GetFloat("_Exposure");
+                            float newExposure = GUILayout.HorizontalSlider(oldExposure, 0, 5);
+                            if (oldExposure != newExposure)
+                            {
+                                MarkAsModified();
+                                ProceduralSkybox.SetFloat("_Exposure", newExposure);
+                                baker.UpdateEnvironment();
+                            }
                             break;
                         case SkyboxMode.SixSided:
                             RenderSettings.skybox = SixSidedSkybox;
-
-
 
                             for (int i = 0; i < 6; i++)
                             {
@@ -1056,7 +1135,7 @@ namespace KarlsonMapEditor
                                 {
                                     tex_browser_enabled = true;
                                     MaterialManager.SelectedTexture = (Texture2D)SixSidedSkybox.GetTexture(shaderKey);
-                                    MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { SixSidedSkybox.SetTexture(shaderKey, tex); };
+                                    MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { SixSidedSkybox.SetTexture(shaderKey, tex); baker.UpdateEnvironment(); };
                                 }
 
                                 GUILayout.EndVertical();
@@ -1064,10 +1143,24 @@ namespace KarlsonMapEditor
                             GUILayout.EndHorizontal();
 
                             GUILayout.Label("Exposure");
-                            SixSidedSkybox.SetFloat("_Exposure", GUILayout.HorizontalSlider(SixSidedSkybox.GetFloat("_Exposure"), 0, 5));
+                            oldExposure = SixSidedSkybox.GetFloat("_Exposure");
+                            newExposure = GUILayout.HorizontalSlider(oldExposure, 0, 5);
+                            if (oldExposure != newExposure)
+                            {
+                                MarkAsModified();
+                                SixSidedSkybox.SetFloat("_Exposure", newExposure);
+                                baker.UpdateEnvironment();
+                            }
 
                             GUILayout.Label("Rotation");
-                            SixSidedSkybox.SetFloat("_Rotation", GUILayout.HorizontalSlider(SixSidedSkybox.GetFloat("_Rotation"), 0, 360));
+                            float oldRotation = SixSidedSkybox.GetFloat("_Rotation");
+                            float newRotation = GUILayout.HorizontalSlider(oldRotation, 0, 360);
+                            if (oldRotation != newRotation)
+                            {
+                                MarkAsModified();
+                                SixSidedSkybox.SetFloat("_Rotation", newRotation);
+                                baker.UpdateEnvironment();
+                            }
 
                             break;
 
@@ -1345,15 +1438,15 @@ namespace KarlsonMapEditor
                 StartOrientation = startOrientation,
 
                 // level data
-                Script = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
+                AutomataScript = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
             };
             map.SaveGlobalLight(RenderSettings.sun);
             map.SaveTree(globalObject);
             // rendering
-            map.SaveMaterials(MaterialManager.GetExternalTextures(), MaterialManager.Materials, RenderSettings.skybox);
-            if (RenderSettings.fog) { map.Fog = RenderSettings.fogColor; }
+            map.SaveMaterials();
 
-                // export
+            //Loadson.Console.Log(map.ToString());
+            // export
             using (MemoryStream ms = new MemoryStream())
             {
                 ms.Write(BitConverter.GetBytes(LevelSerializer.SaveVersion), 0, 4);
@@ -1405,7 +1498,7 @@ namespace KarlsonMapEditor
                     ReplicateObjectGroup(grp, objGroup);
                 return objGroup;
             }
-
+            
             LevelPlayer.LevelData data = new LevelPlayer.LevelData(File.ReadAllBytes(path));
             levelName = Path.GetFileNameWithoutExtension(path);
             gridAlign = data.gridAlign;
@@ -1413,6 +1506,11 @@ namespace KarlsonMapEditor
             startGunDD.Index = startingGun;
             startPosition = data.startPosition;
             startOrientation = data.startOrientation;
+
+            // set up
+            data.SetupMaterials();
+            data.SetupGlobalLight(sun);
+
             // kme v1 compatibility
             if (!data.isKMEv2)
             {
@@ -1429,6 +1527,14 @@ namespace KarlsonMapEditor
             var spawn = new EditorObject(startPosition, startOrientation);
             globalObject.editorObjects.Insert(0, spawn);
             spawn.go.transform.parent = globalObject.go.transform;
+
+            // select the correct skybox
+            if (RenderSettings.skybox == Main.defaultSkybox) skyboxMode.Index = (int)SkyboxMode.Default;
+            else if (RenderSettings.skybox == ProceduralSkybox) skyboxMode.Index = (int)SkyboxMode.Procedural;
+            else if (RenderSettings.skybox == SixSidedSkybox) skyboxMode.Index = (int)SkyboxMode.SixSided;
+            // update environmental lighting and reflections
+            baker.UpdateEnvironment();
+
             dd_level = true;
             Time.timeScale = 0f;
             SelectedObject.Deselect();
@@ -1832,12 +1938,11 @@ namespace KarlsonMapEditor
         public static class MaterialManager
         {
             public static List<Texture2D> Textures { get { return textures; } }
-            private static List<Texture2D> textures;
+            private static List<Texture2D> textures = new List<Texture2D>();
             public static List<Material> Materials { get { return materials; } }
-            private static List<Material> materials;
+            private static List<Material> materials = new List<Material>();
 
             public static Texture2D SelectedTexture; // for choosing textures in a context menu
-
             public static Action<Texture2D> UpdateSelectedTexture;
             
             static readonly Shader defaultShader = Shader.Find("Standard");
@@ -1850,13 +1955,19 @@ namespace KarlsonMapEditor
                 Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
             };
 
-            public static void Init()
+            public static void InitInternalTextures()
             {
-                textures = Main.gameTex.ToList();
-                foreach (Texture2D tex in textures)
-                    tex.wrapMode = TextureWrapMode.Repeat;
+                Clear();
+                foreach (Texture2D tex in Main.gameTex)
+                {
+                    AddTexture(tex);
+                }
+            }
 
-                materials = new List<Material>();
+            public static void Clear()
+            {
+                textures.Clear();
+                materials.Clear();
             }
 
             public static void AddTexture(Texture2D tex)

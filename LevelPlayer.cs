@@ -108,13 +108,26 @@ namespace KarlsonMapEditor
         {
             Loadson.Console.Log("loading level data...");
 
+            // remove objects with colliders
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
-            if(levelData.startingGun != 0)
+
+            // init materials
+            levelData.SetupMaterials();
+
+            // init global light
+            GameObject sunGO = new GameObject();
+            Light sun = sunGO.AddComponent<Light>();
+            sun.type = LightType.Directional;
+            levelData.SetupGlobalLight(sun);
+
+            // bake skybox reflections
+            GameObject bakerGO = new GameObject();
+            bakerGO.AddComponent<EnvironmentBaker>().UpdateEnvironment();
+
+            // init the player
+            if (levelData.startingGun != 0)
                 PlayerMovement.Instance.spawnWeapon = LevelData.MakePrefab((PrefabType)(levelData.startingGun - 1));
-
-            RenderSettings.sun = levelData.GlobalLight;
-
             PlayerMovement.Instance.transform.position = levelData.startPosition;
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
@@ -165,7 +178,6 @@ namespace KarlsonMapEditor
                         go = MeshBuilder.GetGeometryGO(obj.ShapeId);
                         go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
                         go.GetComponent<KMETextureScaling>().Scale = obj.UVNormalizedScale;
-                        Loadson.Console.Log("uv scale " + obj.UVNormalizedScale.ToString());
                         if (obj.Glass && !obj.DisableTrigger)
                         {
                             // change to trigger collider
@@ -258,7 +270,6 @@ namespace KarlsonMapEditor
                 {
                     int version = br.ReadInt32();
                     Loadson.Console.Log("Loading level version " + version);
-                    MaterialManager.Init();
                     if (version == 1)
                         LoadLevel_Version1(br);
                     else if (version == 2)
@@ -425,10 +436,10 @@ namespace KarlsonMapEditor
                 startingGun = map.StartingGun;
                 startPosition = map.StartPosition;
                 startOrientation = map.StartOrientation;
-                AutomataScript = map.Script;
+                AutomataScript = map.AutomataScript;
                 GlobalObject = map.LoadTree();
-                map.LoadMaterials();
-                GlobalLight = map.LoadGlobalLight();
+                SetupMaterials = map.LoadMaterials;
+                SetupGlobalLight = map.LoadGlobalLight;
             }
 
             public bool isKMEv2;
@@ -437,11 +448,12 @@ namespace KarlsonMapEditor
             public Vector3 startPosition;
             public float startOrientation;
 
-            public Light GlobalLight;
             public LevelObject[] Objects;
             public ObjectGroup GlobalObject;
 
             public string AutomataScript;
+            public Action SetupMaterials = MaterialManager.InitInternalTextures;
+            public Action<Light> SetupGlobalLight = delegate { };
 
             public class LevelObject
             {

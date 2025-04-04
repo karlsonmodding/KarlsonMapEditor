@@ -1,4 +1,5 @@
 ﻿using Google.Protobuf;
+using System;
 using System.Collections.Generic;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
@@ -8,20 +9,26 @@ namespace KarlsonMapEditor
 {
     public partial class Map
     {
-        public void SaveMaterials(List<Texture2D> externalTextures, List<Material> materials, Material skybox)
+        public void SaveMaterials()
         {
             // save textures to the map
-            foreach (Texture2D texture in externalTextures)
+            foreach (Texture2D texture in MaterialManager.Textures)
             {
-                MapTexture mt = new MapTexture
+                MapTexture mt = new MapTexture();
+
+                int internalTextureIndex = Array.IndexOf(Main.gameTex, texture);
+                if (internalTextureIndex == -1)
                 {
-                    Name = texture.name,
-                    ImageData = ByteString.CopyFrom(texture.EncodeToPNG()),
-                };
+                    mt.ImageData = ByteString.CopyFrom(texture.EncodeToPNG());
+                }
+                else
+                {
+                    mt.TextureIndex = internalTextureIndex;
+                }
                 Textures.Add(mt);
             }
             // save materials to the map
-            foreach (Material material in materials)
+            foreach (Material material in MaterialManager.Materials)
             {
                 MapMaterial mm = new MapMaterial
                 {
@@ -42,6 +49,7 @@ namespace KarlsonMapEditor
             }
 
             // save skybox material
+            Material skybox = RenderSettings.skybox;
             if (skybox == Main.defaultSkybox)
             {
                 ClearSkybox();
@@ -75,11 +83,20 @@ namespace KarlsonMapEditor
         }
         public void LoadMaterials()
         {
+            MaterialManager.Clear();
             foreach (MapTexture mt in Textures)
             {
-                Texture2D texture = new Texture2D(1, 1);
-                texture.LoadImage(mt.ImageData.ToByteArray());
-                MaterialManager.AddTexture(texture);
+                switch (mt.TextureSourceCase)
+                {
+                    case MapTexture.TextureSourceOneofCase.TextureIndex:
+                        MaterialManager.AddTexture(Main.gameTex[mt.TextureIndex]);
+                        break;
+                    case MapTexture.TextureSourceOneofCase.ImageData:
+                        Texture2D texture = new Texture2D(1, 1);
+                        texture.LoadImage(mt.ImageData.ToByteArray());
+                        MaterialManager.AddTexture(texture);
+                        break;
+                }
             }
             foreach (MapMaterial mm in Materials)
             {
@@ -112,16 +129,17 @@ namespace KarlsonMapEditor
                     RenderSettings.skybox = Main.defaultSkybox; break;
                 case SkyboxOneofCase.SixSided:
                     RenderSettings.skybox = SixSidedSkybox;
-                    SixSidedSkybox.SetTexture("_FrontTex", MaterialManager.Textures[SixSided.FrontTextureId]);
-                    SixSidedSkybox.SetTexture("_BackTex", MaterialManager.Textures[SixSided.BackTextureId]);
-                    SixSidedSkybox.SetTexture("_LeftTex", MaterialManager.Textures[SixSided.LeftTextureId]);
-                    SixSidedSkybox.SetTexture("_RightTex", MaterialManager.Textures[SixSided.RightTextureId]);
-                    SixSidedSkybox.SetTexture("_UpTex", MaterialManager.Textures[SixSided.UpTextureId]);
-                    SixSidedSkybox.SetTexture("_DownTex", MaterialManager.Textures[SixSided.DownTextureId]);
+                    if (SixSided.FrontTextureId >= 0) SixSidedSkybox.SetTexture("_FrontTex", MaterialManager.Textures[SixSided.FrontTextureId]);
+                    if (SixSided.BackTextureId >= 0) SixSidedSkybox.SetTexture("_BackTex", MaterialManager.Textures[SixSided.BackTextureId]);
+                    if (SixSided.LeftTextureId >= 0) SixSidedSkybox.SetTexture("_LeftTex", MaterialManager.Textures[SixSided.LeftTextureId]);
+                    if (SixSided.RightTextureId >= 0) SixSidedSkybox.SetTexture("_RightTex", MaterialManager.Textures[SixSided.RightTextureId]);
+                    if (SixSided.UpTextureId >= 0) SixSidedSkybox.SetTexture("_UpTex", MaterialManager.Textures[SixSided.UpTextureId]);
+                    if (SixSided.DownTextureId >= 0) SixSidedSkybox.SetTexture("_DownTex", MaterialManager.Textures[SixSided.DownTextureId]);
                     SixSidedSkybox.SetFloat("_Rotation", SixSided.Rotation);
                     SixSidedSkybox.SetFloat("_Exposure", SixSided.Exposure);
                     break;
                 case SkyboxOneofCase.Procedural:
+                    RenderSettings.skybox = ProceduralSkybox;
                     ProceduralSkybox.SetFloat("_SunSize", Procedural.SunSize);
                     ProceduralSkybox.SetFloat("_SunSizeConvergence", Procedural.SunSizeConvergence);
                     ProceduralSkybox.SetFloat("_AtmosphereThickness", Procedural.AtmosphereThickness);
@@ -147,24 +165,15 @@ namespace KarlsonMapEditor
         public void SaveGlobalLight(Light light)
         {
             if (light == null) return;
-            LightDirection = light.transform.forward * light.intensity;
+            GlobalLightDirection = light.transform.forward * light.intensity;
             GlobalLight = light.color;
         }
-        public Light LoadGlobalLight()
+        public void LoadGlobalLight(Light light)
         {
-            if (LightDirection == Vector3.zero)
-            {
-                return null;
-            }
-            else
-            {
-                Light light = new Light();
-                light.type = LightType.Directional;
-                light.transform.rotation = Quaternion.LookRotation(LightDirection);
-                light.color = GlobalLight;
-                light.intensity = LightDirection.magnitude;
-                return light;
-            }
+            light.color = GlobalLight;
+            light.intensity = GlobalLightDirection.magnitude;
+            light.transform.rotation = Quaternion.LookRotation(GlobalLightDirection);
+            light.enabled = GlobalLightDirection != Vector3.zero;
         }
 
         public Vector3 StartPosition
@@ -172,20 +181,15 @@ namespace KarlsonMapEditor
             get { return LevelSerializer.ReadVector3(StartPositionVector); }
             set { LevelSerializer.WriteVector3(value, StartPositionVector); }
         }
-        public Vector3 LightDirection
+        public Vector3 GlobalLightDirection
         {
-            get { return LevelSerializer.ReadVector3(LightDirectionVector); }
-            set { LevelSerializer.WriteVector3(value, LightDirectionVector); }
+            get { return LevelSerializer.ReadVector3(GlobalLightDirectionVector); }
+            set { LevelSerializer.WriteVector3(value, GlobalLightDirectionVector); }
         }
         public Color GlobalLight
         {
             get { return LevelSerializer.ReadColor(GlobalLightColor); }
             set { LevelSerializer.WriteColor(value, GlobalLightColor); }
-        }
-        public Color Fog
-        {
-            get { return LevelSerializer.ReadColor(FogColor); }
-            set { LevelSerializer.WriteColor(value, FogColor); }
         }
     }
 

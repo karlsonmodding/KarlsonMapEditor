@@ -20,7 +20,6 @@ namespace KarlsonMapEditor
         {
             RGBToHSV(color, out h, out s, out v);
         }
-
         GUIStyle previewStyle;
         GUIStyle labelStyle;
         GUIStyle svStyle, hueStyle;
@@ -50,13 +49,16 @@ namespace KarlsonMapEditor
             svStyle = new GUIStyle();
             svStyle.normal.background = svTexture;
         }
-        public void DrawWindow()
+        public void DrawWindow(Action close, Action<Color> changeColor)
         {
-            if(pos.x < 0 || pos.y < 0)
+
+            if (pos.x < 0 || pos.y < 0)
                 pos = new Rect(Screen.width - 180, Screen.height - 20, 165, 215);
 
             pos = GUI.Window(wid, pos, (_) =>
             {
+                if (GUI.Button(new Rect(115, 0, 50, 20), "close")) close();
+
                 using (new GUILayout.VerticalScope())
                 {
                     GUILayout.Space(5f);
@@ -72,11 +74,32 @@ namespace KarlsonMapEditor
                     float oldh = h, olds = s, oldv = v;
                     UpdateColor();
                     if(h != oldh || s != olds || v != oldv)
+                    {
                         UpdateSVTexture(color, svTexture);
+                        changeColor(color);
+                    }
                 }
 
-                GUI.DragWindow(new Rect(0, 0, 165, 20));
+                GUI.DragWindow(new Rect(0, 0, 115, 20));
             }, "Color Picker");
+        }
+
+        public bool DrawPreviewButton(Color c, int width = 100, int height = 15)
+        {
+            bool clicked = false;
+            using (new GUILayout.VerticalScope())
+            {
+                var tmp = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(c.r, c.g, c.b);
+                clicked |= GUILayout.Button("", previewStyle, GUILayout.Width(width), GUILayout.Height(height - 3));
+
+                var alpha = c.a;
+                GUI.backgroundColor = new Color(alpha, alpha, alpha);
+                clicked |= GUILayout.Button("", previewStyle, GUILayout.Width(width), GUILayout.Height(3));
+
+                GUI.backgroundColor = tmp;
+            }
+            return clicked;
         }
 
         #region https://github.com/mattatz/unity-immediate-color-picker
@@ -348,26 +371,5 @@ namespace KarlsonMapEditor
             }
         }
         #endregion
-
-        public void DrawLayout()
-        {
-            using (new GUILayout.VerticalScope())
-            {
-                GUILayout.Space(5f);
-                DrawPreview(color);
-
-                GUILayout.Space(5f);
-                DrawHSVPicker(ref color);
-
-                GUILayout.Space(5f);
-                DrawManualInput(ref color);
-
-                // update for custom color
-                float oldh = h, olds = s, oldv = v;
-                UpdateColor();
-                if (h != oldh || s != olds || v != oldv)
-                    UpdateSVTexture(color, svTexture);
-            }
-        }
     }
 }

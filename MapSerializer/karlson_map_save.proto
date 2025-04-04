@@ -65,8 +65,10 @@ message MapObject {
 }
 
 message MapTexture {
-  string name = 1;
-  bytes image_data = 2;
+  oneof texture_source {
+    int32 texture_index = 1; // for internal textures
+    bytes image_data = 2;    // for external textures not included in the game
+  }
 }
 
 message MapMaterial {
@@ -128,17 +130,16 @@ message Map {
 
   // level data
   MapObject root = 4;
-  string script = 5;
+  string automata_script = 5;
   repeated MapTexture textures = 6;
   repeated MapMaterial materials = 7;
   oneof skybox {
     MapSixSidedSkybox six_sided = 8;
     MapProceduralSkybox procedural = 9;
   }
-  repeated float fog_color = 10;
-  repeated float light_direction_vector = 11; // 0 is no directional light
-  repeated float global_light_color = 12;
+  repeated float global_light_direction_vector = 10; // 0 is no directional light
+  repeated float global_light_color = 11;
 
   // editor
-  float grid_align = 13;
+  float grid_align = 12;
 }

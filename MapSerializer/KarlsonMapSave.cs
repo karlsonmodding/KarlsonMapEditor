@@ -45,37 +45,38 @@ namespace KarlsonMapEditor {
             "ZWN0b3IYBCADKAISMQoIZ2VvbWV0cnkYBSABKAsyHS5LYXJsc29uTWFwRWRp",
             "dG9yLk1hcEdlb21ldHJ5SAASLQoGcHJlZmFiGAYgASgLMhsuS2FybHNvbk1h",
             "cEVkaXRvci5NYXBQcmVmYWJIABIrCgVncm91cBgHIAEoCzIaLkthcmxzb25N",
-            "YXBFZGl0b3IuTWFwR3JvdXBIAEIGCgR0eXBlIi4KCk1hcFRleHR1cmUSDAoE",
-            "bmFtZRgBIAEoCRISCgppbWFnZV9kYXRhGAIgASgMIrcDCgtNYXBNYXRlcmlh",
-            "bBI5CgRtb2RlGAEgASgOMisuS2FybHNvbk1hcEVkaXRvci5NYXBNYXRlcmlh",
-            "bC5SZW5kZXJpbmdNb2RlEhkKEWFsYmVkb190ZXh0dXJlX2lkGAIgASgFEhsK",
-            "E21ldGFsbGljX3RleHR1cmVfaWQYAyABKAUSHQoVbm9ybWFsX21hcF90ZXh0",
-            "dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMoAhIVCg1vZmZzZXRf",
-            "dmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMoAhIWCg5lbWlzc2lv",
-            "bl9jb2xvchgIIAMoAhIQCghtZXRhbGxpYxgJIAEoAhISCgpzbW9vdGhuZXNz",
-            "GAogASgCEhgKEHNtb290aG5lc3NTb3VyY2UYCyABKAUSGgoSc3BlY3VsYXJf",
-            "aGlnaGxpZ2h0GAwgASgIEhsKE3NwZWN1bGFyX3JlZmxlY3Rpb24YDSABKAgi",
-            "QgoNUmVuZGVyaW5nTW9kZRIKCgZvcGFxdWUQABIKCgZjdXRvdXQQARIICgRm",
-            "YWRlEAISDwoLdHJhbnNwYXJlbnQQAyLNAQoRTWFwU2l4U2lkZWRTa3lib3gS",
-            "GAoQZnJvbnRfdGV4dHVyZV9pZBgBIAEoBRIXCg9iYWNrX3RleHR1cmVfaWQY",
-            "AiABKAUSFwoPbGVmdF90ZXh0dXJlX2lkGAMgASgFEhgKEHJpZ2h0X3RleHR1",
-            "cmVfaWQYBCABKAUSFQoNdXBfdGV4dHVyZV9pZBgFIAEoBRIXCg9kb3duX3Rl",
-            "eHR1cmVfaWQYBiABKAUSEAoIcm90YXRpb24YByABKAISEAoIZXhwb3N1cmUY",
-            "CCABKAIiowEKE01hcFByb2NlZHVyYWxTa3lib3gSEAoIc3VuX3NpemUYASAB",
-            "KAISHAoUc3VuX3NpemVfY29udmVyZ2VuY2UYAiABKAISHAoUYXRtb3NwaGVy",
-            "ZV90aGlja25lc3MYAyABKAISFgoOc2t5X3RpbnRfY29sb3IYBCADKAISFAoM",
-            "Z3JvdW5kX2NvbG9yGAUgAygCEhAKCGV4cG9zdXJlGAggASgCItYDCgNNYXAS",
-            "FAoMc3RhcnRpbmdfZ3VuGAEgASgFEh0KFXN0YXJ0X3Bvc2l0aW9uX3ZlY3Rv",
-            "chgCIAMoAhIZChFzdGFydF9vcmllbnRhdGlvbhgDIAEoAhIpCgRyb290GAQg",
-            "ASgLMhsuS2FybHNvbk1hcEVkaXRvci5NYXBPYmplY3QSDgoGc2NyaXB0GAUg",
-            "ASgJEi4KCHRleHR1cmVzGAYgAygLMhwuS2FybHNvbk1hcEVkaXRvci5NYXBU",
-            "ZXh0dXJlEjAKCW1hdGVyaWFscxgHIAMoCzIdLkthcmxzb25NYXBFZGl0b3Iu",
-            "TWFwTWF0ZXJpYWwSOAoJc2l4X3NpZGVkGAggASgLMiMuS2FybHNvbk1hcEVk",
-            "aXRvci5NYXBTaXhTaWRlZFNreWJveEgAEjsKCnByb2NlZHVyYWwYCSABKAsy",
-            "JS5LYXJsc29uTWFwRWRpdG9yLk1hcFByb2NlZHVyYWxTa3lib3hIABIRCglm",
-            "b2dfY29sb3IYCiADKAISHgoWbGlnaHRfZGlyZWN0aW9uX3ZlY3RvchgLIAMo",
-            "AhIaChJnbG9iYWxfbGlnaHRfY29sb3IYDCADKAISEgoKZ3JpZF9hbGlnbhgN",
-            "IAEoAkIICgZza3lib3hiBnByb3RvMw=="));
+            "YXBFZGl0b3IuTWFwR3JvdXBIAEIGCgR0eXBlIk0KCk1hcFRleHR1cmUSFwoN",
+            "dGV4dHVyZV9pbmRleBgBIAEoBUgAEhQKCmltYWdlX2RhdGEYAiABKAxIAEIQ",
+            "Cg50ZXh0dXJlX3NvdXJjZSK3AwoLTWFwTWF0ZXJpYWwSOQoEbW9kZRgBIAEo",
+            "DjIrLkthcmxzb25NYXBFZGl0b3IuTWFwTWF0ZXJpYWwuUmVuZGVyaW5nTW9k",
+            "ZRIZChFhbGJlZG9fdGV4dHVyZV9pZBgCIAEoBRIbChNtZXRhbGxpY190ZXh0",
+            "dXJlX2lkGAMgASgFEh0KFW5vcm1hbF9tYXBfdGV4dHVyZV9pZBgEIAEoBRIU",
+            "CgxzY2FsZV92ZWN0b3IYBSADKAISFQoNb2Zmc2V0X3ZlY3RvchgGIAMoAhIU",
+            "CgxhbGJlZG9fY29sb3IYByADKAISFgoOZW1pc3Npb25fY29sb3IYCCADKAIS",
+            "EAoIbWV0YWxsaWMYCSABKAISEgoKc21vb3RobmVzcxgKIAEoAhIYChBzbW9v",
+            "dGhuZXNzU291cmNlGAsgASgFEhoKEnNwZWN1bGFyX2hpZ2hsaWdodBgMIAEo",
+            "CBIbChNzcGVjdWxhcl9yZWZsZWN0aW9uGA0gASgIIkIKDVJlbmRlcmluZ01v",
+            "ZGUSCgoGb3BhcXVlEAASCgoGY3V0b3V0EAESCAoEZmFkZRACEg8KC3RyYW5z",
+            "cGFyZW50EAMizQEKEU1hcFNpeFNpZGVkU2t5Ym94EhgKEGZyb250X3RleHR1",
+            "cmVfaWQYASABKAUSFwoPYmFja190ZXh0dXJlX2lkGAIgASgFEhcKD2xlZnRf",
+            "dGV4dHVyZV9pZBgDIAEoBRIYChByaWdodF90ZXh0dXJlX2lkGAQgASgFEhUK",
+            "DXVwX3RleHR1cmVfaWQYBSABKAUSFwoPZG93bl90ZXh0dXJlX2lkGAYgASgF",
+            "EhAKCHJvdGF0aW9uGAcgASgCEhAKCGV4cG9zdXJlGAggASgCIqMBChNNYXBQ",
+            "cm9jZWR1cmFsU2t5Ym94EhAKCHN1bl9zaXplGAEgASgCEhwKFHN1bl9zaXpl",
+            "X2NvbnZlcmdlbmNlGAIgASgCEhwKFGF0bW9zcGhlcmVfdGhpY2tuZXNzGAMg",
+            "ASgCEhYKDnNreV90aW50X2NvbG9yGAQgAygCEhQKDGdyb3VuZF9jb2xvchgF",
+            "IAMoAhIQCghleHBvc3VyZRgIIAEoAiLTAwoDTWFwEhQKDHN0YXJ0aW5nX2d1",
+            "bhgBIAEoBRIdChVzdGFydF9wb3NpdGlvbl92ZWN0b3IYAiADKAISGQoRc3Rh",
+            "cnRfb3JpZW50YXRpb24YAyABKAISKQoEcm9vdBgEIAEoCzIbLkthcmxzb25N",
+            "YXBFZGl0b3IuTWFwT2JqZWN0EhcKD2F1dG9tYXRhX3NjcmlwdBgFIAEoCRIu",
+            "Cgh0ZXh0dXJlcxgGIAMoCzIcLkthcmxzb25NYXBFZGl0b3IuTWFwVGV4dHVy",
+            "ZRIwCgltYXRlcmlhbHMYByADKAsyHS5LYXJsc29uTWFwRWRpdG9yLk1hcE1h",
+            "dGVyaWFsEjgKCXNpeF9zaWRlZBgIIAEoCzIjLkthcmxzb25NYXBFZGl0b3Iu",
+            "TWFwU2l4U2lkZWRTa3lib3hIABI7Cgpwcm9jZWR1cmFsGAkgASgLMiUuS2Fy",
+            "bHNvbk1hcEVkaXRvci5NYXBQcm9jZWR1cmFsU2t5Ym94SAASJQodZ2xvYmFs",
+            "X2xpZ2h0X2RpcmVjdGlvbl92ZWN0b3IYCiADKAISGgoSZ2xvYmFsX2xpZ2h0",
+            "X2NvbG9yGAsgAygCEhIKCmdyaWRfYWxpZ24YDCABKAJCCAoGc2t5Ym94YgZw",
+            "cm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -83,11 +84,11 @@ namespace KarlsonMapEditor {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapPrefab), global::KarlsonMapEditor.MapPrefab.Parser, new[]{ "PrefabType", "PrefabData" }, null, new[]{ typeof(global::KarlsonMapEditor.MapPrefab.Types.PrefabType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group" }, new[]{ "Type" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "Name", "ImageData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "EmissionColor", "Metallic", "Smoothness", "SmoothnessSource", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapSixSidedSkybox), global::KarlsonMapEditor.MapSixSidedSkybox.Parser, new[]{ "FrontTextureId", "BackTextureId", "LeftTextureId", "RightTextureId", "UpTextureId", "DownTextureId", "Rotation", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapProceduralSkybox), global::KarlsonMapEditor.MapProceduralSkybox.Parser, new[]{ "SunSize", "SunSizeConvergence", "AtmosphereThickness", "SkyTintColor", "GroundColor", "Exposure" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "Script", "Textures", "Materials", "SixSided", "Procedural", "FogColor", "LightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "AutomataScript", "Textures", "Materials", "SixSided", "Procedural", "GlobalLightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
           }));
     }
     #endregion
@@ -1524,8 +1525,15 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MapTexture(MapTexture other) : this() {
-      name_ = other.name_;
-      imageData_ = other.imageData_;
+      switch (other.TextureSourceCase) {
+        case TextureSourceOneofCase.TextureIndex:
+          TextureIndex = other.TextureIndex;
+          break;
+        case TextureSourceOneofCase.ImageData:
+          ImageData = other.ImageData;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1535,28 +1543,83 @@ namespace KarlsonMapEditor {
       return new MapTexture(this);
     }
 
-    /// <summary>Field number for the "name" field.</summary>
-    public const int NameFieldNumber = 1;
-    private string name_ = "";
+    /// <summary>Field number for the "texture_index" field.</summary>
+    public const int TextureIndexFieldNumber = 1;
+    /// <summary>
+    /// for internal textures
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Name {
-      get { return name_; }
+    public int TextureIndex {
+      get { return HasTextureIndex ? (int) textureSource_ : 0; }
       set {
-        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        textureSource_ = value;
+        textureSourceCase_ = TextureSourceOneofCase.TextureIndex;
+      }
+    }
+    /// <summary>Gets whether the "texture_index" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTextureIndex {
+      get { return textureSourceCase_ == TextureSourceOneofCase.TextureIndex; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "texture_index" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTextureIndex() {
+      if (HasTextureIndex) {
+        ClearTextureSource();
       }
     }
 
     /// <summary>Field number for the "image_data" field.</summary>
     public const int ImageDataFieldNumber = 2;
-    private pb::ByteString imageData_ = pb::ByteString.Empty;
+    /// <summary>
+    /// for external textures not included in the game
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ImageData {
-      get { return imageData_; }
+      get { return HasImageData ? (pb::ByteString) textureSource_ : pb::ByteString.Empty; }
       set {
-        imageData_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        textureSource_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        textureSourceCase_ = TextureSourceOneofCase.ImageData;
       }
+    }
+    /// <summary>Gets whether the "image_data" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasImageData {
+      get { return textureSourceCase_ == TextureSourceOneofCase.ImageData; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "image_data" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearImageData() {
+      if (HasImageData) {
+        ClearTextureSource();
+      }
+    }
+
+    private object textureSource_;
+    /// <summary>Enum of possible cases for the "texture_source" oneof.</summary>
+    public enum TextureSourceOneofCase {
+      None = 0,
+      TextureIndex = 1,
+      ImageData = 2,
+    }
+    private TextureSourceOneofCase textureSourceCase_ = TextureSourceOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TextureSourceOneofCase TextureSourceCase {
+      get { return textureSourceCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTextureSource() {
+      textureSourceCase_ = TextureSourceOneofCase.None;
+      textureSource_ = null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1574,8 +1637,9 @@ namespace KarlsonMapEditor {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Name != other.Name) return false;
+      if (TextureIndex != other.TextureIndex) return false;
       if (ImageData != other.ImageData) return false;
+      if (TextureSourceCase != other.TextureSourceCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1583,8 +1647,9 @@ namespace KarlsonMapEditor {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Name.Length != 0) hash ^= Name.GetHashCode();
-      if (ImageData.Length != 0) hash ^= ImageData.GetHashCode();
+      if (HasTextureIndex) hash ^= TextureIndex.GetHashCode();
+      if (HasImageData) hash ^= ImageData.GetHashCode();
+      hash ^= (int) textureSourceCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1603,11 +1668,11 @@ namespace KarlsonMapEditor {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Name.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Name);
+      if (HasTextureIndex) {
+        output.WriteRawTag(8);
+        output.WriteInt32(TextureIndex);
       }
-      if (ImageData.Length != 0) {
+      if (HasImageData) {
         output.WriteRawTag(18);
         output.WriteBytes(ImageData);
       }
@@ -1621,11 +1686,11 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Name.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Name);
+      if (HasTextureIndex) {
+        output.WriteRawTag(8);
+        output.WriteInt32(TextureIndex);
       }
-      if (ImageData.Length != 0) {
+      if (HasImageData) {
         output.WriteRawTag(18);
         output.WriteBytes(ImageData);
       }
@@ -1639,10 +1704,10 @@ namespace KarlsonMapEditor {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Name.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      if (HasTextureIndex) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(TextureIndex);
       }
-      if (ImageData.Length != 0) {
+      if (HasImageData) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ImageData);
       }
       if (_unknownFields != null) {
@@ -1657,12 +1722,15 @@ namespace KarlsonMapEditor {
       if (other == null) {
         return;
       }
-      if (other.Name.Length != 0) {
-        Name = other.Name;
+      switch (other.TextureSourceCase) {
+        case TextureSourceOneofCase.TextureIndex:
+          TextureIndex = other.TextureIndex;
+          break;
+        case TextureSourceOneofCase.ImageData:
+          ImageData = other.ImageData;
+          break;
       }
-      if (other.ImageData.Length != 0) {
-        ImageData = other.ImageData;
-      }
+
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1682,8 +1750,8 @@ namespace KarlsonMapEditor {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            Name = input.ReadString();
+          case 8: {
+            TextureIndex = input.ReadInt32();
             break;
           }
           case 18: {
@@ -1709,8 +1777,8 @@ namespace KarlsonMapEditor {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
-            Name = input.ReadString();
+          case 8: {
+            TextureIndex = input.ReadInt32();
             break;
           }
           case 18: {
@@ -3242,11 +3310,10 @@ namespace KarlsonMapEditor {
       startPositionVector_ = other.startPositionVector_.Clone();
       startOrientation_ = other.startOrientation_;
       root_ = other.root_ != null ? other.root_.Clone() : null;
-      script_ = other.script_;
+      automataScript_ = other.automataScript_;
       textures_ = other.textures_.Clone();
       materials_ = other.materials_.Clone();
-      fogColor_ = other.fogColor_.Clone();
-      lightDirectionVector_ = other.lightDirectionVector_.Clone();
+      globalLightDirectionVector_ = other.globalLightDirectionVector_.Clone();
       globalLightColor_ = other.globalLightColor_.Clone();
       gridAlign_ = other.gridAlign_;
       switch (other.SkyboxCase) {
@@ -3320,15 +3387,15 @@ namespace KarlsonMapEditor {
       }
     }
 
-    /// <summary>Field number for the "script" field.</summary>
-    public const int ScriptFieldNumber = 5;
-    private string script_ = "";
+    /// <summary>Field number for the "automata_script" field.</summary>
+    public const int AutomataScriptFieldNumber = 5;
+    private string automataScript_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Script {
-      get { return script_; }
+    public string AutomataScript {
+      get { return automataScript_; }
       set {
-        script_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        automataScript_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -3378,35 +3445,24 @@ namespace KarlsonMapEditor {
       }
     }
 
-    /// <summary>Field number for the "fog_color" field.</summary>
-    public const int FogColorFieldNumber = 10;
-    private static readonly pb::FieldCodec<float> _repeated_fogColor_codec
+    /// <summary>Field number for the "global_light_direction_vector" field.</summary>
+    public const int GlobalLightDirectionVectorFieldNumber = 10;
+    private static readonly pb::FieldCodec<float> _repeated_globalLightDirectionVector_codec
         = pb::FieldCodec.ForFloat(82);
-    private readonly pbc::RepeatedField<float> fogColor_ = new pbc::RepeatedField<float>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<float> FogColor {
-      get { return fogColor_; }
-    }
-
-    /// <summary>Field number for the "light_direction_vector" field.</summary>
-    public const int LightDirectionVectorFieldNumber = 11;
-    private static readonly pb::FieldCodec<float> _repeated_lightDirectionVector_codec
-        = pb::FieldCodec.ForFloat(90);
-    private readonly pbc::RepeatedField<float> lightDirectionVector_ = new pbc::RepeatedField<float>();
+    private readonly pbc::RepeatedField<float> globalLightDirectionVector_ = new pbc::RepeatedField<float>();
     /// <summary>
     /// 0 is no directional light
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<float> LightDirectionVector {
-      get { return lightDirectionVector_; }
+    public pbc::RepeatedField<float> GlobalLightDirectionVector {
+      get { return globalLightDirectionVector_; }
     }
 
     /// <summary>Field number for the "global_light_color" field.</summary>
-    public const int GlobalLightColorFieldNumber = 12;
+    public const int GlobalLightColorFieldNumber = 11;
     private static readonly pb::FieldCodec<float> _repeated_globalLightColor_codec
-        = pb::FieldCodec.ForFloat(98);
+        = pb::FieldCodec.ForFloat(90);
     private readonly pbc::RepeatedField<float> globalLightColor_ = new pbc::RepeatedField<float>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3415,7 +3471,7 @@ namespace KarlsonMapEditor {
     }
 
     /// <summary>Field number for the "grid_align" field.</summary>
-    public const int GridAlignFieldNumber = 13;
+    public const int GridAlignFieldNumber = 12;
     private float gridAlign_;
     /// <summary>
     /// editor
@@ -3469,13 +3525,12 @@ namespace KarlsonMapEditor {
       if(!startPositionVector_.Equals(other.startPositionVector_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(StartOrientation, other.StartOrientation)) return false;
       if (!object.Equals(Root, other.Root)) return false;
-      if (Script != other.Script) return false;
+      if (AutomataScript != other.AutomataScript) return false;
       if(!textures_.Equals(other.textures_)) return false;
       if(!materials_.Equals(other.materials_)) return false;
       if (!object.Equals(SixSided, other.SixSided)) return false;
       if (!object.Equals(Procedural, other.Procedural)) return false;
-      if(!fogColor_.Equals(other.fogColor_)) return false;
-      if(!lightDirectionVector_.Equals(other.lightDirectionVector_)) return false;
+      if(!globalLightDirectionVector_.Equals(other.globalLightDirectionVector_)) return false;
       if(!globalLightColor_.Equals(other.globalLightColor_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(GridAlign, other.GridAlign)) return false;
       if (SkyboxCase != other.SkyboxCase) return false;
@@ -3490,13 +3545,12 @@ namespace KarlsonMapEditor {
       hash ^= startPositionVector_.GetHashCode();
       if (StartOrientation != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(StartOrientation);
       if (root_ != null) hash ^= Root.GetHashCode();
-      if (Script.Length != 0) hash ^= Script.GetHashCode();
+      if (AutomataScript.Length != 0) hash ^= AutomataScript.GetHashCode();
       hash ^= textures_.GetHashCode();
       hash ^= materials_.GetHashCode();
       if (skyboxCase_ == SkyboxOneofCase.SixSided) hash ^= SixSided.GetHashCode();
       if (skyboxCase_ == SkyboxOneofCase.Procedural) hash ^= Procedural.GetHashCode();
-      hash ^= fogColor_.GetHashCode();
-      hash ^= lightDirectionVector_.GetHashCode();
+      hash ^= globalLightDirectionVector_.GetHashCode();
       hash ^= globalLightColor_.GetHashCode();
       if (GridAlign != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(GridAlign);
       hash ^= (int) skyboxCase_;
@@ -3531,9 +3585,9 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(34);
         output.WriteMessage(Root);
       }
-      if (Script.Length != 0) {
+      if (AutomataScript.Length != 0) {
         output.WriteRawTag(42);
-        output.WriteString(Script);
+        output.WriteString(AutomataScript);
       }
       textures_.WriteTo(output, _repeated_textures_codec);
       materials_.WriteTo(output, _repeated_materials_codec);
@@ -3545,11 +3599,10 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(74);
         output.WriteMessage(Procedural);
       }
-      fogColor_.WriteTo(output, _repeated_fogColor_codec);
-      lightDirectionVector_.WriteTo(output, _repeated_lightDirectionVector_codec);
+      globalLightDirectionVector_.WriteTo(output, _repeated_globalLightDirectionVector_codec);
       globalLightColor_.WriteTo(output, _repeated_globalLightColor_codec);
       if (GridAlign != 0F) {
-        output.WriteRawTag(109);
+        output.WriteRawTag(101);
         output.WriteFloat(GridAlign);
       }
       if (_unknownFields != null) {
@@ -3575,9 +3628,9 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(34);
         output.WriteMessage(Root);
       }
-      if (Script.Length != 0) {
+      if (AutomataScript.Length != 0) {
         output.WriteRawTag(42);
-        output.WriteString(Script);
+        output.WriteString(AutomataScript);
       }
       textures_.WriteTo(ref output, _repeated_textures_codec);
       materials_.WriteTo(ref output, _repeated_materials_codec);
@@ -3589,11 +3642,10 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(74);
         output.WriteMessage(Procedural);
       }
-      fogColor_.WriteTo(ref output, _repeated_fogColor_codec);
-      lightDirectionVector_.WriteTo(ref output, _repeated_lightDirectionVector_codec);
+      globalLightDirectionVector_.WriteTo(ref output, _repeated_globalLightDirectionVector_codec);
       globalLightColor_.WriteTo(ref output, _repeated_globalLightColor_codec);
       if (GridAlign != 0F) {
-        output.WriteRawTag(109);
+        output.WriteRawTag(101);
         output.WriteFloat(GridAlign);
       }
       if (_unknownFields != null) {
@@ -3616,8 +3668,8 @@ namespace KarlsonMapEditor {
       if (root_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Root);
       }
-      if (Script.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Script);
+      if (AutomataScript.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AutomataScript);
       }
       size += textures_.CalculateSize(_repeated_textures_codec);
       size += materials_.CalculateSize(_repeated_materials_codec);
@@ -3627,8 +3679,7 @@ namespace KarlsonMapEditor {
       if (skyboxCase_ == SkyboxOneofCase.Procedural) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Procedural);
       }
-      size += fogColor_.CalculateSize(_repeated_fogColor_codec);
-      size += lightDirectionVector_.CalculateSize(_repeated_lightDirectionVector_codec);
+      size += globalLightDirectionVector_.CalculateSize(_repeated_globalLightDirectionVector_codec);
       size += globalLightColor_.CalculateSize(_repeated_globalLightColor_codec);
       if (GridAlign != 0F) {
         size += 1 + 4;
@@ -3658,13 +3709,12 @@ namespace KarlsonMapEditor {
         }
         Root.MergeFrom(other.Root);
       }
-      if (other.Script.Length != 0) {
-        Script = other.Script;
+      if (other.AutomataScript.Length != 0) {
+        AutomataScript = other.AutomataScript;
       }
       textures_.Add(other.textures_);
       materials_.Add(other.materials_);
-      fogColor_.Add(other.fogColor_);
-      lightDirectionVector_.Add(other.lightDirectionVector_);
+      globalLightDirectionVector_.Add(other.globalLightDirectionVector_);
       globalLightColor_.Add(other.globalLightColor_);
       if (other.GridAlign != 0F) {
         GridAlign = other.GridAlign;
@@ -3724,7 +3774,7 @@ namespace KarlsonMapEditor {
             break;
           }
           case 42: {
-            Script = input.ReadString();
+            AutomataScript = input.ReadString();
             break;
           }
           case 50: {
@@ -3755,20 +3805,15 @@ namespace KarlsonMapEditor {
           }
           case 82:
           case 85: {
-            fogColor_.AddEntriesFrom(input, _repeated_fogColor_codec);
+            globalLightDirectionVector_.AddEntriesFrom(input, _repeated_globalLightDirectionVector_codec);
             break;
           }
           case 90:
           case 93: {
-            lightDirectionVector_.AddEntriesFrom(input, _repeated_lightDirectionVector_codec);
-            break;
-          }
-          case 98:
-          case 101: {
             globalLightColor_.AddEntriesFrom(input, _repeated_globalLightColor_codec);
             break;
           }
-          case 109: {
+          case 101: {
             GridAlign = input.ReadFloat();
             break;
           }
@@ -3812,7 +3857,7 @@ namespace KarlsonMapEditor {
             break;
           }
           case 42: {
-            Script = input.ReadString();
+            AutomataScript = input.ReadString();
             break;
           }
           case 50: {
@@ -3843,20 +3888,15 @@ namespace KarlsonMapEditor {
           }
           case 82:
           case 85: {
-            fogColor_.AddEntriesFrom(ref input, _repeated_fogColor_codec);
+            globalLightDirectionVector_.AddEntriesFrom(ref input, _repeated_globalLightDirectionVector_codec);
             break;
           }
           case 90:
           case 93: {
-            lightDirectionVector_.AddEntriesFrom(ref input, _repeated_lightDirectionVector_codec);
-            break;
-          }
-          case 98:
-          case 101: {
             globalLightColor_.AddEntriesFrom(ref input, _repeated_globalLightColor_codec);
             break;
           }
-          case 109: {
+          case 101: {
             GridAlign = input.ReadFloat();
             break;
           }

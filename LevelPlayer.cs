@@ -112,9 +112,6 @@ namespace KarlsonMapEditor
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
 
-            // init materials
-            levelData.SetupMaterials();
-
             // init global light
             GameObject sunGO = new GameObject();
             Light sun = sunGO.AddComponent<Light>();
@@ -131,7 +128,6 @@ namespace KarlsonMapEditor
             PlayerMovement.Instance.transform.position = levelData.startPosition;
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
-
 
             if (!levelData.isKMEv2)
             {
@@ -318,6 +314,7 @@ namespace KarlsonMapEditor
             private void LoadLevel_Version1(BinaryReader br)
             {
                 isKMEv2 = false;
+                MaterialManager.InitInternalTextures();
                 gridAlign = br.ReadSingle();
                 startingGun = br.ReadInt32();
                 startPosition = br.ReadVector3();
@@ -353,6 +350,7 @@ namespace KarlsonMapEditor
             private void LoadLevel_Version2(BinaryReader br)
             {
                 isKMEv2 = false;
+                MaterialManager.InitInternalTextures();
                 gridAlign = br.ReadSingle();
                 startingGun = br.ReadInt32();
                 startPosition = br.ReadVector3();
@@ -387,6 +385,7 @@ namespace KarlsonMapEditor
             private void LoadLevel_Version3(BinaryReader br)
             {
                 isKMEv2 = true;
+                MaterialManager.InitInternalTextures();
                 gridAlign = br.ReadSingle();
                 startingGun = br.ReadInt32();
                 startPosition = br.ReadVector3();
@@ -409,6 +408,7 @@ namespace KarlsonMapEditor
             private void LoadLevel_Version4(BinaryReader br)
             {
                 isKMEv2 = true;
+                MaterialManager.InitInternalTextures();
                 gridAlign = br.ReadSingle();
                 startingGun = br.ReadInt32();
                 startPosition = br.ReadVector3();
@@ -438,7 +438,7 @@ namespace KarlsonMapEditor
                 startOrientation = map.StartOrientation;
                 AutomataScript = map.AutomataScript;
                 GlobalObject = map.LoadTree();
-                SetupMaterials = map.LoadMaterials;
+                map.LoadMaterials();
                 SetupGlobalLight = map.LoadGlobalLight;
             }
 
@@ -452,7 +452,6 @@ namespace KarlsonMapEditor
             public ObjectGroup GlobalObject;
 
             public string AutomataScript;
-            public Action SetupMaterials = MaterialManager.InitInternalTextures;
             public Action<Light> SetupGlobalLight = delegate { };
 
             public class LevelObject
@@ -540,7 +539,7 @@ namespace KarlsonMapEditor
                 // geometry specific
                 public GeometryShape ShapeId;
                 public int MaterialId;
-                public float UVNormalizedScale = 5f;
+                public float UVNormalizedScale = 10f;
                 public bool Bounce;
                 public bool Glass;
                 public bool Lava;

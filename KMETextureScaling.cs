@@ -7,7 +7,7 @@ namespace KarlsonMapEditor
     internal class KMETextureScaling : MonoBehaviour
     {
         private bool _enabled = true;
-        private float _scale = 5;
+        private float _scale = 1;
 
         public bool Enabled
         {

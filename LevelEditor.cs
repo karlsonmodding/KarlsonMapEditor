@@ -1477,6 +1477,7 @@ namespace KarlsonMapEditor
 
         private static void LoadLevel(string path)
         {
+            Loadson.Console.Log("setting up level editor");
             ObjectGroup ReplicateObjectGroup(LevelPlayer.LevelData.ObjectGroup group, ObjectGroup parentGroup)
             {
                 ObjectGroup objGroup = new ObjectGroup(group.Name);
@@ -1504,15 +1505,13 @@ namespace KarlsonMapEditor
             
             LevelPlayer.LevelData data = new LevelPlayer.LevelData(File.ReadAllBytes(path));
             levelName = Path.GetFileNameWithoutExtension(path);
+
+            data.SetupGlobalLight(sun);
             gridAlign = data.gridAlign;
             startingGun = data.startingGun;
             startGunDD.Index = startingGun;
             startPosition = data.startPosition;
             startOrientation = data.startOrientation;
-
-            // set up
-            data.SetupMaterials();
-            data.SetupGlobalLight(sun);
 
             // kme v1 compatibility
             if (!data.isKMEv2)
@@ -2025,7 +2024,14 @@ namespace KarlsonMapEditor
                     mainTexture = textures[TextureId],
                     color = color
                 };
-                if (transparent) UpdateMode(mat, ShaderBlendMode.Transparent);
+                if (transparent)
+                {
+                    UpdateMode(mat, ShaderBlendMode.Transparent);
+                    // values used glass in the prefab
+                    mat.SetFloat("_Metallic", 0.171f);
+                    mat.SetFloat("_Glossiness", 0.453f);
+                }
+
                 materials.Add(mat);
                 return materials.Count - 1;
             }

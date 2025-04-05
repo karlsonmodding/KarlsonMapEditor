@@ -162,7 +162,6 @@ namespace KarlsonMapEditor
 
         public void SaveGlobalLight(Light light)
         {
-            if (light == null) return;
             GlobalLightDirection = light.transform.forward * light.intensity;
             GlobalLight = light.color;
         }

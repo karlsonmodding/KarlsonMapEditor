@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
+using HarmonyLib;
 
 namespace KarlsonMapEditor
 {
@@ -38,8 +39,7 @@ namespace KarlsonMapEditor
 
     public class LevelData
     {
-        public static readonly PrimitiveType[] typeToInt = new PrimitiveType[] { PrimitiveType.Cube, PrimitiveType.Sphere, PrimitiveType.Capsule, PrimitiveType.Cylinder, PrimitiveType.Plane, PrimitiveType.Quad };
-
+        
         public LevelData(byte[] _data)
         {
             // decompress
@@ -67,6 +67,102 @@ namespace KarlsonMapEditor
             }
         }
 
+        #region loaders
+        private void LoadLevel_Version1(BinaryReader br)
+        {
+            isKMEv2 = false;
+            SetupMaterials = SetupMaterialsOld;
+            ReadGlobalProperties(br);
+            ReadTextures(br);
+            ReadObjectGroup_v1(br);
+            AutomataScript = "";
+        }
+
+        private void LoadLevel_Version2(BinaryReader br)
+        {
+            isKMEv2 = false;
+            SetupMaterials = SetupMaterialsOld;
+            ReadGlobalProperties(br);
+            ReadTextures(br);
+            ReadObjectGroup_v1(br, true);
+            AutomataScript = "";
+        }
+
+        private void LoadLevel_Version3(BinaryReader br)
+        {
+            isKMEv2 = true;
+            SetupMaterials = SetupMaterialsOld;
+            ReadGlobalProperties(br);
+            ReadTextures(br);
+            GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
+            AutomataScript = "";
+        }
+
+        private void LoadLevel_Version4(BinaryReader br)
+        {
+            isKMEv2 = true;
+            SetupMaterials = SetupMaterialsOld;
+            ReadGlobalProperties(br);
+            ReadTextures(br);
+            AutomataScript = br.ReadString();
+            GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
+        }
+
+        private void LoadLevel_Version5(Stream stream)
+        {
+            isKMEv2 = true;
+            Map map = Map.Parser.ParseFrom(stream);
+            gridAlign = map.GridAlign;
+            startingGun = map.StartingGun;
+            startPosition = map.StartPosition;
+            startOrientation = map.StartOrientation;
+            AutomataScript = map.AutomataScript;
+            GlobalObject = map.LoadTree();
+            SetupMaterials = map.LoadMaterials;
+            SetupGlobalLight = map.LoadGlobalLight;
+        }
+        #endregion
+
+        #region LoadHelpers
+        private void ReadGlobalProperties(BinaryReader br)
+        {
+            gridAlign = br.ReadSingle();
+            startingGun = br.ReadInt32();
+            startPosition = br.ReadVector3();
+            startOrientation = br.ReadSingle();
+        }
+        private void ReadTextures(BinaryReader br)
+        {
+            int _len;
+            int _texl = br.ReadInt32();
+            while (_texl-- > 0)
+            {
+                string _name = br.ReadString();
+                _len = br.ReadInt32();
+                Texture2D tex = new Texture2D(1, 1);
+                tex.LoadImage(br.ReadBytes(_len));
+                tex.name = _name;
+                OldTextures.Add(tex);
+            }
+        }
+
+        private void ReadObjectGroup_v1(BinaryReader br, bool objLayerData = false)
+        {
+            List<LevelObject> objects = new List<LevelObject>();
+            int _texl = br.ReadInt32();
+            while (_texl-- > 0)
+            {
+                bool prefab = br.ReadBoolean();
+                string name = br.ReadString();
+                string group = br.ReadString(); // kme v2 removed group names, so this is no longer used
+                if (prefab)
+                    objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                else
+                    objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), objLayerData ? br.ReadBoolean() : false, GeometryShape.Cube, OldTextureData));
+            }
+            Objects = objects.ToArray();
+        }
+
         ObjectGroup ReadObjectGroup_v3(byte[] group)
         {
             ObjectGroup objGroup = new ObjectGroup();
@@ -84,7 +180,7 @@ namespace KarlsonMapEditor
                     if (prefab)
                         objGroup.Objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
                     else
-                        objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
+                        objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), GeometryShape.Cube, OldTextureData));
                     Loadson.Console.Log(objGroup.Objects.Last().ToString());
                 }
                 count = br.ReadInt32();
@@ -93,138 +189,9 @@ namespace KarlsonMapEditor
                 return objGroup;
             }
         }
+        #endregion
 
-        private void LoadLevel_Version1(BinaryReader br)
-        {
-            isKMEv2 = false;
-            MaterialManager.InitInternalTextures();
-            gridAlign = br.ReadSingle();
-            startingGun = br.ReadInt32();
-            startPosition = br.ReadVector3();
-            startOrientation = br.ReadSingle();
-            int _len;
-            int _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                string _name = br.ReadString();
-                _len = br.ReadInt32();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.LoadImage(br.ReadBytes(_len));
-                tex.name = _name;
-                MaterialManager.AddTexture(tex);
-            }
-
-            List<LevelObject> objects = new List<LevelObject>();
-            _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                bool prefab = br.ReadBoolean();
-                string name = br.ReadString();
-                string group = br.ReadString();
-                if (prefab)
-                    objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
-                else
-                    objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), false));
-            }
-            Objects = objects.ToArray();
-            AutomataScript = "";
-        }
-
-        private void LoadLevel_Version2(BinaryReader br)
-        {
-            isKMEv2 = false;
-            MaterialManager.InitInternalTextures();
-            gridAlign = br.ReadSingle();
-            startingGun = br.ReadInt32();
-            startPosition = br.ReadVector3();
-            startOrientation = br.ReadSingle();
-            int _len;
-            int _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                string _name = br.ReadString();
-                _len = br.ReadInt32();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.LoadImage(br.ReadBytes(_len));
-                tex.name = _name;
-                MaterialManager.AddTexture(tex);
-            }
-            List<LevelObject> objects = new List<LevelObject>();
-            _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                bool prefab = br.ReadBoolean();
-                string name = br.ReadString();
-                string group = br.ReadString();
-                if (prefab)
-                    objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, group, br.ReadInt32()));
-                else
-                    objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, group, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean()));
-            }
-            Objects = objects.ToArray();
-            AutomataScript = "";
-        }
-
-        private void LoadLevel_Version3(BinaryReader br)
-        {
-            isKMEv2 = true;
-            MaterialManager.InitInternalTextures();
-            gridAlign = br.ReadSingle();
-            startingGun = br.ReadInt32();
-            startPosition = br.ReadVector3();
-            startOrientation = br.ReadSingle();
-            int _len;
-            int _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                string _name = br.ReadString();
-                _len = br.ReadInt32();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.LoadImage(br.ReadBytes(_len));
-                tex.name = _name;
-                MaterialManager.AddTexture(tex);
-            }
-            GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
-            AutomataScript = "";
-        }
-
-        private void LoadLevel_Version4(BinaryReader br)
-        {
-            isKMEv2 = true;
-            MaterialManager.InitInternalTextures();
-            gridAlign = br.ReadSingle();
-            startingGun = br.ReadInt32();
-            startPosition = br.ReadVector3();
-            startOrientation = br.ReadSingle();
-            int _len;
-            int _texl = br.ReadInt32();
-            while (_texl-- > 0)
-            {
-                string _name = br.ReadString();
-                _len = br.ReadInt32();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.LoadImage(br.ReadBytes(_len));
-                tex.name = _name;
-                MaterialManager.AddTexture(tex);
-            }
-            AutomataScript = br.ReadString();
-            GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
-        }
-
-        private void LoadLevel_Version5(Stream stream)
-        {
-            isKMEv2 = true;
-            Map map = Map.Parser.ParseFrom(stream);
-            gridAlign = map.GridAlign;
-            startingGun = map.StartingGun;
-            startPosition = map.StartPosition;
-            startOrientation = map.StartOrientation;
-            AutomataScript = map.AutomataScript;
-            GlobalObject = map.LoadTree();
-            map.LoadMaterials();
-            SetupGlobalLight = map.LoadGlobalLight;
-        }
-
+        
         public bool isKMEv2;
         public float gridAlign;
         public int startingGun;
@@ -235,11 +202,33 @@ namespace KarlsonMapEditor
         public ObjectGroup GlobalObject;
 
         public string AutomataScript;
-        public Action<Light> SetupGlobalLight = delegate { };
+        public Action<Light> SetupGlobalLight = delegate(Light sun) { sun.Reset(); sun.enabled = false; sun.gameObject.transform.rotation = Quaternion.Euler(70, 0, 0); };
+        public Action SetupMaterials;
 
+        // used for loading material data from older saves (versions 1-4)
+        private List<(int, Color, bool)> OldTextureData = new List<(int, Color, bool)>();
+        private List<Texture2D> OldTextures = new List<Texture2D>();
+
+        // sets up materials from older saves (versions 1-4)
+        private void SetupMaterialsOld()
+        {
+            MaterialManager.InitInternalTextures();
+            foreach (Texture2D tex in OldTextures)
+            {
+                MaterialManager.AddTexture(tex);
+            }
+            foreach ((int, Color, bool) data in OldTextureData)
+            {
+                MaterialManager.InstanceMaterial(data.Item1, data.Item2, data.Item3);
+            }
+        }
+
+        #region Object Data
         public class LevelObject
         {
-            // kme v2 removed group names
+            // empty
+            public LevelObject() { }
+            // prefab
             public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, int prefabData)
             {
                 IsPrefab = true;
@@ -253,10 +242,20 @@ namespace KarlsonMapEditor
 
                 PrefabData = prefabData;
             }
-            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube)
+            // geometry
+            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube, List<(int, Color, bool)> textureData = null)
             {
                 IsPrefab = false;
-                MaterialId = MaterialManager.InstanceMaterial(textureId, color, glass | lava);
+
+                if (textureData == null)
+                {
+                    MaterialId = MaterialManager.InstanceMaterial(textureId, color, glass | lava);
+                }
+                else
+                {
+                    MaterialId = textureData.Count;
+                    textureData.Add((textureId, color, glass | lava));
+                }
                 ShapeId = shape;
 
                 Position = position;
@@ -269,40 +268,7 @@ namespace KarlsonMapEditor
                 Lava = lava;
                 MarkAsObject = markAsObject;
             }
-
-            public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, string groupName, int prefabData)
-            {
-                IsPrefab = true;
-                PrefabId = prefabId;
-
-                Position = position;
-                Rotation = rotation;
-                Scale = scale;
-
-                Name = name;
-                GroupName = groupName;
-
-                PrefabData = prefabData;
-            }
-            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, string groupName, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube)
-            {
-                IsPrefab = false;
-                MaterialId = MaterialManager.InstanceMaterial(textureId, color, glass | lava);
-                ShapeId = shape;
-
-                Position = position;
-                Rotation = rotation;
-                Scale = scale;
-
-                Name = name;
-                GroupName = groupName;
-                Bounce = bounce;
-                Glass = glass && !disableTrigger;
-                Lava = lava;
-                MarkAsObject = markAsObject;
-            }
-            public LevelObject() { }
-
+            
             // common to all level objects
             public bool IsPrefab;
             public Vector3 Position;
@@ -355,6 +321,7 @@ namespace KarlsonMapEditor
                 Objects = new List<LevelObject>();
             }
         }
+        #endregion
 
         public static GameObject MakePrefab(PrefabType prefab)
         {

@@ -84,6 +84,9 @@ namespace KarlsonMapEditor
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
 
+            // set up materials for geometry objects
+            levelData.SetupMaterials();
+
             // init global light
             GameObject sunGO = new GameObject();
             Light sun = sunGO.AddComponent<Light>();

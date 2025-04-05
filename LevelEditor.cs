@@ -1468,7 +1468,7 @@ namespace KarlsonMapEditor
                 // level data
                 AutomataScript = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
             };
-            map.SaveGlobalLight(RenderSettings.sun);
+            map.SaveGlobalLight(sun);
             map.SaveTree(globalObject);
             map.SaveMaterials();
             
@@ -1529,6 +1529,7 @@ namespace KarlsonMapEditor
             LevelData data = new LevelData(File.ReadAllBytes(path));
             levelName = Path.GetFileNameWithoutExtension(path);
 
+            data.SetupMaterials();
             data.SetupGlobalLight(sun);
             gridAlign = data.gridAlign;
             startingGun = data.startingGun;

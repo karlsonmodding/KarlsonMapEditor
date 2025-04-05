@@ -120,7 +120,7 @@ namespace KarlsonMapEditor
 
             // bake skybox reflections
             GameObject bakerGO = new GameObject();
-            bakerGO.AddComponent<EnvironmentBaker>().UpdateEnvironment();
+            bakerGO.AddComponent<EnvironmentBaker>();
 
             // init the player
             if (levelData.startingGun != 0)
@@ -167,7 +167,6 @@ namespace KarlsonMapEditor
                             }
                             obj._enemyFix = go;
                         }
-                        continue;
                     }
                     else // not a prefab
                     {
@@ -577,7 +576,6 @@ namespace KarlsonMapEditor
             {
                 switch (prefab)
                 {
-                    default:
                     case PrefabType.Pistol:
                         return LoadsonAPI.PrefabManager.NewPistol();
                     case PrefabType.Ak47:
@@ -602,6 +600,8 @@ namespace KarlsonMapEditor
                         return LoadsonAPI.PrefabManager.NewMilk();
                     case PrefabType.Enemey:
                         return LoadsonAPI.PrefabManager.NewEnemy();
+                    default:
+                        return null;
                 }
             }
         }

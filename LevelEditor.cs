@@ -69,7 +69,7 @@ namespace KarlsonMapEditor
 
             enemyGun = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer" }, 0);
             startGunDD = new GUIex.Dropdown(new string[] { "None", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer", "Grappler" }, 0);
-            spawnPrefabDD = new GUIex.Dropdown(new string[] { "Spawn Prefab", "Pistol", "Ak47 / Uzi", "Shotgun", "Boomer", "Grappler", "Dummy Grappler", "Table", "Barrel", "Locker", "Screen", "Milk", "Enemy" }, 0);
+            spawnPrefabDD = new GUIex.Dropdown(Enum.GetNames(typeof(PrefabType)).Prepend("Spawn Prefab").ToArray(), 0);
             materialMode = new GUIex.Dropdown(Enum.GetNames(typeof(MaterialManager.ShaderBlendMode)), 0);
             skyboxMode = new GUIex.Dropdown(Enum.GetNames(typeof(SkyboxMode)), 0);
             spawnGeometry = new GUIex.Dropdown(Enum.GetNames(typeof(GeometryShape)).Prepend("Spawn Geometry").ToArray(), 0);
@@ -541,7 +541,7 @@ namespace KarlsonMapEditor
                     if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, 1); }
                     if (spawnPrefabDD.Index != 0)
                     {
-                        if ((PrefabType)(--spawnPrefabDD.Index) == PrefabType.Milk)
+                        if ((PrefabType)(spawnPrefabDD.Index - 1) == PrefabType.Milk)
                         {
                             ObjectGroup container = new ObjectGroup("Prefab Container");
                             SelectedObject.Group.AddGroup(container);
@@ -551,7 +551,7 @@ namespace KarlsonMapEditor
                         }
                         else
                         {
-                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(--spawnPrefabDD.Index), spawnPos));
+                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), spawnPos));
                             SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
                         }
                         MarkAsModified();
@@ -1470,10 +1470,8 @@ namespace KarlsonMapEditor
             };
             map.SaveGlobalLight(RenderSettings.sun);
             map.SaveTree(globalObject);
-            // rendering
             map.SaveMaterials();
-
-            //Loadson.Console.Log(map.ToString());
+            
             // export
             using (MemoryStream ms = new MemoryStream())
             {

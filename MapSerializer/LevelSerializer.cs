@@ -40,7 +40,6 @@ namespace KarlsonMapEditor
                     AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
                     NormalMapTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_BumpMap")),
                     MetallicTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_MetallicGlossMap")),
-                    SmoothnessSource = (int)material.GetFloat("_SmoothnessTextureChannel"),
                     Scale = material.mainTextureScale,
                     Offset = material.mainTextureOffset,
                     Emission = material.GetColor("_EmissionColor"),
@@ -108,7 +107,6 @@ namespace KarlsonMapEditor
                 material.SetFloat("_Glossiness", mm.Smoothness);
                 material.SetFloat("_Metallic", mm.Metallic);
                 material.SetFloat("_SpecularHighlights", mm.SpecularHighlight ? 1 : 0);
-                material.SetFloat("_SmoothnessTextureChannel", mm.SmoothnessSource);
                 material.mainTextureScale = mm.Scale;
                 material.mainTextureOffset = mm.Offset;
                 material.SetColor("_EmissionColor", mm.Emission);

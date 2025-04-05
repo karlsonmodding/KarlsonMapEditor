@@ -22,6 +22,7 @@ using UnityEngine.UIElements;
 using Google.Protobuf;
 using System.Buffers;
 using static KarlsonMapEditor.MapGeometry.Types;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace KarlsonMapEditor
 {
@@ -819,7 +820,7 @@ namespace KarlsonMapEditor
                     GUIStyle matStyle = new GUIStyle();
                     matStyle.padding.left = 0;
                     matStyle.padding.right = 0;
-                    matStyle.padding.top = 1;
+                    matStyle.padding.top = 2;
                     matStyle.padding.bottom = 0;
                     matStyle.normal.textColor = Color.white;
 
@@ -865,30 +866,37 @@ namespace KarlsonMapEditor
                     // color and mat sliders
                     GUILayout.BeginVertical(matStyle);
 
-                    ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; });
-                    
+                    GUILayout.BeginHorizontal(matStyle);
+                    GUILayout.Label("Color", matStyle);
+                    ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; }, 140);
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal(matStyle);
+                    GUILayout.Label("Emission", matStyle);
+                    ColorButton(selectedMat.GetColor("_EmissionColor"), delegate (Color c) { selectedMat.SetColor("_EmissionColor", c); });
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(4);
+
                     int lastMode = (int)selectedMat.GetFloat("_Mode");
                     materialMode.Index = lastMode;
-
-                    Rect matModeRect = GUILayoutUtility.GetRect(120, 20);
+                    Rect matModeRect = GUILayoutUtility.GetRect(120, 20, matStyle);
                     materialMode.Draw(matModeRect);
-
                     if (lastMode != materialMode.Index)
                     {
                         MarkAsModified();
                         MaterialManager.UpdateMode(selectedMat, (MaterialManager.ShaderBlendMode)materialMode.Index);
                     }
 
-                    // label and slider
-                    GUILayout.BeginHorizontal(matStyle);
-                    GUILayout.Label("Gloss", matStyle);
-                    selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1, GUILayout.Width(100)));
-                    GUILayout.EndHorizontal();
+                    Texture2D metalGlossTex = (Texture2D)selectedMat.GetTexture("_MetallicGlossMap");
+                    if (metalGlossTex == null)
+                    {
+                        GUILayout.Label("Gloss", matStyle);
+                        selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1));
 
-                    GUILayout.BeginHorizontal(matStyle);
-                    GUILayout.Label("Metal", matStyle);
-                    selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1, GUILayout.Width(100)));
-                    GUILayout.EndHorizontal();
+                        GUILayout.Label("Metal", matStyle);
+                        selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1));
+                    }
 
                     if (GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights"))
                     {
@@ -910,30 +918,11 @@ namespace KarlsonMapEditor
                         selectedMat.EnableKeyword("_GLOSSYREFLECTIONS_OFF");
                         selectedMat.SetFloat("_GlossyReflections", 0f);
                     }
-                    GUILayout.EndVertical();
-
-                    // textures
-                    GUILayout.BeginVertical(matStyle);
-
-                    // image
-                    const int imageButtonSize = 100;
-                    GUILayout.Label("Main Texture", matStyle);
-                    if (GUILayout.Button(selectedMat.mainTexture, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
-                    {
-                        tex_browser_enabled = true;
-                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
-                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
-                    }
-                    GUILayout.Label("Normal Map", matStyle);
-                    if (GUILayout.Button(selectedMat.GetTexture("_BumpMap"), GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
-                    {
-                        tex_browser_enabled = true;
-                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.GetTexture("_BumpMap");
-                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_BumpMap", tex); MarkAsModified(); };
-                    }
 
                     // scale and offset
-                    Vector2 textureScale = Vector2.one / selectedMat.GetTextureScale("_MainTex");
+                    GUILayout.Label("Texture Mapping", matStyle);
+
+                    Vector2 textureScale = selectedMat.GetTextureScale("_MainTex");
                     Vector2 textureOffset = selectedMat.GetTextureOffset("_MainTex");
 
                     GUILayout.BeginHorizontal();
@@ -948,11 +937,52 @@ namespace KarlsonMapEditor
                     textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
                     GUILayout.EndHorizontal();
 
-                    selectedMat.SetTextureScale("_MainTex", Vector2.one / textureScale);
+                    selectedMat.SetTextureScale("_MainTex", textureScale);
+                    selectedMat.SetTextureScale("_BumpMap", textureScale);
+                    selectedMat.SetTextureScale("_MetallicGlossMap", textureScale);
                     selectedMat.SetTextureOffset("_MainTex", textureOffset);
+                    selectedMat.SetTextureOffset("_BumpMap", textureOffset);
+                    selectedMat.SetTextureOffset("_MetallicGlossMap", textureOffset);
 
                     GUILayout.EndVertical();
+                    GUILayout.Space(4);
 
+                    // textures
+                    GUILayout.BeginVertical(matStyle);
+
+                    // image
+                    const int imageButtonSize = 75;
+                    GUILayout.Label("Main Texture", matStyle);
+                    if (GUILayout.Button(selectedMat.mainTexture, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                    {
+                        tex_browser_enabled = true;
+                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
+                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
+                    }
+                    Texture2D normalTex = (Texture2D)selectedMat.GetTexture("_BumpMap");
+                    if (GUILayout.Toggle(normalTex != null, "Normal Map"))
+                    {
+                        if (normalTex == null || GUILayout.Button(normalTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                        {
+                            tex_browser_enabled = true;
+                            MaterialManager.SelectedTexture = normalTex;
+                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_BumpMap", tex); MarkAsModified(); };
+                        }
+                    }
+                    else if (normalTex != null) { selectedMat.SetTexture("_BumpMap", null); MarkAsModified(); }
+                    
+                    if (GUILayout.Toggle(metalGlossTex != null, "Metallic Gloss"))
+                    {
+                        if (metalGlossTex == null || GUILayout.Button(metalGlossTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                        {
+                            tex_browser_enabled = true;
+                            MaterialManager.SelectedTexture = metalGlossTex;
+                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_MetallicGlossMap", tex); MarkAsModified(); };
+                        }
+                    }
+                    else if (metalGlossTex != null) { selectedMat.SetTexture("_MetallicGlossMap", null); MarkAsModified(); }
+
+                    GUILayout.EndVertical();
                     GUILayout.EndHorizontal();
                     GUILayout.EndVertical();
 

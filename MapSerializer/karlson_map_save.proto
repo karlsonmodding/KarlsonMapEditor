@@ -92,9 +92,8 @@ message MapMaterial {
   // visual properties
   float metallic = 9;
   float smoothness = 10;
-  int32 smoothnessSource = 11;
-  bool specular_highlight = 12;
-  bool specular_reflection = 13;
+  bool specular_highlight = 11;
+  bool specular_reflection = 12;
 }
 
 message MapSixSidedSkybox {

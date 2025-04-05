@@ -46,36 +46,35 @@ namespace KarlsonMapEditor {
             "YWIYBiABKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcFByZWZhYkgAEisKBWdy",
             "b3VwGAcgASgLMhouS2FybHNvbk1hcEVkaXRvci5NYXBHcm91cEgAQgYKBHR5",
             "cGUiTQoKTWFwVGV4dHVyZRIXCg10ZXh0dXJlX2luZGV4GAEgASgFSAASFAoK",
-            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIrcDCgtNYXBN",
+            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIp0DCgtNYXBN",
             "YXRlcmlhbBI5CgRtb2RlGAEgASgOMisuS2FybHNvbk1hcEVkaXRvci5NYXBN",
             "YXRlcmlhbC5SZW5kZXJpbmdNb2RlEhkKEWFsYmVkb190ZXh0dXJlX2lkGAIg",
             "ASgFEhsKE21ldGFsbGljX3RleHR1cmVfaWQYAyABKAUSHQoVbm9ybWFsX21h",
             "cF90ZXh0dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMoAhIVCg1v",
             "ZmZzZXRfdmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMoAhIWCg5l",
             "bWlzc2lvbl9jb2xvchgIIAMoAhIQCghtZXRhbGxpYxgJIAEoAhISCgpzbW9v",
-            "dGhuZXNzGAogASgCEhgKEHNtb290aG5lc3NTb3VyY2UYCyABKAUSGgoSc3Bl",
-            "Y3VsYXJfaGlnaGxpZ2h0GAwgASgIEhsKE3NwZWN1bGFyX3JlZmxlY3Rpb24Y",
-            "DSABKAgiQgoNUmVuZGVyaW5nTW9kZRIKCgZvcGFxdWUQABIKCgZjdXRvdXQQ",
-            "ARIICgRmYWRlEAISDwoLdHJhbnNwYXJlbnQQAyLNAQoRTWFwU2l4U2lkZWRT",
-            "a3lib3gSGAoQZnJvbnRfdGV4dHVyZV9pZBgBIAEoBRIXCg9iYWNrX3RleHR1",
-            "cmVfaWQYAiABKAUSFwoPbGVmdF90ZXh0dXJlX2lkGAMgASgFEhgKEHJpZ2h0",
-            "X3RleHR1cmVfaWQYBCABKAUSFQoNdXBfdGV4dHVyZV9pZBgFIAEoBRIXCg9k",
-            "b3duX3RleHR1cmVfaWQYBiABKAUSEAoIcm90YXRpb24YByABKAISEAoIZXhw",
-            "b3N1cmUYCCABKAIiowEKE01hcFByb2NlZHVyYWxTa3lib3gSEAoIc3VuX3Np",
-            "emUYASABKAISHAoUc3VuX3NpemVfY29udmVyZ2VuY2UYAiABKAISHAoUYXRt",
-            "b3NwaGVyZV90aGlja25lc3MYAyABKAISFgoOc2t5X3RpbnRfY29sb3IYBCAD",
-            "KAISFAoMZ3JvdW5kX2NvbG9yGAUgAygCEhAKCGV4cG9zdXJlGAggASgCItMD",
-            "CgNNYXASFAoMc3RhcnRpbmdfZ3VuGAEgASgFEh0KFXN0YXJ0X3Bvc2l0aW9u",
-            "X3ZlY3RvchgCIAMoAhIZChFzdGFydF9vcmllbnRhdGlvbhgDIAEoAhIpCgRy",
-            "b290GAQgASgLMhsuS2FybHNvbk1hcEVkaXRvci5NYXBPYmplY3QSFwoPYXV0",
-            "b21hdGFfc2NyaXB0GAUgASgJEi4KCHRleHR1cmVzGAYgAygLMhwuS2FybHNv",
-            "bk1hcEVkaXRvci5NYXBUZXh0dXJlEjAKCW1hdGVyaWFscxgHIAMoCzIdLkth",
-            "cmxzb25NYXBFZGl0b3IuTWFwTWF0ZXJpYWwSOAoJc2l4X3NpZGVkGAggASgL",
-            "MiMuS2FybHNvbk1hcEVkaXRvci5NYXBTaXhTaWRlZFNreWJveEgAEjsKCnBy",
-            "b2NlZHVyYWwYCSABKAsyJS5LYXJsc29uTWFwRWRpdG9yLk1hcFByb2NlZHVy",
-            "YWxTa3lib3hIABIlCh1nbG9iYWxfbGlnaHRfZGlyZWN0aW9uX3ZlY3RvchgK",
-            "IAMoAhIaChJnbG9iYWxfbGlnaHRfY29sb3IYCyADKAISEgoKZ3JpZF9hbGln",
-            "bhgMIAEoAkIICgZza3lib3hiBnByb3RvMw=="));
+            "dGhuZXNzGAogASgCEhoKEnNwZWN1bGFyX2hpZ2hsaWdodBgLIAEoCBIbChNz",
+            "cGVjdWxhcl9yZWZsZWN0aW9uGAwgASgIIkIKDVJlbmRlcmluZ01vZGUSCgoG",
+            "b3BhcXVlEAASCgoGY3V0b3V0EAESCAoEZmFkZRACEg8KC3RyYW5zcGFyZW50",
+            "EAMizQEKEU1hcFNpeFNpZGVkU2t5Ym94EhgKEGZyb250X3RleHR1cmVfaWQY",
+            "ASABKAUSFwoPYmFja190ZXh0dXJlX2lkGAIgASgFEhcKD2xlZnRfdGV4dHVy",
+            "ZV9pZBgDIAEoBRIYChByaWdodF90ZXh0dXJlX2lkGAQgASgFEhUKDXVwX3Rl",
+            "eHR1cmVfaWQYBSABKAUSFwoPZG93bl90ZXh0dXJlX2lkGAYgASgFEhAKCHJv",
+            "dGF0aW9uGAcgASgCEhAKCGV4cG9zdXJlGAggASgCIqMBChNNYXBQcm9jZWR1",
+            "cmFsU2t5Ym94EhAKCHN1bl9zaXplGAEgASgCEhwKFHN1bl9zaXplX2NvbnZl",
+            "cmdlbmNlGAIgASgCEhwKFGF0bW9zcGhlcmVfdGhpY2tuZXNzGAMgASgCEhYK",
+            "DnNreV90aW50X2NvbG9yGAQgAygCEhQKDGdyb3VuZF9jb2xvchgFIAMoAhIQ",
+            "CghleHBvc3VyZRgIIAEoAiLTAwoDTWFwEhQKDHN0YXJ0aW5nX2d1bhgBIAEo",
+            "BRIdChVzdGFydF9wb3NpdGlvbl92ZWN0b3IYAiADKAISGQoRc3RhcnRfb3Jp",
+            "ZW50YXRpb24YAyABKAISKQoEcm9vdBgEIAEoCzIbLkthcmxzb25NYXBFZGl0",
+            "b3IuTWFwT2JqZWN0EhcKD2F1dG9tYXRhX3NjcmlwdBgFIAEoCRIuCgh0ZXh0",
+            "dXJlcxgGIAMoCzIcLkthcmxzb25NYXBFZGl0b3IuTWFwVGV4dHVyZRIwCglt",
+            "YXRlcmlhbHMYByADKAsyHS5LYXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFs",
+            "EjgKCXNpeF9zaWRlZBgIIAEoCzIjLkthcmxzb25NYXBFZGl0b3IuTWFwU2l4",
+            "U2lkZWRTa3lib3hIABI7Cgpwcm9jZWR1cmFsGAkgASgLMiUuS2FybHNvbk1h",
+            "cEVkaXRvci5NYXBQcm9jZWR1cmFsU2t5Ym94SAASJQodZ2xvYmFsX2xpZ2h0",
+            "X2RpcmVjdGlvbl92ZWN0b3IYCiADKAISGgoSZ2xvYmFsX2xpZ2h0X2NvbG9y",
+            "GAsgAygCEhIKCmdyaWRfYWxpZ24YDCABKAJCCAoGc2t5Ym94YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -84,7 +83,7 @@ namespace KarlsonMapEditor {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group" }, new[]{ "Type" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "EmissionColor", "Metallic", "Smoothness", "SmoothnessSource", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "EmissionColor", "Metallic", "Smoothness", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapSixSidedSkybox), global::KarlsonMapEditor.MapSixSidedSkybox.Parser, new[]{ "FrontTextureId", "BackTextureId", "LeftTextureId", "RightTextureId", "UpTextureId", "DownTextureId", "Rotation", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapProceduralSkybox), global::KarlsonMapEditor.MapProceduralSkybox.Parser, new[]{ "SunSize", "SunSizeConvergence", "AtmosphereThickness", "SkyTintColor", "GroundColor", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "AutomataScript", "Textures", "Materials", "SixSided", "Procedural", "GlobalLightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
@@ -1799,7 +1798,6 @@ namespace KarlsonMapEditor {
       emissionColor_ = other.emissionColor_.Clone();
       metallic_ = other.metallic_;
       smoothness_ = other.smoothness_;
-      smoothnessSource_ = other.smoothnessSource_;
       specularHighlight_ = other.specularHighlight_;
       specularReflection_ = other.specularReflection_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -1939,20 +1937,8 @@ namespace KarlsonMapEditor {
       }
     }
 
-    /// <summary>Field number for the "smoothnessSource" field.</summary>
-    public const int SmoothnessSourceFieldNumber = 11;
-    private int smoothnessSource_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int SmoothnessSource {
-      get { return smoothnessSource_; }
-      set {
-        smoothnessSource_ = value;
-      }
-    }
-
     /// <summary>Field number for the "specular_highlight" field.</summary>
-    public const int SpecularHighlightFieldNumber = 12;
+    public const int SpecularHighlightFieldNumber = 11;
     private bool specularHighlight_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1964,7 +1950,7 @@ namespace KarlsonMapEditor {
     }
 
     /// <summary>Field number for the "specular_reflection" field.</summary>
-    public const int SpecularReflectionFieldNumber = 13;
+    public const int SpecularReflectionFieldNumber = 12;
     private bool specularReflection_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -2000,7 +1986,6 @@ namespace KarlsonMapEditor {
       if(!emissionColor_.Equals(other.emissionColor_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Metallic, other.Metallic)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Smoothness, other.Smoothness)) return false;
-      if (SmoothnessSource != other.SmoothnessSource) return false;
       if (SpecularHighlight != other.SpecularHighlight) return false;
       if (SpecularReflection != other.SpecularReflection) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -2020,7 +2005,6 @@ namespace KarlsonMapEditor {
       hash ^= emissionColor_.GetHashCode();
       if (Metallic != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Metallic);
       if (Smoothness != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Smoothness);
-      if (SmoothnessSource != 0) hash ^= SmoothnessSource.GetHashCode();
       if (SpecularHighlight != false) hash ^= SpecularHighlight.GetHashCode();
       if (SpecularReflection != false) hash ^= SpecularReflection.GetHashCode();
       if (_unknownFields != null) {
@@ -2069,16 +2053,12 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(85);
         output.WriteFloat(Smoothness);
       }
-      if (SmoothnessSource != 0) {
-        output.WriteRawTag(88);
-        output.WriteInt32(SmoothnessSource);
-      }
       if (SpecularHighlight != false) {
-        output.WriteRawTag(96);
+        output.WriteRawTag(88);
         output.WriteBool(SpecularHighlight);
       }
       if (SpecularReflection != false) {
-        output.WriteRawTag(104);
+        output.WriteRawTag(96);
         output.WriteBool(SpecularReflection);
       }
       if (_unknownFields != null) {
@@ -2119,16 +2099,12 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(85);
         output.WriteFloat(Smoothness);
       }
-      if (SmoothnessSource != 0) {
-        output.WriteRawTag(88);
-        output.WriteInt32(SmoothnessSource);
-      }
       if (SpecularHighlight != false) {
-        output.WriteRawTag(96);
+        output.WriteRawTag(88);
         output.WriteBool(SpecularHighlight);
       }
       if (SpecularReflection != false) {
-        output.WriteRawTag(104);
+        output.WriteRawTag(96);
         output.WriteBool(SpecularReflection);
       }
       if (_unknownFields != null) {
@@ -2162,9 +2138,6 @@ namespace KarlsonMapEditor {
       }
       if (Smoothness != 0F) {
         size += 1 + 4;
-      }
-      if (SmoothnessSource != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(SmoothnessSource);
       }
       if (SpecularHighlight != false) {
         size += 1 + 1;
@@ -2205,9 +2178,6 @@ namespace KarlsonMapEditor {
       }
       if (other.Smoothness != 0F) {
         Smoothness = other.Smoothness;
-      }
-      if (other.SmoothnessSource != 0) {
-        SmoothnessSource = other.SmoothnessSource;
       }
       if (other.SpecularHighlight != false) {
         SpecularHighlight = other.SpecularHighlight;
@@ -2279,14 +2249,10 @@ namespace KarlsonMapEditor {
             break;
           }
           case 88: {
-            SmoothnessSource = input.ReadInt32();
-            break;
-          }
-          case 96: {
             SpecularHighlight = input.ReadBool();
             break;
           }
-          case 104: {
+          case 96: {
             SpecularReflection = input.ReadBool();
             break;
           }
@@ -2354,14 +2320,10 @@ namespace KarlsonMapEditor {
             break;
           }
           case 88: {
-            SmoothnessSource = input.ReadInt32();
-            break;
-          }
-          case 96: {
             SpecularHighlight = input.ReadBool();
             break;
           }
-          case 104: {
+          case 96: {
             SpecularReflection = input.ReadBool();
             break;
           }

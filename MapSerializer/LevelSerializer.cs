@@ -275,7 +275,6 @@ namespace KarlsonMapEditor
                     Bounce = obj.data.Bounce,
                     Glass = obj.data.Glass,
                     Lava = obj.data.Lava,
-                    DisableTrigger = obj.data.DisableTrigger,
                     ObjectLayer = obj.data.MarkAsObject
                 };
             }
@@ -336,7 +335,6 @@ namespace KarlsonMapEditor
                 levelObject.Bounce = Geometry.Bounce;
                 levelObject.Glass = Geometry.Glass;
                 levelObject.Lava = Geometry.Lava;
-                levelObject.DisableTrigger = Geometry.DisableTrigger;
                 levelObject.MarkAsObject = Geometry.ObjectLayer;
             }
             

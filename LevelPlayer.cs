@@ -174,7 +174,7 @@ namespace KarlsonMapEditor
                         go = MeshBuilder.GetGeometryGO(obj.ShapeId);
                         go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
                         go.GetComponent<KMETextureScaling>().Scale = obj.UVNormalizedScale;
-                        if (obj.Glass && !obj.DisableTrigger)
+                        if (obj.Glass)
                         {
                             // change to trigger collider
                             go.GetComponent<Collider>().isTrigger = true;
@@ -482,9 +482,8 @@ namespace KarlsonMapEditor
 
                     Name = name;
                     Bounce = bounce;
-                    Glass = glass;
+                    Glass = glass && !disableTrigger;
                     Lava = lava;
-                    DisableTrigger = disableTrigger;
                     MarkAsObject = markAsObject;
                 }
 
@@ -515,9 +514,8 @@ namespace KarlsonMapEditor
                     Name = name;
                     GroupName = groupName;
                     Bounce = bounce;
-                    Glass = glass;
+                    Glass = glass && !disableTrigger;
                     Lava = lava;
-                    DisableTrigger = disableTrigger;
                     MarkAsObject = markAsObject;
                 }
                 public LevelObject() { }
@@ -543,7 +541,7 @@ namespace KarlsonMapEditor
                 public bool Bounce;
                 public bool Glass;
                 public bool Lava;
-                public bool DisableTrigger;
+                // public bool DisableTrigger;
                 public bool MarkAsObject;
 
                 public override string ToString()

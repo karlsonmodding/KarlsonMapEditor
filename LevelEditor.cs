@@ -974,12 +974,7 @@ namespace KarlsonMapEditor
                         bRes = GUI.Toggle(new Rect(85, 60, 75, 20), SelectedObject.Object.data.Glass, "Glass");
                         if (SelectedObject.Object.data.Glass != bRes) { MarkAsModified(); SelectedObject.Object.data.Glass = bRes; }
                         
-                        if (SelectedObject.Object.data.Glass)
-                        {
-                            bRes = GUI.Toggle(new Rect(165, 60, 120, 20), SelectedObject.Object.data.DisableTrigger, "Disable Trigger");
-                            if (SelectedObject.Object.data.DisableTrigger != bRes) { MarkAsModified(); SelectedObject.Object.data.DisableTrigger = bRes; }
-                        }
-                        else
+                        if (!SelectedObject.Object.data.Glass)
                         {
                             bRes = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
                             if (SelectedObject.Object.data.Lava != bRes) { MarkAsModified(); SelectedObject.Object.data.Lava = bRes; }
@@ -1677,7 +1672,6 @@ namespace KarlsonMapEditor
                     toAdd.data.Bounce = data.Bounce;
                     toAdd.data.Glass = data.Glass;
                     toAdd.data.Lava = data.Lava;
-                    toAdd.data.DisableTrigger = data.DisableTrigger;
                     toAdd.data.MarkAsObject = data.MarkAsObject;
                 }
                 parent.editorObjects.Add(toAdd);

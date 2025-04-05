@@ -103,7 +103,7 @@ namespace KarlsonMapEditor
                     bw.Write(obj.data.Bounce);
                     bw.Write(obj.data.Glass);
                     bw.Write(obj.data.Lava);
-                    bw.Write(obj.data.DisableTrigger);
+                    bw.Write(false); // DisableTrigger will always be false now that objects can be transparent without being glass
                     bw.Write(obj.data.MarkAsObject);
                 }
                 bw.Flush();

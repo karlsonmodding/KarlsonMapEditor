@@ -22,8 +22,7 @@ message MapGeometry {
   bool bounce = 10;
   bool glass = 11;
   bool lava = 12;
-  bool disable_trigger = 13;
-  bool object_layer = 14;
+  bool object_layer = 13;
 }
 
 message MapPrefab {

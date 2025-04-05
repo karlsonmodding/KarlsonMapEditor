@@ -24,63 +24,62 @@ namespace KarlsonMapEditor {
     static KarlsonMapSaveReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChZrYXJsc29uX21hcF9zYXZlLnByb3RvEhBLYXJsc29uTWFwRWRpdG9yIuQC",
+            "ChZrYXJsc29uX21hcF9zYXZlLnByb3RvEhBLYXJsc29uTWFwRWRpdG9yIssC",
             "CgtNYXBHZW9tZXRyeRIyCgVzaGFwZRgBIAEoDjIjLkthcmxzb25NYXBFZGl0",
             "b3IuTWFwR2VvbWV0cnkuU2hhcGUSEwoLbWF0ZXJpYWxfaWQYAiABKAUSGwoT",
             "dXZfbm9ybWFsaXplZF9zY2FsZRgDIAEoAhIOCgZib3VuY2UYCiABKAgSDQoF",
-            "Z2xhc3MYCyABKAgSDAoEbGF2YRgMIAEoCBIXCg9kaXNhYmxlX3RyaWdnZXIY",
-            "DSABKAgSFAoMb2JqZWN0X2xheWVyGA4gASgIIpIBCgVTaGFwZRIICgRjdWJl",
-            "EAASCgoGc3BoZXJlEAESDAoIY3lsaW5kZXIQAhIJCgVwbGFuZRADEhIKDnNx",
-            "dWFyZV9weXJhbWlkEAQSGAoUcmlnaHRfdHJpYW5nbGVfcHJpc20QBRIaChZx",
-            "dWFydGVyX3NxdWFyZV9weXJhbWlkEAYSEAoMcXVhcnRlcl9waXBlEAciggIK",
-            "CU1hcFByZWZhYhI7CgtwcmVmYWJfdHlwZRgBIAEoDjImLkthcmxzb25NYXBF",
-            "ZGl0b3IuTWFwUHJlZmFiLlByZWZhYlR5cGUSEwoLcHJlZmFiX2RhdGEYAiAB",
-            "KAUiogEKClByZWZhYlR5cGUSCgoGcGlzdG9sEAASCAoEYWs0NxABEgsKB3No",
-            "b3RndW4QAhIKCgZib29tZXIQAxIMCghncmFwcGxlchAEEhIKDmR1bW15X2dy",
-            "YXBwbGVyEAUSCQoFdGFibGUQBhIKCgZiYXJyZWwQBxIKCgZsb2NrZXIQCBIK",
-            "CgZzY3JlZW4QCRIICgRtaWxrEAoSCgoGZW5lbWV5EAsiOQoITWFwR3JvdXAS",
-            "LQoIY2hpbGRyZW4YASADKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcE9iamVj",
-            "dCL4AQoJTWFwT2JqZWN0EgwKBG5hbWUYASABKAkSFwoPcG9zaXRpb25fdmVj",
-            "dG9yGAIgAygCEhcKD3JvdGF0aW9uX3ZlY3RvchgDIAMoAhIUCgxzY2FsZV92",
-            "ZWN0b3IYBCADKAISMQoIZ2VvbWV0cnkYBSABKAsyHS5LYXJsc29uTWFwRWRp",
-            "dG9yLk1hcEdlb21ldHJ5SAASLQoGcHJlZmFiGAYgASgLMhsuS2FybHNvbk1h",
-            "cEVkaXRvci5NYXBQcmVmYWJIABIrCgVncm91cBgHIAEoCzIaLkthcmxzb25N",
-            "YXBFZGl0b3IuTWFwR3JvdXBIAEIGCgR0eXBlIk0KCk1hcFRleHR1cmUSFwoN",
-            "dGV4dHVyZV9pbmRleBgBIAEoBUgAEhQKCmltYWdlX2RhdGEYAiABKAxIAEIQ",
-            "Cg50ZXh0dXJlX3NvdXJjZSK3AwoLTWFwTWF0ZXJpYWwSOQoEbW9kZRgBIAEo",
-            "DjIrLkthcmxzb25NYXBFZGl0b3IuTWFwTWF0ZXJpYWwuUmVuZGVyaW5nTW9k",
-            "ZRIZChFhbGJlZG9fdGV4dHVyZV9pZBgCIAEoBRIbChNtZXRhbGxpY190ZXh0",
-            "dXJlX2lkGAMgASgFEh0KFW5vcm1hbF9tYXBfdGV4dHVyZV9pZBgEIAEoBRIU",
-            "CgxzY2FsZV92ZWN0b3IYBSADKAISFQoNb2Zmc2V0X3ZlY3RvchgGIAMoAhIU",
-            "CgxhbGJlZG9fY29sb3IYByADKAISFgoOZW1pc3Npb25fY29sb3IYCCADKAIS",
-            "EAoIbWV0YWxsaWMYCSABKAISEgoKc21vb3RobmVzcxgKIAEoAhIYChBzbW9v",
-            "dGhuZXNzU291cmNlGAsgASgFEhoKEnNwZWN1bGFyX2hpZ2hsaWdodBgMIAEo",
-            "CBIbChNzcGVjdWxhcl9yZWZsZWN0aW9uGA0gASgIIkIKDVJlbmRlcmluZ01v",
-            "ZGUSCgoGb3BhcXVlEAASCgoGY3V0b3V0EAESCAoEZmFkZRACEg8KC3RyYW5z",
-            "cGFyZW50EAMizQEKEU1hcFNpeFNpZGVkU2t5Ym94EhgKEGZyb250X3RleHR1",
-            "cmVfaWQYASABKAUSFwoPYmFja190ZXh0dXJlX2lkGAIgASgFEhcKD2xlZnRf",
-            "dGV4dHVyZV9pZBgDIAEoBRIYChByaWdodF90ZXh0dXJlX2lkGAQgASgFEhUK",
-            "DXVwX3RleHR1cmVfaWQYBSABKAUSFwoPZG93bl90ZXh0dXJlX2lkGAYgASgF",
-            "EhAKCHJvdGF0aW9uGAcgASgCEhAKCGV4cG9zdXJlGAggASgCIqMBChNNYXBQ",
-            "cm9jZWR1cmFsU2t5Ym94EhAKCHN1bl9zaXplGAEgASgCEhwKFHN1bl9zaXpl",
-            "X2NvbnZlcmdlbmNlGAIgASgCEhwKFGF0bW9zcGhlcmVfdGhpY2tuZXNzGAMg",
-            "ASgCEhYKDnNreV90aW50X2NvbG9yGAQgAygCEhQKDGdyb3VuZF9jb2xvchgF",
-            "IAMoAhIQCghleHBvc3VyZRgIIAEoAiLTAwoDTWFwEhQKDHN0YXJ0aW5nX2d1",
-            "bhgBIAEoBRIdChVzdGFydF9wb3NpdGlvbl92ZWN0b3IYAiADKAISGQoRc3Rh",
-            "cnRfb3JpZW50YXRpb24YAyABKAISKQoEcm9vdBgEIAEoCzIbLkthcmxzb25N",
-            "YXBFZGl0b3IuTWFwT2JqZWN0EhcKD2F1dG9tYXRhX3NjcmlwdBgFIAEoCRIu",
-            "Cgh0ZXh0dXJlcxgGIAMoCzIcLkthcmxzb25NYXBFZGl0b3IuTWFwVGV4dHVy",
-            "ZRIwCgltYXRlcmlhbHMYByADKAsyHS5LYXJsc29uTWFwRWRpdG9yLk1hcE1h",
-            "dGVyaWFsEjgKCXNpeF9zaWRlZBgIIAEoCzIjLkthcmxzb25NYXBFZGl0b3Iu",
-            "TWFwU2l4U2lkZWRTa3lib3hIABI7Cgpwcm9jZWR1cmFsGAkgASgLMiUuS2Fy",
-            "bHNvbk1hcEVkaXRvci5NYXBQcm9jZWR1cmFsU2t5Ym94SAASJQodZ2xvYmFs",
-            "X2xpZ2h0X2RpcmVjdGlvbl92ZWN0b3IYCiADKAISGgoSZ2xvYmFsX2xpZ2h0",
-            "X2NvbG9yGAsgAygCEhIKCmdyaWRfYWxpZ24YDCABKAJCCAoGc2t5Ym94YgZw",
-            "cm90bzM="));
+            "Z2xhc3MYCyABKAgSDAoEbGF2YRgMIAEoCBIUCgxvYmplY3RfbGF5ZXIYDSAB",
+            "KAgikgEKBVNoYXBlEggKBGN1YmUQABIKCgZzcGhlcmUQARIMCghjeWxpbmRl",
+            "chACEgkKBXBsYW5lEAMSEgoOc3F1YXJlX3B5cmFtaWQQBBIYChRyaWdodF90",
+            "cmlhbmdsZV9wcmlzbRAFEhoKFnF1YXJ0ZXJfc3F1YXJlX3B5cmFtaWQQBhIQ",
+            "CgxxdWFydGVyX3BpcGUQByKCAgoJTWFwUHJlZmFiEjsKC3ByZWZhYl90eXBl",
+            "GAEgASgOMiYuS2FybHNvbk1hcEVkaXRvci5NYXBQcmVmYWIuUHJlZmFiVHlw",
+            "ZRITCgtwcmVmYWJfZGF0YRgCIAEoBSKiAQoKUHJlZmFiVHlwZRIKCgZwaXN0",
+            "b2wQABIICgRhazQ3EAESCwoHc2hvdGd1bhACEgoKBmJvb21lchADEgwKCGdy",
+            "YXBwbGVyEAQSEgoOZHVtbXlfZ3JhcHBsZXIQBRIJCgV0YWJsZRAGEgoKBmJh",
+            "cnJlbBAHEgoKBmxvY2tlchAIEgoKBnNjcmVlbhAJEggKBG1pbGsQChIKCgZl",
+            "bmVtZXkQCyI5CghNYXBHcm91cBItCghjaGlsZHJlbhgBIAMoCzIbLkthcmxz",
+            "b25NYXBFZGl0b3IuTWFwT2JqZWN0IvgBCglNYXBPYmplY3QSDAoEbmFtZRgB",
+            "IAEoCRIXCg9wb3NpdGlvbl92ZWN0b3IYAiADKAISFwoPcm90YXRpb25fdmVj",
+            "dG9yGAMgAygCEhQKDHNjYWxlX3ZlY3RvchgEIAMoAhIxCghnZW9tZXRyeRgF",
+            "IAEoCzIdLkthcmxzb25NYXBFZGl0b3IuTWFwR2VvbWV0cnlIABItCgZwcmVm",
+            "YWIYBiABKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcFByZWZhYkgAEisKBWdy",
+            "b3VwGAcgASgLMhouS2FybHNvbk1hcEVkaXRvci5NYXBHcm91cEgAQgYKBHR5",
+            "cGUiTQoKTWFwVGV4dHVyZRIXCg10ZXh0dXJlX2luZGV4GAEgASgFSAASFAoK",
+            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIrcDCgtNYXBN",
+            "YXRlcmlhbBI5CgRtb2RlGAEgASgOMisuS2FybHNvbk1hcEVkaXRvci5NYXBN",
+            "YXRlcmlhbC5SZW5kZXJpbmdNb2RlEhkKEWFsYmVkb190ZXh0dXJlX2lkGAIg",
+            "ASgFEhsKE21ldGFsbGljX3RleHR1cmVfaWQYAyABKAUSHQoVbm9ybWFsX21h",
+            "cF90ZXh0dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMoAhIVCg1v",
+            "ZmZzZXRfdmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMoAhIWCg5l",
+            "bWlzc2lvbl9jb2xvchgIIAMoAhIQCghtZXRhbGxpYxgJIAEoAhISCgpzbW9v",
+            "dGhuZXNzGAogASgCEhgKEHNtb290aG5lc3NTb3VyY2UYCyABKAUSGgoSc3Bl",
+            "Y3VsYXJfaGlnaGxpZ2h0GAwgASgIEhsKE3NwZWN1bGFyX3JlZmxlY3Rpb24Y",
+            "DSABKAgiQgoNUmVuZGVyaW5nTW9kZRIKCgZvcGFxdWUQABIKCgZjdXRvdXQQ",
+            "ARIICgRmYWRlEAISDwoLdHJhbnNwYXJlbnQQAyLNAQoRTWFwU2l4U2lkZWRT",
+            "a3lib3gSGAoQZnJvbnRfdGV4dHVyZV9pZBgBIAEoBRIXCg9iYWNrX3RleHR1",
+            "cmVfaWQYAiABKAUSFwoPbGVmdF90ZXh0dXJlX2lkGAMgASgFEhgKEHJpZ2h0",
+            "X3RleHR1cmVfaWQYBCABKAUSFQoNdXBfdGV4dHVyZV9pZBgFIAEoBRIXCg9k",
+            "b3duX3RleHR1cmVfaWQYBiABKAUSEAoIcm90YXRpb24YByABKAISEAoIZXhw",
+            "b3N1cmUYCCABKAIiowEKE01hcFByb2NlZHVyYWxTa3lib3gSEAoIc3VuX3Np",
+            "emUYASABKAISHAoUc3VuX3NpemVfY29udmVyZ2VuY2UYAiABKAISHAoUYXRt",
+            "b3NwaGVyZV90aGlja25lc3MYAyABKAISFgoOc2t5X3RpbnRfY29sb3IYBCAD",
+            "KAISFAoMZ3JvdW5kX2NvbG9yGAUgAygCEhAKCGV4cG9zdXJlGAggASgCItMD",
+            "CgNNYXASFAoMc3RhcnRpbmdfZ3VuGAEgASgFEh0KFXN0YXJ0X3Bvc2l0aW9u",
+            "X3ZlY3RvchgCIAMoAhIZChFzdGFydF9vcmllbnRhdGlvbhgDIAEoAhIpCgRy",
+            "b290GAQgASgLMhsuS2FybHNvbk1hcEVkaXRvci5NYXBPYmplY3QSFwoPYXV0",
+            "b21hdGFfc2NyaXB0GAUgASgJEi4KCHRleHR1cmVzGAYgAygLMhwuS2FybHNv",
+            "bk1hcEVkaXRvci5NYXBUZXh0dXJlEjAKCW1hdGVyaWFscxgHIAMoCzIdLkth",
+            "cmxzb25NYXBFZGl0b3IuTWFwTWF0ZXJpYWwSOAoJc2l4X3NpZGVkGAggASgL",
+            "MiMuS2FybHNvbk1hcEVkaXRvci5NYXBTaXhTaWRlZFNreWJveEgAEjsKCnBy",
+            "b2NlZHVyYWwYCSABKAsyJS5LYXJsc29uTWFwRWRpdG9yLk1hcFByb2NlZHVy",
+            "YWxTa3lib3hIABIlCh1nbG9iYWxfbGlnaHRfZGlyZWN0aW9uX3ZlY3RvchgK",
+            "IAMoAhIaChJnbG9iYWxfbGlnaHRfY29sb3IYCyADKAISEgoKZ3JpZF9hbGln",
+            "bhgMIAEoAkIICgZza3lib3hiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGeometry), global::KarlsonMapEditor.MapGeometry.Parser, new[]{ "Shape", "MaterialId", "UvNormalizedScale", "Bounce", "Glass", "Lava", "DisableTrigger", "ObjectLayer" }, null, new[]{ typeof(global::KarlsonMapEditor.MapGeometry.Types.Shape) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGeometry), global::KarlsonMapEditor.MapGeometry.Parser, new[]{ "Shape", "MaterialId", "UvNormalizedScale", "Bounce", "Glass", "Lava", "ObjectLayer" }, null, new[]{ typeof(global::KarlsonMapEditor.MapGeometry.Types.Shape) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapPrefab), global::KarlsonMapEditor.MapPrefab.Parser, new[]{ "PrefabType", "PrefabData" }, null, new[]{ typeof(global::KarlsonMapEditor.MapPrefab.Types.PrefabType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group" }, new[]{ "Type" }, null, null, null),
@@ -136,7 +135,6 @@ namespace KarlsonMapEditor {
       bounce_ = other.bounce_;
       glass_ = other.glass_;
       lava_ = other.lava_;
-      disableTrigger_ = other.disableTrigger_;
       objectLayer_ = other.objectLayer_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -222,20 +220,8 @@ namespace KarlsonMapEditor {
       }
     }
 
-    /// <summary>Field number for the "disable_trigger" field.</summary>
-    public const int DisableTriggerFieldNumber = 13;
-    private bool disableTrigger_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool DisableTrigger {
-      get { return disableTrigger_; }
-      set {
-        disableTrigger_ = value;
-      }
-    }
-
     /// <summary>Field number for the "object_layer" field.</summary>
-    public const int ObjectLayerFieldNumber = 14;
+    public const int ObjectLayerFieldNumber = 13;
     private bool objectLayer_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -267,7 +253,6 @@ namespace KarlsonMapEditor {
       if (Bounce != other.Bounce) return false;
       if (Glass != other.Glass) return false;
       if (Lava != other.Lava) return false;
-      if (DisableTrigger != other.DisableTrigger) return false;
       if (ObjectLayer != other.ObjectLayer) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -282,7 +267,6 @@ namespace KarlsonMapEditor {
       if (Bounce != false) hash ^= Bounce.GetHashCode();
       if (Glass != false) hash ^= Glass.GetHashCode();
       if (Lava != false) hash ^= Lava.GetHashCode();
-      if (DisableTrigger != false) hash ^= DisableTrigger.GetHashCode();
       if (ObjectLayer != false) hash ^= ObjectLayer.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -326,12 +310,8 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(96);
         output.WriteBool(Lava);
       }
-      if (DisableTrigger != false) {
-        output.WriteRawTag(104);
-        output.WriteBool(DisableTrigger);
-      }
       if (ObjectLayer != false) {
-        output.WriteRawTag(112);
+        output.WriteRawTag(104);
         output.WriteBool(ObjectLayer);
       }
       if (_unknownFields != null) {
@@ -368,12 +348,8 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(96);
         output.WriteBool(Lava);
       }
-      if (DisableTrigger != false) {
-        output.WriteRawTag(104);
-        output.WriteBool(DisableTrigger);
-      }
       if (ObjectLayer != false) {
-        output.WriteRawTag(112);
+        output.WriteRawTag(104);
         output.WriteBool(ObjectLayer);
       }
       if (_unknownFields != null) {
@@ -402,9 +378,6 @@ namespace KarlsonMapEditor {
         size += 1 + 1;
       }
       if (Lava != false) {
-        size += 1 + 1;
-      }
-      if (DisableTrigger != false) {
         size += 1 + 1;
       }
       if (ObjectLayer != false) {
@@ -439,9 +412,6 @@ namespace KarlsonMapEditor {
       }
       if (other.Lava != false) {
         Lava = other.Lava;
-      }
-      if (other.DisableTrigger != false) {
-        DisableTrigger = other.DisableTrigger;
       }
       if (other.ObjectLayer != false) {
         ObjectLayer = other.ObjectLayer;
@@ -490,10 +460,6 @@ namespace KarlsonMapEditor {
             break;
           }
           case 104: {
-            DisableTrigger = input.ReadBool();
-            break;
-          }
-          case 112: {
             ObjectLayer = input.ReadBool();
             break;
           }
@@ -541,10 +507,6 @@ namespace KarlsonMapEditor {
             break;
           }
           case 104: {
-            DisableTrigger = input.ReadBool();
-            break;
-          }
-          case 112: {
             ObjectLayer = input.ReadBool();
             break;
           }

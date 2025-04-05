@@ -270,6 +270,7 @@
     <Compile Include="GUIex.cs" />
     <Compile Include="KMETextureScaling.cs" />
     <Compile Include="KMPExporter.cs" />
+    <Compile Include="LevelData.cs" />
     <Compile Include="LevelEditor.cs" />
     <Compile Include="LevelPlayer.cs" />
     <Compile Include="MapSerializer\LevelSerializer.cs" />

@@ -1501,7 +1501,7 @@ namespace KarlsonMapEditor
         private static void LoadLevel(string path)
         {
             Loadson.Console.Log("setting up level editor");
-            ObjectGroup ReplicateObjectGroup(LevelPlayer.LevelData.ObjectGroup group, ObjectGroup parentGroup)
+            ObjectGroup ReplicateObjectGroup(LevelData.ObjectGroup group, ObjectGroup parentGroup)
             {
                 ObjectGroup objGroup = new ObjectGroup(group.Name);
                 if (parentGroup != null)
@@ -1526,7 +1526,7 @@ namespace KarlsonMapEditor
                 return objGroup;
             }
             
-            LevelPlayer.LevelData data = new LevelPlayer.LevelData(File.ReadAllBytes(path));
+            LevelData data = new LevelData(File.ReadAllBytes(path));
             levelName = Path.GetFileNameWithoutExtension(path);
 
             data.SetupGlobalLight(sun);
@@ -1623,24 +1623,24 @@ namespace KarlsonMapEditor
 
         public class EditorObject : IBasicProperties
         {
-            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelPlayer.LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "geometry object", false, false, false, false, false, shape)) { }
+            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "geometry object", false, false, false, false, false, shape)) { }
 
             public EditorObject(PrefabType _prefabId, Vector3 position)
             {
-                go = LevelPlayer.LevelData.MakePrefab(_prefabId);
+                go = LevelData.MakePrefab(_prefabId);
                 go.AddComponent<KME_Object>();
                 go.transform.position = position;
                 go.transform.rotation = Quaternion.identity;
                 if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
-                data = new LevelPlayer.LevelData.LevelObject(_prefabId, go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, go.name, 0);
+                data = new LevelData.LevelObject(_prefabId, go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, go.name, 0);
             }
 
-            public EditorObject(LevelPlayer.LevelData.LevelObject playObj)
+            public EditorObject(LevelData.LevelObject playObj)
             {
                 data = playObj;
                 if(data.IsPrefab)
                 {
-                    go = LevelPlayer.LevelData.MakePrefab(data.PrefabId);
+                    go = LevelData.MakePrefab(data.PrefabId);
                     if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
                 }
                 else
@@ -1663,7 +1663,7 @@ namespace KarlsonMapEditor
             // player spawn constructor
             public EditorObject(Vector3 pos, float orientation)
             {
-                data = new LevelPlayer.LevelData.LevelObject
+                data = new LevelData.LevelObject
                 {
                     Name = "Player Spawn",
                     GroupName = "_internal",
@@ -1683,7 +1683,7 @@ namespace KarlsonMapEditor
             }
 
             public bool internalObject { get; private set; } = false;
-            public LevelPlayer.LevelData.LevelObject data;
+            public LevelData.LevelObject data;
             public GameObject go;
 
             public void Clone(ObjectGroup parent)

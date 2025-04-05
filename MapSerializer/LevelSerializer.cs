@@ -155,7 +155,7 @@ namespace KarlsonMapEditor
             Root.SaveObjectGroup(root);
         }
         // generates from the tree
-        public LevelPlayer.LevelData.ObjectGroup LoadTree()
+        public LevelData.ObjectGroup LoadTree()
         {
             return Root.LoadLevelGroup();
         }
@@ -290,11 +290,11 @@ namespace KarlsonMapEditor
         }
 
         // recursive function to load this map object and all children
-        public LevelPlayer.LevelData.ObjectGroup LoadLevelGroup()
+        public LevelData.ObjectGroup LoadLevelGroup()
         {
             Assert.IsTrue(TypeCase == TypeOneofCase.Group);
 
-            LevelPlayer.LevelData.ObjectGroup levelGroup = new LevelPlayer.LevelData.ObjectGroup
+            LevelData.ObjectGroup levelGroup = new LevelData.ObjectGroup
             {
                 Name = Name,
                 Position = Position,
@@ -307,11 +307,11 @@ namespace KarlsonMapEditor
             return levelGroup;
         }
 
-        public LevelPlayer.LevelData.LevelObject LoadLevelObject()
+        public LevelData.LevelObject LoadLevelObject()
         {
             Assert.IsFalse(TypeCase == TypeOneofCase.Group);
 
-            LevelPlayer.LevelData.LevelObject levelObject = new LevelPlayer.LevelData.LevelObject
+            LevelData.LevelObject levelObject = new LevelData.LevelObject
             {
                 Name = Name,
                 Position = Position,

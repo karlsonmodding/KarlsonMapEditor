@@ -72,6 +72,13 @@ namespace KarlsonMapEditor
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             Mesh mesh = go.GetComponent<MeshFilter>().sharedMesh;
             Object.DestroyImmediate(go);
+
+            Vector3[] verts = mesh.vertices;
+            // clamp vertices to a 1x1x1 space
+            mesh.vertices = verts.Select((v, index) => 
+                      Vector3.Max(Vector3.Min(v, Vector3.one * 0.5f), Vector3.one * -0.5f)
+                      ).ToArray();
+
             return mesh;
         }
         private static Mesh GetPlaneMesh()

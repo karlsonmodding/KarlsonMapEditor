@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Experimental.XR;
 using UnityEngine.SocialPlatforms;
 
 namespace KarlsonMapEditor
@@ -62,6 +64,36 @@ namespace KarlsonMapEditor
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Mesh mesh = go.GetComponent<MeshFilter>().sharedMesh;
             Object.DestroyImmediate(go);
+            // fix uvs
+            Vector2[] uvs = mesh.uv;
+            // taken from TextureScaling for reverse compatibility
+            uvs[2] = new Vector2(0, 1);
+            uvs[3] = new Vector2(1, 1);
+            uvs[0] = new Vector2(0, 0);
+            uvs[1] = new Vector2(1, 0);
+            uvs[7] = new Vector2(0, 0);
+            uvs[6] = new Vector2(1, 0);
+            uvs[11] = new Vector2(0, 1);
+            uvs[10] = new Vector2(1, 1);
+            uvs[19] = new Vector2(1, 0);
+            uvs[17] = new Vector2(0, 1);
+            uvs[16] = new Vector2(0, 0);
+            uvs[18] = new Vector2(1, 1);
+            uvs[23] = new Vector2(1, 0);
+            uvs[21] = new Vector2(0, 1);
+            uvs[20] = new Vector2(0, 0);
+            uvs[22] = new Vector2(1, 1);
+            uvs[4] = new Vector2(1, 0);
+            uvs[5] = new Vector2(0, 0);
+            uvs[8] = new Vector2(1, 1);
+            uvs[9] = new Vector2(0, 1);
+            uvs[13] = new Vector2(1, 0);
+            uvs[14] = new Vector2(0, 0);
+            uvs[12] = new Vector2(1, 1);
+            uvs[15] = new Vector2(0, 1);
+
+            mesh.uv = uvs;
+
             return mesh;
         }
         private static Mesh GetSphereMesh()
@@ -144,10 +176,10 @@ namespace KarlsonMapEditor
                 new Vector2(0, 1),
                 new Vector2(1, 1),
                 // back
-                new Vector2(1, 1),
-                new Vector2(1, 0),
                 new Vector2(0, 0),
                 new Vector2(0, 1),
+                new Vector2(1, 1),
+                new Vector2(1, 0),
             });
             mesh.SetTriangles(new int[]
             {
@@ -283,9 +315,9 @@ namespace KarlsonMapEditor
                 new Vector2(0, 0),
                 new Vector2(1, 1),
                 // triangle back
-                new Vector2(0, 1),
-                new Vector2(1, 1),
                 new Vector2(1, 0),
+                new Vector2(0, 0),
+                new Vector2(0, 1),
                 // triangle left
                 new Vector2(1, 0),
                 new Vector2(0, 0),
@@ -390,10 +422,10 @@ namespace KarlsonMapEditor
             uvs.Add(new Vector2(0, 1));
             uvs.Add(new Vector2(1, 1));
             // back
-            uvs.Add(new Vector2(1, 1));
-            uvs.Add(new Vector2(1, 0));
             uvs.Add(new Vector2(0, 0));
             uvs.Add(new Vector2(0, 1));
+            uvs.Add(new Vector2(1, 1));
+            uvs.Add(new Vector2(1, 0));
 
             // base
             tris.Add(vo); tris.Add(vo + 1); tris.Add(vo + 2);

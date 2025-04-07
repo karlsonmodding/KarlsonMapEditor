@@ -98,6 +98,11 @@ namespace KarlsonMapEditor
             ColorPicker.imLeft = LoadAsset<Texture2D>("imLeft");
             ColorPicker.imCircle = LoadAsset<Texture2D>("imCircle");
 
+            // load material assets
+            LevelEditor.ProceduralSkybox = LoadAsset<Material>("SkyboxProcedural");
+            LevelEditor.SixSidedSkybox = LoadAsset<Material>("SkyboxSixSided");
+            LevelEditor.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
+
             if (!DiscordAPI.HasDiscord)
                 Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");
             else
@@ -158,6 +163,7 @@ namespace KarlsonMapEditor
         public static Dictionary<string, string> prefs;
         public static string directory;
         public static Texture2D[] gameTex;
+        public static readonly Material defaultSkybox = RenderSettings.skybox;
         public static string workshopToken = "";
         public static List<int> workshopLikes = new List<int>();
         public static List<Action> runOnMain = new List<Action>();

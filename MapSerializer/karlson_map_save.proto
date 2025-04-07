@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package KarlsonMapEditor;
+
+message MapGeometry {
+  enum Shape {
+    cube = 0;
+    sphere = 1;
+    cylinder = 2;
+    plane = 3;
+    square_pyramid = 4;
+    right_triangle_prism = 5;
+    quarter_square_pyramid = 6;
+    quarter_pipe = 7;
+  }
+
+  Shape shape = 1;
+  int32 material_id = 2;
+  float uv_normalized_scale = 3;
+
+  // flags
+  bool bounce = 10;
+  bool glass = 11;
+  bool lava = 12;
+  bool object_layer = 13;
+}
+
+message MapPrefab {
+  enum PrefabType {
+    pistol = 0;
+    ak47 = 1;
+    shotgun = 2;
+    boomer = 3;
+    grappler = 4;
+    dummy_grappler = 5;
+    table = 6;
+    barrel = 7;
+    locker = 8;
+    screen = 9;
+    milk = 10;
+    enemey = 11;
+  }
+
+  PrefabType prefab_type = 1;
+  int32 prefab_data = 2;
+}
+
+message MapGroup { repeated MapObject children = 1; }
+
+message MapObject {
+  string name = 1;
+
+  // transform
+  repeated float position_vector = 2;
+  repeated float rotation_vector = 3;
+  repeated float scale_vector = 4;
+
+  // content
+  oneof type {
+    MapGeometry geometry = 5;
+    MapPrefab prefab = 6;
+    MapGroup group = 7;
+  }
+}
+
+message MapTexture {
+  oneof texture_source {
+    int32 texture_index = 1; // for internal textures
+    bytes image_data = 2;    // for external textures not included in the game
+  }
+}
+
+message MapMaterial {
+  enum RenderingMode {
+    opaque = 0;
+    cutout = 1;
+    fade = 2;
+    transparent = 3;
+  }
+
+  RenderingMode mode = 1;
+  // textures
+  int32 albedo_texture_id = 2;
+  int32 metallic_gloss_texture_id = 3;
+  int32 normal_map_texture_id = 4;
+  // uv mapping
+  repeated float scale_vector = 5;
+  repeated float offset_vector = 6;
+  // colors
+  repeated float albedo_color = 7;
+  // visual properties
+  float metallic = 8;
+  float smoothness = 9;
+  bool specular_highlight = 10;
+  bool specular_reflection = 11;
+}
+
+message MapSixSidedSkybox {
+  int32 front_texture_id = 1; // +z
+  int32 back_texture_id = 2;  // -z
+  int32 left_texture_id = 3;  // +x
+  int32 right_texture_id = 4; // -x
+  int32 up_texture_id = 5;    // +y
+  int32 down_texture_id = 6;  // -y
+
+  float rotation = 7;
+  float exposure = 8;
+}
+
+message MapProceduralSkybox {
+  // sky
+  float sun_size = 1;
+  float sun_size_convergence = 2;
+  float atmosphere_thickness = 3;
+  // colors
+  repeated float sky_tint_color = 4;
+  repeated float ground_color = 5;
+
+  float exposure = 8;
+}
+
+message Map {
+  // starting state
+  int32 starting_gun = 1;
+  repeated float start_position_vector = 2;
+  float start_orientation = 3;
+
+  // level data
+  MapObject root = 4;
+  string automata_script = 5;
+  repeated MapTexture textures = 6;
+  repeated MapMaterial materials = 7;
+  oneof skybox {
+    MapSixSidedSkybox six_sided = 8;
+    MapProceduralSkybox procedural = 9;
+  }
+  repeated float global_light_direction_vector =
+      10; // 0 is no directional light
+  repeated float global_light_color = 11;
+
+  // editor
+  float grid_align = 12;
+}

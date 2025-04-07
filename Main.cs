@@ -101,6 +101,7 @@ namespace KarlsonMapEditor
             // load material assets
             LevelEditor.ProceduralSkybox = LoadAsset<Material>("SkyboxProcedural");
             LevelEditor.SixSidedSkybox = LoadAsset<Material>("SkyboxSixSided");
+            LevelEditor.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
 
             if (!DiscordAPI.HasDiscord)
                 Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");

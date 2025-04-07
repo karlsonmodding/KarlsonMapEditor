@@ -81,19 +81,18 @@ message MapMaterial {
   RenderingMode mode = 1;
   // textures
   int32 albedo_texture_id = 2;
-  int32 metallic_texture_id = 3;
+  int32 metallic_gloss_texture_id = 3;
   int32 normal_map_texture_id = 4;
   // uv mapping
   repeated float scale_vector = 5;
   repeated float offset_vector = 6;
   // colors
   repeated float albedo_color = 7;
-  repeated float emission_color = 8;
   // visual properties
-  float metallic = 9;
-  float smoothness = 10;
-  bool specular_highlight = 11;
-  bool specular_reflection = 12;
+  float metallic = 8;
+  float smoothness = 9;
+  bool specular_highlight = 10;
+  bool specular_reflection = 11;
 }
 
 message MapSixSidedSkybox {
@@ -135,7 +134,8 @@ message Map {
     MapSixSidedSkybox six_sided = 8;
     MapProceduralSkybox procedural = 9;
   }
-  repeated float global_light_direction_vector = 10; // 0 is no directional light
+  repeated float global_light_direction_vector =
+      10; // 0 is no directional light
   repeated float global_light_color = 11;
 
   // editor

@@ -46,35 +46,35 @@ namespace KarlsonMapEditor {
             "YWIYBiABKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcFByZWZhYkgAEisKBWdy",
             "b3VwGAcgASgLMhouS2FybHNvbk1hcEVkaXRvci5NYXBHcm91cEgAQgYKBHR5",
             "cGUiTQoKTWFwVGV4dHVyZRIXCg10ZXh0dXJlX2luZGV4GAEgASgFSAASFAoK",
-            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIp0DCgtNYXBN",
+            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIosDCgtNYXBN",
             "YXRlcmlhbBI5CgRtb2RlGAEgASgOMisuS2FybHNvbk1hcEVkaXRvci5NYXBN",
             "YXRlcmlhbC5SZW5kZXJpbmdNb2RlEhkKEWFsYmVkb190ZXh0dXJlX2lkGAIg",
-            "ASgFEhsKE21ldGFsbGljX3RleHR1cmVfaWQYAyABKAUSHQoVbm9ybWFsX21h",
-            "cF90ZXh0dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMoAhIVCg1v",
-            "ZmZzZXRfdmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMoAhIWCg5l",
-            "bWlzc2lvbl9jb2xvchgIIAMoAhIQCghtZXRhbGxpYxgJIAEoAhISCgpzbW9v",
-            "dGhuZXNzGAogASgCEhoKEnNwZWN1bGFyX2hpZ2hsaWdodBgLIAEoCBIbChNz",
-            "cGVjdWxhcl9yZWZsZWN0aW9uGAwgASgIIkIKDVJlbmRlcmluZ01vZGUSCgoG",
-            "b3BhcXVlEAASCgoGY3V0b3V0EAESCAoEZmFkZRACEg8KC3RyYW5zcGFyZW50",
-            "EAMizQEKEU1hcFNpeFNpZGVkU2t5Ym94EhgKEGZyb250X3RleHR1cmVfaWQY",
-            "ASABKAUSFwoPYmFja190ZXh0dXJlX2lkGAIgASgFEhcKD2xlZnRfdGV4dHVy",
-            "ZV9pZBgDIAEoBRIYChByaWdodF90ZXh0dXJlX2lkGAQgASgFEhUKDXVwX3Rl",
-            "eHR1cmVfaWQYBSABKAUSFwoPZG93bl90ZXh0dXJlX2lkGAYgASgFEhAKCHJv",
-            "dGF0aW9uGAcgASgCEhAKCGV4cG9zdXJlGAggASgCIqMBChNNYXBQcm9jZWR1",
-            "cmFsU2t5Ym94EhAKCHN1bl9zaXplGAEgASgCEhwKFHN1bl9zaXplX2NvbnZl",
-            "cmdlbmNlGAIgASgCEhwKFGF0bW9zcGhlcmVfdGhpY2tuZXNzGAMgASgCEhYK",
-            "DnNreV90aW50X2NvbG9yGAQgAygCEhQKDGdyb3VuZF9jb2xvchgFIAMoAhIQ",
-            "CghleHBvc3VyZRgIIAEoAiLTAwoDTWFwEhQKDHN0YXJ0aW5nX2d1bhgBIAEo",
-            "BRIdChVzdGFydF9wb3NpdGlvbl92ZWN0b3IYAiADKAISGQoRc3RhcnRfb3Jp",
-            "ZW50YXRpb24YAyABKAISKQoEcm9vdBgEIAEoCzIbLkthcmxzb25NYXBFZGl0",
-            "b3IuTWFwT2JqZWN0EhcKD2F1dG9tYXRhX3NjcmlwdBgFIAEoCRIuCgh0ZXh0",
-            "dXJlcxgGIAMoCzIcLkthcmxzb25NYXBFZGl0b3IuTWFwVGV4dHVyZRIwCglt",
-            "YXRlcmlhbHMYByADKAsyHS5LYXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFs",
-            "EjgKCXNpeF9zaWRlZBgIIAEoCzIjLkthcmxzb25NYXBFZGl0b3IuTWFwU2l4",
-            "U2lkZWRTa3lib3hIABI7Cgpwcm9jZWR1cmFsGAkgASgLMiUuS2FybHNvbk1h",
-            "cEVkaXRvci5NYXBQcm9jZWR1cmFsU2t5Ym94SAASJQodZ2xvYmFsX2xpZ2h0",
-            "X2RpcmVjdGlvbl92ZWN0b3IYCiADKAISGgoSZ2xvYmFsX2xpZ2h0X2NvbG9y",
-            "GAsgAygCEhIKCmdyaWRfYWxpZ24YDCABKAJCCAoGc2t5Ym94YgZwcm90bzM="));
+            "ASgFEiEKGW1ldGFsbGljX2dsb3NzX3RleHR1cmVfaWQYAyABKAUSHQoVbm9y",
+            "bWFsX21hcF90ZXh0dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMo",
+            "AhIVCg1vZmZzZXRfdmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMo",
+            "AhIQCghtZXRhbGxpYxgIIAEoAhISCgpzbW9vdGhuZXNzGAkgASgCEhoKEnNw",
+            "ZWN1bGFyX2hpZ2hsaWdodBgKIAEoCBIbChNzcGVjdWxhcl9yZWZsZWN0aW9u",
+            "GAsgASgIIkIKDVJlbmRlcmluZ01vZGUSCgoGb3BhcXVlEAASCgoGY3V0b3V0",
+            "EAESCAoEZmFkZRACEg8KC3RyYW5zcGFyZW50EAMizQEKEU1hcFNpeFNpZGVk",
+            "U2t5Ym94EhgKEGZyb250X3RleHR1cmVfaWQYASABKAUSFwoPYmFja190ZXh0",
+            "dXJlX2lkGAIgASgFEhcKD2xlZnRfdGV4dHVyZV9pZBgDIAEoBRIYChByaWdo",
+            "dF90ZXh0dXJlX2lkGAQgASgFEhUKDXVwX3RleHR1cmVfaWQYBSABKAUSFwoP",
+            "ZG93bl90ZXh0dXJlX2lkGAYgASgFEhAKCHJvdGF0aW9uGAcgASgCEhAKCGV4",
+            "cG9zdXJlGAggASgCIqMBChNNYXBQcm9jZWR1cmFsU2t5Ym94EhAKCHN1bl9z",
+            "aXplGAEgASgCEhwKFHN1bl9zaXplX2NvbnZlcmdlbmNlGAIgASgCEhwKFGF0",
+            "bW9zcGhlcmVfdGhpY2tuZXNzGAMgASgCEhYKDnNreV90aW50X2NvbG9yGAQg",
+            "AygCEhQKDGdyb3VuZF9jb2xvchgFIAMoAhIQCghleHBvc3VyZRgIIAEoAiLT",
+            "AwoDTWFwEhQKDHN0YXJ0aW5nX2d1bhgBIAEoBRIdChVzdGFydF9wb3NpdGlv",
+            "bl92ZWN0b3IYAiADKAISGQoRc3RhcnRfb3JpZW50YXRpb24YAyABKAISKQoE",
+            "cm9vdBgEIAEoCzIbLkthcmxzb25NYXBFZGl0b3IuTWFwT2JqZWN0EhcKD2F1",
+            "dG9tYXRhX3NjcmlwdBgFIAEoCRIuCgh0ZXh0dXJlcxgGIAMoCzIcLkthcmxz",
+            "b25NYXBFZGl0b3IuTWFwVGV4dHVyZRIwCgltYXRlcmlhbHMYByADKAsyHS5L",
+            "YXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFsEjgKCXNpeF9zaWRlZBgIIAEo",
+            "CzIjLkthcmxzb25NYXBFZGl0b3IuTWFwU2l4U2lkZWRTa3lib3hIABI7Cgpw",
+            "cm9jZWR1cmFsGAkgASgLMiUuS2FybHNvbk1hcEVkaXRvci5NYXBQcm9jZWR1",
+            "cmFsU2t5Ym94SAASJQodZ2xvYmFsX2xpZ2h0X2RpcmVjdGlvbl92ZWN0b3IY",
+            "CiADKAISGgoSZ2xvYmFsX2xpZ2h0X2NvbG9yGAsgAygCEhIKCmdyaWRfYWxp",
+            "Z24YDCABKAJCCAoGc2t5Ym94YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -83,7 +83,7 @@ namespace KarlsonMapEditor {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group" }, new[]{ "Type" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "EmissionColor", "Metallic", "Smoothness", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicGlossTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "Metallic", "Smoothness", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapSixSidedSkybox), global::KarlsonMapEditor.MapSixSidedSkybox.Parser, new[]{ "FrontTextureId", "BackTextureId", "LeftTextureId", "RightTextureId", "UpTextureId", "DownTextureId", "Rotation", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapProceduralSkybox), global::KarlsonMapEditor.MapProceduralSkybox.Parser, new[]{ "SunSize", "SunSizeConvergence", "AtmosphereThickness", "SkyTintColor", "GroundColor", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "AutomataScript", "Textures", "Materials", "SixSided", "Procedural", "GlobalLightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
@@ -1790,12 +1790,11 @@ namespace KarlsonMapEditor {
     public MapMaterial(MapMaterial other) : this() {
       mode_ = other.mode_;
       albedoTextureId_ = other.albedoTextureId_;
-      metallicTextureId_ = other.metallicTextureId_;
+      metallicGlossTextureId_ = other.metallicGlossTextureId_;
       normalMapTextureId_ = other.normalMapTextureId_;
       scaleVector_ = other.scaleVector_.Clone();
       offsetVector_ = other.offsetVector_.Clone();
       albedoColor_ = other.albedoColor_.Clone();
-      emissionColor_ = other.emissionColor_.Clone();
       metallic_ = other.metallic_;
       smoothness_ = other.smoothness_;
       specularHighlight_ = other.specularHighlight_;
@@ -1836,15 +1835,15 @@ namespace KarlsonMapEditor {
       }
     }
 
-    /// <summary>Field number for the "metallic_texture_id" field.</summary>
-    public const int MetallicTextureIdFieldNumber = 3;
-    private int metallicTextureId_;
+    /// <summary>Field number for the "metallic_gloss_texture_id" field.</summary>
+    public const int MetallicGlossTextureIdFieldNumber = 3;
+    private int metallicGlossTextureId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int MetallicTextureId {
-      get { return metallicTextureId_; }
+    public int MetallicGlossTextureId {
+      get { return metallicGlossTextureId_; }
       set {
-        metallicTextureId_ = value;
+        metallicGlossTextureId_ = value;
       }
     }
 
@@ -1899,19 +1898,8 @@ namespace KarlsonMapEditor {
       get { return albedoColor_; }
     }
 
-    /// <summary>Field number for the "emission_color" field.</summary>
-    public const int EmissionColorFieldNumber = 8;
-    private static readonly pb::FieldCodec<float> _repeated_emissionColor_codec
-        = pb::FieldCodec.ForFloat(66);
-    private readonly pbc::RepeatedField<float> emissionColor_ = new pbc::RepeatedField<float>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<float> EmissionColor {
-      get { return emissionColor_; }
-    }
-
     /// <summary>Field number for the "metallic" field.</summary>
-    public const int MetallicFieldNumber = 9;
+    public const int MetallicFieldNumber = 8;
     private float metallic_;
     /// <summary>
     /// visual properties
@@ -1926,7 +1914,7 @@ namespace KarlsonMapEditor {
     }
 
     /// <summary>Field number for the "smoothness" field.</summary>
-    public const int SmoothnessFieldNumber = 10;
+    public const int SmoothnessFieldNumber = 9;
     private float smoothness_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1938,7 +1926,7 @@ namespace KarlsonMapEditor {
     }
 
     /// <summary>Field number for the "specular_highlight" field.</summary>
-    public const int SpecularHighlightFieldNumber = 11;
+    public const int SpecularHighlightFieldNumber = 10;
     private bool specularHighlight_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1950,7 +1938,7 @@ namespace KarlsonMapEditor {
     }
 
     /// <summary>Field number for the "specular_reflection" field.</summary>
-    public const int SpecularReflectionFieldNumber = 12;
+    public const int SpecularReflectionFieldNumber = 11;
     private bool specularReflection_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1978,12 +1966,11 @@ namespace KarlsonMapEditor {
       }
       if (Mode != other.Mode) return false;
       if (AlbedoTextureId != other.AlbedoTextureId) return false;
-      if (MetallicTextureId != other.MetallicTextureId) return false;
+      if (MetallicGlossTextureId != other.MetallicGlossTextureId) return false;
       if (NormalMapTextureId != other.NormalMapTextureId) return false;
       if(!scaleVector_.Equals(other.scaleVector_)) return false;
       if(!offsetVector_.Equals(other.offsetVector_)) return false;
       if(!albedoColor_.Equals(other.albedoColor_)) return false;
-      if(!emissionColor_.Equals(other.emissionColor_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Metallic, other.Metallic)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Smoothness, other.Smoothness)) return false;
       if (SpecularHighlight != other.SpecularHighlight) return false;
@@ -1997,12 +1984,11 @@ namespace KarlsonMapEditor {
       int hash = 1;
       if (Mode != global::KarlsonMapEditor.MapMaterial.Types.RenderingMode.Opaque) hash ^= Mode.GetHashCode();
       if (AlbedoTextureId != 0) hash ^= AlbedoTextureId.GetHashCode();
-      if (MetallicTextureId != 0) hash ^= MetallicTextureId.GetHashCode();
+      if (MetallicGlossTextureId != 0) hash ^= MetallicGlossTextureId.GetHashCode();
       if (NormalMapTextureId != 0) hash ^= NormalMapTextureId.GetHashCode();
       hash ^= scaleVector_.GetHashCode();
       hash ^= offsetVector_.GetHashCode();
       hash ^= albedoColor_.GetHashCode();
-      hash ^= emissionColor_.GetHashCode();
       if (Metallic != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Metallic);
       if (Smoothness != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Smoothness);
       if (SpecularHighlight != false) hash ^= SpecularHighlight.GetHashCode();
@@ -2033,9 +2019,9 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(16);
         output.WriteInt32(AlbedoTextureId);
       }
-      if (MetallicTextureId != 0) {
+      if (MetallicGlossTextureId != 0) {
         output.WriteRawTag(24);
-        output.WriteInt32(MetallicTextureId);
+        output.WriteInt32(MetallicGlossTextureId);
       }
       if (NormalMapTextureId != 0) {
         output.WriteRawTag(32);
@@ -2044,21 +2030,20 @@ namespace KarlsonMapEditor {
       scaleVector_.WriteTo(output, _repeated_scaleVector_codec);
       offsetVector_.WriteTo(output, _repeated_offsetVector_codec);
       albedoColor_.WriteTo(output, _repeated_albedoColor_codec);
-      emissionColor_.WriteTo(output, _repeated_emissionColor_codec);
       if (Metallic != 0F) {
-        output.WriteRawTag(77);
+        output.WriteRawTag(69);
         output.WriteFloat(Metallic);
       }
       if (Smoothness != 0F) {
-        output.WriteRawTag(85);
+        output.WriteRawTag(77);
         output.WriteFloat(Smoothness);
       }
       if (SpecularHighlight != false) {
-        output.WriteRawTag(88);
+        output.WriteRawTag(80);
         output.WriteBool(SpecularHighlight);
       }
       if (SpecularReflection != false) {
-        output.WriteRawTag(96);
+        output.WriteRawTag(88);
         output.WriteBool(SpecularReflection);
       }
       if (_unknownFields != null) {
@@ -2079,9 +2064,9 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(16);
         output.WriteInt32(AlbedoTextureId);
       }
-      if (MetallicTextureId != 0) {
+      if (MetallicGlossTextureId != 0) {
         output.WriteRawTag(24);
-        output.WriteInt32(MetallicTextureId);
+        output.WriteInt32(MetallicGlossTextureId);
       }
       if (NormalMapTextureId != 0) {
         output.WriteRawTag(32);
@@ -2090,21 +2075,20 @@ namespace KarlsonMapEditor {
       scaleVector_.WriteTo(ref output, _repeated_scaleVector_codec);
       offsetVector_.WriteTo(ref output, _repeated_offsetVector_codec);
       albedoColor_.WriteTo(ref output, _repeated_albedoColor_codec);
-      emissionColor_.WriteTo(ref output, _repeated_emissionColor_codec);
       if (Metallic != 0F) {
-        output.WriteRawTag(77);
+        output.WriteRawTag(69);
         output.WriteFloat(Metallic);
       }
       if (Smoothness != 0F) {
-        output.WriteRawTag(85);
+        output.WriteRawTag(77);
         output.WriteFloat(Smoothness);
       }
       if (SpecularHighlight != false) {
-        output.WriteRawTag(88);
+        output.WriteRawTag(80);
         output.WriteBool(SpecularHighlight);
       }
       if (SpecularReflection != false) {
-        output.WriteRawTag(96);
+        output.WriteRawTag(88);
         output.WriteBool(SpecularReflection);
       }
       if (_unknownFields != null) {
@@ -2123,8 +2107,8 @@ namespace KarlsonMapEditor {
       if (AlbedoTextureId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(AlbedoTextureId);
       }
-      if (MetallicTextureId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(MetallicTextureId);
+      if (MetallicGlossTextureId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(MetallicGlossTextureId);
       }
       if (NormalMapTextureId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(NormalMapTextureId);
@@ -2132,7 +2116,6 @@ namespace KarlsonMapEditor {
       size += scaleVector_.CalculateSize(_repeated_scaleVector_codec);
       size += offsetVector_.CalculateSize(_repeated_offsetVector_codec);
       size += albedoColor_.CalculateSize(_repeated_albedoColor_codec);
-      size += emissionColor_.CalculateSize(_repeated_emissionColor_codec);
       if (Metallic != 0F) {
         size += 1 + 4;
       }
@@ -2163,8 +2146,8 @@ namespace KarlsonMapEditor {
       if (other.AlbedoTextureId != 0) {
         AlbedoTextureId = other.AlbedoTextureId;
       }
-      if (other.MetallicTextureId != 0) {
-        MetallicTextureId = other.MetallicTextureId;
+      if (other.MetallicGlossTextureId != 0) {
+        MetallicGlossTextureId = other.MetallicGlossTextureId;
       }
       if (other.NormalMapTextureId != 0) {
         NormalMapTextureId = other.NormalMapTextureId;
@@ -2172,7 +2155,6 @@ namespace KarlsonMapEditor {
       scaleVector_.Add(other.scaleVector_);
       offsetVector_.Add(other.offsetVector_);
       albedoColor_.Add(other.albedoColor_);
-      emissionColor_.Add(other.emissionColor_);
       if (other.Metallic != 0F) {
         Metallic = other.Metallic;
       }
@@ -2213,7 +2195,7 @@ namespace KarlsonMapEditor {
             break;
           }
           case 24: {
-            MetallicTextureId = input.ReadInt32();
+            MetallicGlossTextureId = input.ReadInt32();
             break;
           }
           case 32: {
@@ -2235,24 +2217,19 @@ namespace KarlsonMapEditor {
             albedoColor_.AddEntriesFrom(input, _repeated_albedoColor_codec);
             break;
           }
-          case 66:
           case 69: {
-            emissionColor_.AddEntriesFrom(input, _repeated_emissionColor_codec);
-            break;
-          }
-          case 77: {
             Metallic = input.ReadFloat();
             break;
           }
-          case 85: {
+          case 77: {
             Smoothness = input.ReadFloat();
             break;
           }
-          case 88: {
+          case 80: {
             SpecularHighlight = input.ReadBool();
             break;
           }
-          case 96: {
+          case 88: {
             SpecularReflection = input.ReadBool();
             break;
           }
@@ -2284,7 +2261,7 @@ namespace KarlsonMapEditor {
             break;
           }
           case 24: {
-            MetallicTextureId = input.ReadInt32();
+            MetallicGlossTextureId = input.ReadInt32();
             break;
           }
           case 32: {
@@ -2306,24 +2283,19 @@ namespace KarlsonMapEditor {
             albedoColor_.AddEntriesFrom(ref input, _repeated_albedoColor_codec);
             break;
           }
-          case 66:
           case 69: {
-            emissionColor_.AddEntriesFrom(ref input, _repeated_emissionColor_codec);
-            break;
-          }
-          case 77: {
             Metallic = input.ReadFloat();
             break;
           }
-          case 85: {
+          case 77: {
             Smoothness = input.ReadFloat();
             break;
           }
-          case 88: {
+          case 80: {
             SpecularHighlight = input.ReadBool();
             break;
           }
-          case 96: {
+          case 88: {
             SpecularReflection = input.ReadBool();
             break;
           }

@@ -74,7 +74,7 @@ namespace KarlsonMapEditor
             SetupMaterials = SetupMaterialsOld;
             ReadGlobalProperties(br);
             ReadTextures(br);
-            ReadObjectGroup_v1(br);
+            GlobalObject = ReadObjectGroup_v1(br);
             AutomataScript = "";
         }
 
@@ -84,7 +84,7 @@ namespace KarlsonMapEditor
             SetupMaterials = SetupMaterialsOld;
             ReadGlobalProperties(br);
             ReadTextures(br);
-            ReadObjectGroup_v1(br, true);
+            GlobalObject = ReadObjectGroup_v1(br, true);
             AutomataScript = "";
         }
 
@@ -146,9 +146,14 @@ namespace KarlsonMapEditor
             }
         }
 
-        private void ReadObjectGroup_v1(BinaryReader br, bool objLayerData = false)
+        private ObjectGroup ReadObjectGroup_v1(BinaryReader br, bool objLayerData = false)
         {
-            List<LevelObject> objects = new List<LevelObject>();
+            ObjectGroup objGroup = new ObjectGroup();
+            objGroup.Name = "global object";
+            objGroup.Position = Vector3.zero;
+            objGroup.Rotation = Vector3.zero;
+            objGroup.Scale = Vector3.one;
+
             int _texl = br.ReadInt32();
             while (_texl-- > 0)
             {
@@ -156,11 +161,11 @@ namespace KarlsonMapEditor
                 string name = br.ReadString();
                 string group = br.ReadString(); // kme v2 removed group names, so this is no longer used
                 if (prefab)
-                    objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                    objGroup.Objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
                 else
-                    objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), objLayerData ? br.ReadBoolean() : false, GeometryShape.Cube, OldTextureData));
+                    objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), objLayerData ? br.ReadBoolean() : false, GeometryShape.Cube, OldTextureData));
             }
-            Objects = objects.ToArray();
+            return objGroup;
         }
 
         ObjectGroup ReadObjectGroup_v3(byte[] group)
@@ -198,7 +203,6 @@ namespace KarlsonMapEditor
         public Vector3 startPosition;
         public float startOrientation;
 
-        public LevelObject[] Objects;
         public ObjectGroup GlobalObject;
 
         public string AutomataScript;

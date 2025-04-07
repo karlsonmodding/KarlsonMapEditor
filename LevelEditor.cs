@@ -23,6 +23,8 @@ using Google.Protobuf;
 using System.Buffers;
 using static KarlsonMapEditor.MapGeometry.Types;
 using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.Remoting.Messaging;
+using UnityEngine.Networking.Types;
 
 namespace KarlsonMapEditor
 {
@@ -178,8 +180,13 @@ namespace KarlsonMapEditor
         {
             AudioListener.volume = 0;
             SceneManager.sceneLoaded -= InitEditor;
+            // remove objects with colliders
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject & c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
+            // remove lights
+            foreach (Light l in UnityEngine.Object.FindObjectsOfType<Light>())
+                if (l != RenderSettings.sun) UnityEngine.Object.Destroy(l.gameObject);
+
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().useGravity = false; //eh
             PlayerMovement.Instance.gameObject.GetComponent<Collider>().enabled = false;
@@ -650,7 +657,7 @@ namespace KarlsonMapEditor
                     {
                         if (GUI.Button(new Rect(depth * 20 + 20, j * 25, 20, 20), "S"))
                             SelectedObject.SelectObject(obj);
-                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? obj.data.PrefabId.ToString() : "Cube") + " | " + obj.go.name);
+                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? obj.data.PrefabId.ToString() : obj.data.ShapeId.ToString()) + " | " + obj.go.name);
                         ++j;
                     }
                     // close group
@@ -871,10 +878,12 @@ namespace KarlsonMapEditor
                     ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; }, 140);
                     GUILayout.EndHorizontal();
 
+                    /* maybe later
                     GUILayout.BeginHorizontal(matStyle);
                     GUILayout.Label("Emission", matStyle);
                     ColorButton(selectedMat.GetColor("_EmissionColor"), delegate (Color c) { selectedMat.SetColor("_EmissionColor", c); });
                     GUILayout.EndHorizontal();
+                    */
 
                     GUILayout.Space(4);
 
@@ -887,15 +896,20 @@ namespace KarlsonMapEditor
                         MarkAsModified();
                         MaterialManager.UpdateMode(selectedMat, (MaterialManager.ShaderBlendMode)materialMode.Index);
                     }
-
+                    Texture2D normalTex = (Texture2D)selectedMat.GetTexture("_BumpMap");
                     Texture2D metalGlossTex = (Texture2D)selectedMat.GetTexture("_MetallicGlossMap");
                     if (metalGlossTex == null)
                     {
-                        GUILayout.Label("Gloss", matStyle);
+                        GUILayout.Label("Smoothness", matStyle);
                         selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1));
 
-                        GUILayout.Label("Metal", matStyle);
+                        GUILayout.Label("Metallic", matStyle);
                         selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1));
+                    }
+                    if (normalTex != null)
+                    {
+                        GUILayout.Label("Normal Scale", matStyle);
+                        selectedMat.SetFloat("_BumpScale", GUILayout.HorizontalSlider(selectedMat.GetFloat("_BumpScale"), 0, 5));
                     }
 
                     if (GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights"))
@@ -908,7 +922,7 @@ namespace KarlsonMapEditor
                         selectedMat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
                         selectedMat.SetFloat("_SpecularHighlights", 0f);
                     }
-                    if (GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Specular Highlights"))
+                    if (GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Glossy Reflections"))
                     {
                         selectedMat.DisableKeyword("_GLOSSYREFLECTIONS_OFF");
                         selectedMat.SetFloat("_GlossyReflections", 1f);
@@ -959,28 +973,44 @@ namespace KarlsonMapEditor
                         MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
                         MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
                     }
-                    Texture2D normalTex = (Texture2D)selectedMat.GetTexture("_BumpMap");
+                    
                     if (GUILayout.Toggle(normalTex != null, "Normal Map"))
                     {
                         if (normalTex == null || GUILayout.Button(normalTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                         {
                             tex_browser_enabled = true;
                             MaterialManager.SelectedTexture = normalTex;
-                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_BumpMap", tex); MarkAsModified(); };
+                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
+                                selectedMat.EnableKeyword("_NORMALMAP");
+                                selectedMat.SetTexture("_BumpMap", tex);
+                                MarkAsModified();
+                            };
                         }
                     }
-                    else if (normalTex != null) { selectedMat.SetTexture("_BumpMap", null); MarkAsModified(); }
+                    else if (normalTex != null) {
+                        selectedMat.DisableKeyword("_NORMALMAP");
+                        selectedMat.SetTexture("_BumpMap", null);
+                        MarkAsModified();
+                    }
                     
-                    if (GUILayout.Toggle(metalGlossTex != null, "Metallic Gloss"))
+                    if (GUILayout.Toggle(metalGlossTex != null, "Metal & Gloss"))
                     {
                         if (metalGlossTex == null || GUILayout.Button(metalGlossTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                         {
                             tex_browser_enabled = true;
                             MaterialManager.SelectedTexture = metalGlossTex;
-                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.SetTexture("_MetallicGlossMap", tex); MarkAsModified(); };
+                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
+                                selectedMat.EnableKeyword("_METALLICGLOSSMAP");
+                                selectedMat.SetTexture("_MetallicGlossMap", tex);
+                                MarkAsModified();
+                            };
                         }
                     }
-                    else if (metalGlossTex != null) { selectedMat.SetTexture("_MetallicGlossMap", null); MarkAsModified(); }
+                    else if (metalGlossTex != null) {
+                        selectedMat.DisableKeyword("_METALLICGLOSSMAP");
+                        selectedMat.SetTexture("_MetallicGlossMap", null);
+                        MarkAsModified();
+                    }
 
                     GUILayout.EndVertical();
                     GUILayout.EndHorizontal();
@@ -1537,19 +1567,9 @@ namespace KarlsonMapEditor
             startPosition = data.startPosition;
             startOrientation = data.startOrientation;
 
-            // kme v1 compatibility
-            if (!data.isKMEv2)
-            {
-                globalObject = new ObjectGroup(levelName);
-                globalObject.isGlobal = true;
-                foreach(var obj in data.Objects)
-                    globalObject.AddObject(new EditorObject(obj));
-            }
-            else
-            {
-                globalObject = ReplicateObjectGroup(data.GlobalObject, null);
-                globalObject.isGlobal = true;
-            }
+            
+            globalObject = ReplicateObjectGroup(data.GlobalObject, null);
+            globalObject.isGlobal = true;
             var spawn = new EditorObject(startPosition, startOrientation);
             globalObject.editorObjects.Insert(0, spawn);
             spawn.go.transform.parent = globalObject.go.transform;
@@ -1624,7 +1644,7 @@ namespace KarlsonMapEditor
 
         public class EditorObject : IBasicProperties
         {
-            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "geometry object", false, false, false, false, false, shape)) { }
+            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Geometry Object", false, false, false, false, false, shape)) { }
 
             public EditorObject(PrefabType _prefabId, Vector3 position)
             {
@@ -1970,7 +1990,7 @@ namespace KarlsonMapEditor
             public static Texture2D SelectedTexture; // for choosing textures in a context menu
             public static Action<Texture2D> UpdateSelectedTexture;
             
-            static readonly Shader defaultShader = Shader.Find("Standard");
+            public static Shader defaultShader;
 
             public enum ShaderBlendMode
             {
@@ -2104,7 +2124,7 @@ namespace KarlsonMapEditor
                         mat.EnableKeyword("_ALPHATEST_ON");
                         mat.DisableKeyword("_ALPHABLEND_ON");
                         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                        mat.renderQueue = 2450;
+                        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
                         break;
                     case ShaderBlendMode.Fade:
                         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
@@ -2113,7 +2133,7 @@ namespace KarlsonMapEditor
                         mat.DisableKeyword("_ALPHATEST_ON");
                         mat.EnableKeyword("_ALPHABLEND_ON");
                         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                        mat.renderQueue = 3000;
+                        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                         break;
                     case ShaderBlendMode.Transparent:
                         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
@@ -2122,7 +2142,7 @@ namespace KarlsonMapEditor
                         mat.DisableKeyword("_ALPHATEST_ON");
                         mat.DisableKeyword("_ALPHABLEND_ON");
                         mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-                        mat.renderQueue = 3000;
+                        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                         break;
                 }
             }

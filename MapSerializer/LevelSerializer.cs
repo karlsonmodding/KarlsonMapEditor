@@ -37,12 +37,12 @@ namespace KarlsonMapEditor
                     Smoothness = material.GetFloat("_Glossiness"),
                     Metallic = material.GetFloat("_Metallic"),
                     SpecularHighlight = material.GetFloat("_SpecularHighlights") != 0,
+                    SpecularReflection = material.GetFloat("_GlossyReflections") != 0,
                     AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
                     NormalMapTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_BumpMap")),
-                    MetallicTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_MetallicGlossMap")),
+                    MetallicGlossTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_MetallicGlossMap")),
                     Scale = material.mainTextureScale,
                     Offset = material.mainTextureOffset,
-                    Emission = material.GetColor("_EmissionColor"),
                 };
                 Materials.Add(mm);
             }
@@ -101,23 +101,41 @@ namespace KarlsonMapEditor
             {
                 Material material = MaterialManager.InstanceMaterial();
 
+                
+
                 // set properties
                 MaterialManager.UpdateMode(material, (MaterialManager.ShaderBlendMode)mm.Mode);
                 material.color = mm.Albedo;
                 material.SetFloat("_Glossiness", mm.Smoothness);
                 material.SetFloat("_Metallic", mm.Metallic);
                 material.SetFloat("_SpecularHighlights", mm.SpecularHighlight ? 1 : 0);
+                material.SetFloat("_GlossyReflections", mm.SpecularReflection ? 1 : 0);
                 material.mainTextureScale = mm.Scale;
                 material.mainTextureOffset = mm.Offset;
-                material.SetColor("_EmissionColor", mm.Emission);
+                // property keywords
+                if (mm.SpecularHighlight) { material.DisableKeyword("_SPECULARHIGHLIGHTS_OFF"); }
+                else { material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF"); }
+                if (mm.SpecularReflection) { material.DisableKeyword("_GLOSSYREFLECTIONS_OFF"); }
+                else { material.EnableKeyword("_GLOSSYREFLECTIONS_OFF"); }
 
                 // set textures
-                if (mm.AlbedoTextureId > 0)
+                // main
+                if (mm.AlbedoTextureId >= 0)
                     material.mainTexture = MaterialManager.Textures[mm.AlbedoTextureId];
-                if (mm.NormalMapTextureId > 0)
+                // normal
+                if (mm.NormalMapTextureId >= 0)
+                {
+                    material.EnableKeyword("_NORMALMAP");
                     material.SetTexture("_BumpMap", MaterialManager.Textures[mm.NormalMapTextureId]);
-                if (mm.MetallicTextureId > 0)
-                    material.SetTexture("_MetallicGlossMap", MaterialManager.Textures[mm.MetallicTextureId]);
+                }
+                else { material.DisableKeyword("_NORMALMAP"); }
+                // metallic and gloss
+                if (mm.MetallicGlossTextureId >= 0)
+                {
+                    material.EnableKeyword("_METALLICGLOSSMAP");
+                    material.SetTexture("_MetallicGlossMap", MaterialManager.Textures[mm.MetallicGlossTextureId]);
+                }
+                else { material.DisableKeyword("_METALLICGLOSSMAP"); }
             }
 
             // load skybox
@@ -196,11 +214,6 @@ namespace KarlsonMapEditor
         {
             get { return LevelSerializer.ReadColor(AlbedoColor); }
             set { LevelSerializer.WriteColor(value, AlbedoColor); }
-        }
-        public Color Emission
-        {
-            get { return LevelSerializer.ReadColor(EmissionColor); }
-            set { LevelSerializer.WriteColor(value, EmissionColor); }
         }
         public Vector2 Scale
         {

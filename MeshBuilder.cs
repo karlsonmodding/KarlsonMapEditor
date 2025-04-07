@@ -19,7 +19,11 @@ namespace KarlsonMapEditor
             GameObject go = new GameObject();
             go.layer = 9;
             go.AddComponent<MeshFilter>().mesh = mesh;
-            go.AddComponent<MeshRenderer>();
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            // possible save on performance since shadows are disabled anyways
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+
             go.AddComponent<KMETextureScaling>().Init();
 
             switch (shape)

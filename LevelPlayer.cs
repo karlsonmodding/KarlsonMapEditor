@@ -42,16 +42,11 @@ namespace KarlsonMapEditor
 
         public static void LoadLevel(string levelPath)
         {
-            currentLevel = Path.GetFileName(levelPath);
-            levelData = new LevelData(File.ReadAllBytes(levelPath));
-            LoadScript();
-            dirtyNavMesh = true;
-            needsNavMesh = false;
-            SceneManager.sceneLoaded += LoadLevelData;
-            UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
+            LoadLevel(Path.GetFileName(levelPath), File.ReadAllBytes(levelPath));
         }
         public static void LoadLevel(string name, byte[] data)
         {
+            Loadson.Console.Log("setting up level player");
             currentLevel = name;
             levelData = new LevelData(data);
             LoadScript();
@@ -83,6 +78,9 @@ namespace KarlsonMapEditor
             // remove objects with colliders
             foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
                 if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
+            // remove lights
+            foreach (Light l in UnityEngine.Object.FindObjectsOfType<Light>())
+                if (l != RenderSettings.sun) UnityEngine.Object.Destroy(l.gameObject);
 
             // set up materials for geometry objects
             levelData.SetupMaterials();
@@ -104,12 +102,6 @@ namespace KarlsonMapEditor
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
 
-            if (!levelData.isKMEv2)
-            {
-                // convert to kmev2 format
-                // create a global group root with the objects
-                levelData.GlobalObject = new LevelData.ObjectGroup() { Objects = levelData.Objects.ToList()};
-            }
             List<LevelData.LevelObject> enemyToFix = new List<LevelData.LevelObject>();
             void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
             {

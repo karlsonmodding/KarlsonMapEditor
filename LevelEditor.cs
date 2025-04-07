@@ -21,10 +21,6 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Google.Protobuf;
 using System.Buffers;
-using static KarlsonMapEditor.MapGeometry.Types;
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.Remoting.Messaging;
-using UnityEngine.Networking.Types;
 
 namespace KarlsonMapEditor
 {

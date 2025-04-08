@@ -85,7 +85,7 @@ namespace KarlsonMapEditor
                 }
 
                 GUI.DragWindow(new Rect(0, 0, 115, 20));
-            }, "Color Picker");
+            }, "Color Picker      ");
         }
 
         public bool DrawPreviewButton(Color c, int width = 100, int height = 15)

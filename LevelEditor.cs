@@ -690,7 +690,7 @@ namespace KarlsonMapEditor
                 if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup && SelectedObject.Group.isGlobal)
                 {
                     GUI.Label(new Rect(5, 20, 300, 20), "You can't modify the global object.");
-                    GUI.Label(new Rect(5, 35, 300, 20), "You can only add objects (Prefabs / Cube) and groups (+ in the top right)");
+                    GUI.Label(new Rect(5, 35, 300, 40), "You can only add objects (Prefabs / Cube) and groups (+ in the top right)");
                     return;
                 }
                 string newName = GUI.TextField(new Rect(5f, 20f, 290f, 20f), SelectedObject.Basic.aName);

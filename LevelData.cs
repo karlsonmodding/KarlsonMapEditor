@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
-using HarmonyLib;
 
 namespace KarlsonMapEditor
 {
@@ -19,6 +18,15 @@ namespace KarlsonMapEditor
         TrianglePrism,
         QuarterPyramid,
         QuarterPipe,
+    }
+
+    public enum ObjectType
+    {
+        Geometry,
+        Prefab,
+        Light,
+        Text,
+        Internal,
     }
 
     public enum PrefabType
@@ -235,7 +243,7 @@ namespace KarlsonMapEditor
             // prefab
             public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, int prefabData)
             {
-                IsPrefab = true;
+                Type = ObjectType.Prefab;
                 PrefabId = prefabId;
 
                 Position = position;
@@ -249,7 +257,7 @@ namespace KarlsonMapEditor
             // geometry
             public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube, List<(int, Color, bool)> textureData = null)
             {
-                IsPrefab = false;
+                Type = ObjectType.Geometry;
 
                 if (textureData == null)
                 {
@@ -272,9 +280,9 @@ namespace KarlsonMapEditor
                 Lava = lava;
                 MarkAsObject = markAsObject;
             }
-            
+
             // common to all level objects
-            public bool IsPrefab;
+            public ObjectType Type;
             public Vector3 Position;
             public Vector3 Rotation;
             public Vector3 Scale;
@@ -299,11 +307,11 @@ namespace KarlsonMapEditor
 
             public override string ToString()
             {
-                string st = "(PF:" + IsPrefab;
-                if (IsPrefab)
+                string st = "(Type:" + Type.ToString();
+                if (Type == ObjectType.Prefab)
                     st += " " + PrefabId;
                 st += " " + Position + " " + Rotation + " " + Scale;
-                if (!IsPrefab)
+                if (Type == ObjectType.Geometry)
                     st += " mat:" + MaterialId;
                 st += ")";
                 return st;

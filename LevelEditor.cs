@@ -323,9 +323,6 @@ namespace KarlsonMapEditor
                 Type = SelectedType.EditorObject;
                 Selected = true;
 
-                if (!obj.data.IsPrefab)
-                    picker.color = obj.go.GetComponent<MeshRenderer>().sharedMaterial.color;
-
                 Identify();
 
                 // select parent group to be able to add objects easier
@@ -653,7 +650,29 @@ namespace KarlsonMapEditor
                     {
                         if (GUI.Button(new Rect(depth * 20 + 20, j * 25, 20, 20), "S"))
                             SelectedObject.SelectObject(obj);
-                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), (obj.data.IsPrefab ? obj.data.PrefabId.ToString() : obj.data.ShapeId.ToString()) + " | " + obj.go.name);
+                        string label;
+                        switch (obj.data.Type)
+                        {
+                            case ObjectType.Prefab:
+                                label = obj.data.PrefabId.ToString() + " | " + obj.go.name; ;
+                                break;
+                            case ObjectType.Geometry:
+                                label = obj.data.ShapeId.ToString() + " | " + obj.go.name; ;
+                                break;
+                            case ObjectType.Light:
+                                label = "Light | " + obj.go.name; ;
+                                break;
+                            case ObjectType.Text:
+                                label = "Text Display | " + obj.go.name; ;
+                                break;
+                            case ObjectType.Internal:
+                                label = "Internal | " + obj.go.name;
+                                break;
+                            default:
+                                label = "Unknown Object | " + obj.go.name; ;
+                                break;
+                        }
+                        GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), label);
                         ++j;
                     }
                     // close group
@@ -700,9 +719,9 @@ namespace KarlsonMapEditor
                     SelectedObject.Basic.aName = newName;
                 }
 
-                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Internal))
                     GUI.Label(new Rect(5, 40, 290, 60), "This is an internal object.\nProperties are limited.");
-                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type != ObjectType.Internal))
                 {
                     if (GUI.Button(new Rect(5, 40, 75, 20), "Duplicate"))
                     {
@@ -758,7 +777,7 @@ namespace KarlsonMapEditor
                         SelectedObject.Basic.aPosition = newPos;
                     }
                 }
-                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || !SelectedObject.Object.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || (SelectedObject.Object.data.Type != ObjectType.Internal))
                 {
                     GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
                     {
@@ -804,7 +823,7 @@ namespace KarlsonMapEditor
                 GUI.EndGroup();
 
                 GUILayout.BeginArea(new Rect(5, 165, 300, 400));
-                bool hasMat = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.internalObject && !SelectedObject.Object.data.IsPrefab;
+                bool hasMat = (SelectedObject.Type == SelectedObject.SelectedType.EditorObject) && (SelectedObject.Object.data.Type == ObjectType.Geometry);
                 if (hasMat)
                 {
                     GUILayout.BeginHorizontal();
@@ -1017,7 +1036,7 @@ namespace KarlsonMapEditor
                 }
                 GUILayout.EndArea();
 
-                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && !SelectedObject.Object.data.IsPrefab && !SelectedObject.Object.internalObject)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Geometry))
                 {
                     bool bRes;
                     bRes = GUI.Toggle(new Rect(5, 60, 75, 20), SelectedObject.Object.data.Bounce, "Bounce");
@@ -1041,7 +1060,7 @@ namespace KarlsonMapEditor
                 }
                 else
                 {
-                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.IsPrefab && SelectedObject.Object.data.PrefabId == PrefabType.Enemey) // only draw, so it appears on top
+                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Prefab) && SelectedObject.Object.data.PrefabId == PrefabType.Enemey) // only draw, so it appears on top
                         enemyGun.Draw(new Rect(35, 60, 100, 20));
                     // for some reason, the first button rendered takes priority over the mouse click
                     // even if it is below .. idk
@@ -1062,7 +1081,7 @@ namespace KarlsonMapEditor
 
                 }
 
-                EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
+                EditorObject spawnObject = globalObject.editorObjects.First(x => x.data.Type == ObjectType.Internal);
                 if (GUI.Button(new Rect(5, 65, 190, 20), "Set Spawn"))
                 {
                     startPosition = PlayerMovement.Instance.gameObject.transform.position;
@@ -1439,7 +1458,7 @@ namespace KarlsonMapEditor
                 clickGizmo.SetActive(false);
             }
 
-            EditorObject spawnObject = globalObject.editorObjects.First(x => x.internalObject);
+            EditorObject spawnObject = globalObject.editorObjects.First(x => x.data.Type == ObjectType.Internal);
             startPosition = spawnObject.aPosition;
             startOrientation = spawnObject.aRotation.y;
         }
@@ -1655,12 +1674,12 @@ namespace KarlsonMapEditor
             public EditorObject(LevelData.LevelObject playObj)
             {
                 data = playObj;
-                if(data.IsPrefab)
+                if(data.Type == ObjectType.Prefab)
                 {
                     go = LevelData.MakePrefab(data.PrefabId);
                     if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
                 }
-                else
+                else if (data.Type == ObjectType.Geometry)
                 {
                     go = MeshBuilder.GetGeometryGO(playObj.ShapeId);
                     go.GetComponent<KMETextureScaling>().Scale = playObj.UVNormalizedScale;
@@ -1687,7 +1706,7 @@ namespace KarlsonMapEditor
                     Position = pos,
                     Rotation = Vector3.zero,
                     Scale = Vector3.one,
-                    IsPrefab = false,
+                    Type = ObjectType.Internal,
                 };
                 go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 go.AddComponent<KME_Object>();
@@ -1696,29 +1715,36 @@ namespace KarlsonMapEditor
                 go.transform.eulerAngles = new Vector3(0f, orientation, 0f);
                 go.name = "Player Spawn";
                 go.GetComponent<MeshRenderer>().material.color = Color.yellow;
-                internalObject = true;
+                //internalObject = true;
             }
 
-            public bool internalObject { get; private set; } = false;
+            //public bool internalObject { get; private set; } = false;
             public LevelData.LevelObject data;
             public GameObject go;
 
             public void Clone(ObjectGroup parent)
             {
                 EditorObject toAdd;
-                if (data.IsPrefab)
-                    toAdd = new EditorObject(data.PrefabId, aPosition);
-                else
+                switch (data.Type)
                 {
-                    toAdd = new EditorObject(aPosition, data.ShapeId);
-                    toAdd.data.MaterialId = data.MaterialId;
-                    toAdd.go.GetComponent<MeshRenderer>().sharedMaterial = go.GetComponent<MeshRenderer>().sharedMaterial;
-                    toAdd.go.GetComponent<KMETextureScaling>().Scale = go.GetComponent<KMETextureScaling>().Scale;
-                    toAdd.data.Bounce = data.Bounce;
-                    toAdd.data.Glass = data.Glass;
-                    toAdd.data.Lava = data.Lava;
-                    toAdd.data.MarkAsObject = data.MarkAsObject;
+                    case ObjectType.Prefab:
+                        toAdd = new EditorObject(data.PrefabId, aPosition);
+                        break;
+                    case ObjectType.Geometry:
+                        toAdd = new EditorObject(aPosition, data.ShapeId);
+                        toAdd.data.MaterialId = data.MaterialId;
+                        toAdd.go.GetComponent<MeshRenderer>().sharedMaterial = go.GetComponent<MeshRenderer>().sharedMaterial;
+                        toAdd.go.GetComponent<KMETextureScaling>().Scale = go.GetComponent<KMETextureScaling>().Scale;
+                        toAdd.data.Bounce = data.Bounce;
+                        toAdd.data.Glass = data.Glass;
+                        toAdd.data.Lava = data.Lava;
+                        toAdd.data.MarkAsObject = data.MarkAsObject;
+                        break;
+                    default:
+                        toAdd = new EditorObject(data);
+                        break;
                 }
+                
                 parent.editorObjects.Add(toAdd);
                 toAdd.go.transform.parent = parent.go.transform;
                 toAdd.aPosition = aPosition;
@@ -1758,7 +1784,7 @@ namespace KarlsonMapEditor
                 set {
                     go.transform.localScale = value;
                     data.Scale = value;
-                    if (!data.IsPrefab) { go.GetComponent<KMETextureScaling>().UpdateScale(); }
+                    if (data.Type == ObjectType.Geometry) { go.GetComponent<KMETextureScaling>().UpdateScale(); }
                 }
             }
             public string aName
@@ -1790,8 +1816,8 @@ namespace KarlsonMapEditor
             public void ScaleByGizmo(Vector3 delta)
             {
                 go.transform.localScale = preScale + delta;
-                // only snap scale if it's not a prefab
-                if (gridAlign != 0 && !data.IsPrefab) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
+                // only snap scale if it's geometry
+                if (gridAlign != 0 && (data.Type == ObjectType.Geometry)) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
                 data.Scale = go.transform.localScale;
             }
             public void RotateByGizmo(Quaternion delta)

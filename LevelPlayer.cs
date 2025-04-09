@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
@@ -114,7 +113,7 @@ namespace KarlsonMapEditor
                 foreach (var obj in group.Objects)
                 {
                     GameObject go;
-                    if (obj.IsPrefab)
+                    if (obj.Type == ObjectType.Prefab)
                     {
                         go = LevelData.MakePrefab(obj.PrefabId);
                         if (obj.PrefabId == PrefabType.Enemey)

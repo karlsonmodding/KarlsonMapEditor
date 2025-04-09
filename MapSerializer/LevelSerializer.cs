@@ -256,7 +256,7 @@ namespace KarlsonMapEditor
             }
             foreach (EditorObject childObject in group.editorObjects)
             {
-                if (childObject.internalObject) continue;
+                if (childObject.data.Type == ObjectType.Internal) continue;
                 MapObject mo = new MapObject();
                 mo.SaveEditorObject(childObject);
                 Group.Children.Add(mo);
@@ -266,7 +266,7 @@ namespace KarlsonMapEditor
         public void SaveEditorObject(EditorObject obj)
         {
             SaveBasicObject(obj);
-            if (obj.data.IsPrefab) // prefab
+            if (obj.data.Type == ObjectType.Prefab)
             {
                 Prefab = new MapPrefab
                 {
@@ -274,7 +274,7 @@ namespace KarlsonMapEditor
                     PrefabData = obj.data.PrefabData
                 };
             }
-            else // geometry
+            else if (obj.data.Type == ObjectType.Geometry)
             {
                 Geometry = new MapGeometry
                 {
@@ -332,13 +332,13 @@ namespace KarlsonMapEditor
             };
             if (TypeCase == TypeOneofCase.Prefab)
             {
-                levelObject.IsPrefab = true;
+                levelObject.Type = ObjectType.Prefab;
                 levelObject.PrefabId = (PrefabType)Prefab.PrefabType;
                 levelObject.PrefabData = Prefab.PrefabData;
             }
             if (TypeCase == TypeOneofCase.Geometry)
             {
-                levelObject.IsPrefab = false;
+                levelObject.Type = ObjectType.Geometry;
                 levelObject.ShapeId = (GeometryShape)Geometry.Shape;
                 levelObject.MaterialId = Geometry.MaterialId;
                 levelObject.UVNormalizedScale = Geometry.UvNormalizedScale;

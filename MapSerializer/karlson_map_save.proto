@@ -47,6 +47,24 @@ message MapPrefab {
 
 message MapGroup { repeated MapObject children = 1; }
 
+message MapLight {
+  enum LightType {
+    spot = 0;
+    directional = 1;
+    point = 2;
+  }
+  LightType light_type = 1;
+  repeated float tint_color = 2;
+  float intensity = 3;
+  float range = 4; // not used in directional lights
+  float spot_angle = 5; // only used in spot lights
+}
+
+message MapText {
+  string text = 1;
+  repeated float shade_color = 2;
+}
+
 message MapObject {
   string name = 1;
 
@@ -60,6 +78,8 @@ message MapObject {
     MapGeometry geometry = 5;
     MapPrefab prefab = 6;
     MapGroup group = 7;
+    MapLight light = 8;
+    MapText text_display = 9;
   }
 }
 

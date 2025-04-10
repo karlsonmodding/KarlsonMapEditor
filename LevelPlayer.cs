@@ -104,94 +104,32 @@ namespace KarlsonMapEditor
             List<LevelData.LevelObject> enemyToFix = new List<LevelData.LevelObject>();
             void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
             {
-                GameObject objGroup = new GameObject(group.Name);
-                if (parentObject != null)
-                    objGroup.transform.parent = parentObject.transform;
-                objGroup.transform.localPosition = group.Position;
-                objGroup.transform.localRotation = Quaternion.Euler(group.Rotation);
-                objGroup.transform.localScale = group.Scale;
+                GameObject objGroup = group.LoadObject(parentObject);
+
                 foreach (var obj in group.Objects)
                 {
-                    GameObject go;
-                    if (obj.Type == ObjectType.Prefab)
+                    GameObject go = obj.LoadObject(objGroup, true);
+
+                    // fix enemies
+                    if ((obj.Type == ObjectType.Prefab) && (obj.PrefabId == PrefabType.Enemey))
                     {
-                        go = LevelData.MakePrefab(obj.PrefabId);
-                        if (obj.PrefabId == PrefabType.Enemey)
+                        needsNavMesh = true;
+                        enemyToFix.Add(obj);
+                        obj._enemyFixY = go.transform.position.y;
+                        Enemy e = go.GetComponent<Enemy>();
+                        if (obj.PrefabData != 0)
                         {
-                            needsNavMesh = true;
-                            enemyToFix.Add(obj);
-                            obj._enemyFixY = go.transform.position.y;
-                            Enemy e = go.GetComponent<Enemy>();
-                            if (obj.PrefabData != 0)
-                            {
-                                e.startGun = LevelData.MakePrefab((PrefabType)(obj.PrefabData - 1));
-                                typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
-
-                                go.GetComponent<NavMeshAgent>().enabled = true;
-                                go.GetComponent<NavMeshAgent>().enabled = false;
-                                go.GetComponent<NavMeshAgent>().enabled = true;
-                            }
-                            obj._enemyFix = go;
+                            go.GetComponent<NavMeshAgent>().enabled = true;
+                            go.GetComponent<NavMeshAgent>().enabled = false;
+                            go.GetComponent<NavMeshAgent>().enabled = true;
                         }
+                        obj._enemyFix = go;
                     }
-                    else // not a prefab
-                    {
-                        go = MeshBuilder.GetGeometryGO(obj.ShapeId);
-                        go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[obj.MaterialId];
-                        go.GetComponent<KMETextureScaling>().Scale = obj.UVNormalizedScale;
-                        if (obj.Glass)
-                        {
-                            // change to trigger collider
-                            go.GetComponent<Collider>().isTrigger = true;
-
-                            // instance a glass component
-                            Glass newGlass = go.AddComponent<Glass>();
-
-                            // copy in the required GOs
-                            GameObject prefabGlassCube = LoadsonAPI.PrefabManager.NewGlass();
-                            Glass prefabGlass = prefabGlassCube.GetComponent<Glass>();
-                            newGlass.glass = prefabGlass.glass;
-                            newGlass.glassSfx = prefabGlass.glassSfx;
-                            Object.Destroy(prefabGlass);
-                            Object.Destroy(prefabGlassCube);
-
-                            // reset the transform
-                            newGlass.glass.transform.SetParent(go.transform);
-                            newGlass.glass.transform.localPosition = Vector3.zero;
-                            newGlass.glass.transform.localScale = Vector3.one;
-                            newGlass.glass.transform.localRotation = Quaternion.identity;
-
-                            // fix particle system
-                            ParticleSystem ps = newGlass.glass.GetComponent<ParticleSystem>();
-                            ParticleSystem.ShapeModule shape = ps.shape;
-                            shape.scale = go.transform.lossyScale;
-                            float volume = (shape.scale.x * shape.scale.y * shape.scale.z);
-                            ParticleSystem.MainModule main = ps.main;
-                            main.maxParticles = Math.Max((int)(1000f * volume / 160f), 1);
-                            main.startSpeed = 0.5f;
-                        }
-                        else if (obj.Lava)
-                        {
-                            go.GetComponent<Collider>().isTrigger = true;
-                            go.AddComponent<Lava>();
-                        }
-                        if (obj.MarkAsObject)
-                            // set layer to object so you can't wallrun / grapple
-                            go.layer = LayerMask.NameToLayer("Object");
-                        if (obj.Bounce)
-                            go.GetComponent<Collider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
-                    }
-                    go.name = obj.Name;
-                    go.transform.parent = objGroup.transform;
-                    go.transform.localPosition = obj.Position;
-                    go.transform.localRotation = Quaternion.Euler(obj.Rotation);
-                    go.transform.localScale = obj.Scale;
-                    
-                       
                 }
                 foreach (var grp in group.Groups)
                     ReplicateObjectGroup(grp, objGroup);
             }
+            
             ReplicateObjectGroup(levelData.GlobalObject, null);
 
             GenerateNavMesh();

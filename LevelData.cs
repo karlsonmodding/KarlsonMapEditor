@@ -8,6 +8,15 @@ using UnityEngine;
 
 namespace KarlsonMapEditor
 {
+    public enum ObjectType
+    {
+        Geometry,
+        Prefab,
+        Light,
+        Text,
+        Internal,
+    }
+
     public enum GeometryShape
     {
         Cube,
@@ -19,16 +28,6 @@ namespace KarlsonMapEditor
         QuarterPyramid,
         QuarterPipe,
     }
-
-    public enum ObjectType
-    {
-        Geometry,
-        Prefab,
-        Light,
-        Text,
-        Internal,
-    }
-
     public enum PrefabType
     {
         Pistol,
@@ -169,9 +168,28 @@ namespace KarlsonMapEditor
                 string name = br.ReadString();
                 string group = br.ReadString(); // kme v2 removed group names, so this is no longer used
                 if (prefab)
-                    objGroup.Objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                    objGroup.Objects.Add(new LevelObject(
+                        prefabId: (PrefabType)br.ReadInt32(),
+                        position: br.ReadVector3(),
+                        rotation: br.ReadVector3(),
+                        scale: br.ReadVector3(), 
+                        name: name, 
+                        prefabData: br.ReadInt32()));
                 else
-                    objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), objLayerData ? br.ReadBoolean() : false, GeometryShape.Cube, OldTextureData));
+                    objGroup.Objects.Add(new LevelObject(
+                        position: br.ReadVector3(), 
+                        rotation: br.ReadVector3(), 
+                        scale: br.ReadVector3(), 
+                        textureId: br.ReadInt32(), 
+                        color: br.ReadColor(), 
+                        name: name, 
+                        bounce: br.ReadBoolean(), 
+                        glass: br.ReadBoolean(), 
+                        lava: br.ReadBoolean(), 
+                        disableTrigger: br.ReadBoolean(), 
+                        markAsObject: objLayerData ? br.ReadBoolean() : false, 
+                        shape: GeometryShape.Cube, 
+                        textureData: OldTextureData));
             }
             return objGroup;
         }
@@ -191,10 +209,28 @@ namespace KarlsonMapEditor
                     bool prefab = br.ReadBoolean();
                     string name = br.ReadString();
                     if (prefab)
-                        objGroup.Objects.Add(new LevelObject((PrefabType)br.ReadInt32(), br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), name, br.ReadInt32()));
+                        objGroup.Objects.Add(new LevelObject(
+                            prefabId: (PrefabType)br.ReadInt32(), 
+                            position: br.ReadVector3(), 
+                            rotation: br.ReadVector3(), 
+                            scale: br.ReadVector3(), 
+                            name: name, 
+                            prefabData: br.ReadInt32()));
                     else
-                        objGroup.Objects.Add(new LevelObject(br.ReadVector3(), br.ReadVector3(), br.ReadVector3(), br.ReadInt32(), br.ReadColor(), name, br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), br.ReadBoolean(), GeometryShape.Cube, OldTextureData));
-                    Loadson.Console.Log(objGroup.Objects.Last().ToString());
+                        objGroup.Objects.Add(new LevelObject(
+                            position: br.ReadVector3(), 
+                            rotation: br.ReadVector3(), 
+                            scale: br.ReadVector3(), 
+                            textureId: br.ReadInt32(), 
+                            color: br.ReadColor(), 
+                            name: name, 
+                            bounce: br.ReadBoolean(), 
+                            glass: br.ReadBoolean(), 
+                            lava: br.ReadBoolean(), 
+                            disableTrigger: br.ReadBoolean(), 
+                            markAsObject: br.ReadBoolean(), 
+                            shape: GeometryShape.Cube, 
+                            textureData: OldTextureData));
                 }
                 count = br.ReadInt32();
                 while (count-- > 0)
@@ -240,8 +276,32 @@ namespace KarlsonMapEditor
         {
             // empty
             public LevelObject() { }
+            // clone existing level object
+            public LevelObject(LevelObject model)
+            {
+                Type = model.Type;
+                Position = model.Position;
+                Rotation = model.Rotation;
+                Scale = model.Scale;
+                Name = model.Name;
+                PrefabId = model.PrefabId;
+                PrefabData = model.PrefabData;
+                ShapeId = model.ShapeId;
+                MaterialId = model.MaterialId;
+                UVNormalizedScale = model.UVNormalizedScale;
+                Bounce = model.Bounce;
+                Glass = model.Glass;
+                Lava = model.Lava;
+                MarkAsObject = model.MarkAsObject;
+                Color = model.Color;
+                LightType = model.LightType;
+                Intensity = model.Intensity;
+                Range = model.Range;
+                SpotAngle = model.SpotAngle;
+                Text = model.Text;
+            }
             // prefab
-            public LevelObject(PrefabType prefabId, Vector3 position, Vector3 rotation, Vector3 scale, string name, int prefabData)
+            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, string name, PrefabType prefabId, int prefabData)
             {
                 Type = ObjectType.Prefab;
                 PrefabId = prefabId;
@@ -255,7 +315,7 @@ namespace KarlsonMapEditor
                 PrefabData = prefabData;
             }
             // geometry
-            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, int textureId, Color color, string name, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube, List<(int, Color, bool)> textureData = null)
+            public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, string name, int textureId, Color color, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube, List<(int, Color, bool)> textureData = null)
             {
                 Type = ObjectType.Geometry;
 
@@ -285,25 +345,37 @@ namespace KarlsonMapEditor
             public ObjectType Type;
             public Vector3 Position;
             public Vector3 Rotation;
-            public Vector3 Scale;
+            public Vector3 Scale = Vector3.one;
             public string Name;
-            public string GroupName;
 
             // prefab specific
             public PrefabType PrefabId;
             public int PrefabData;
+
+            // ai pathfinding fix
             public GameObject _enemyFix;
             public float _enemyFixY;
 
             // geometry specific
             public GeometryShape ShapeId;
             public int MaterialId;
-            public float UVNormalizedScale = 10f;
+            public float UVNormalizedScale = 10;
             public bool Bounce;
             public bool Glass;
             public bool Lava;
-            // public bool DisableTrigger;
             public bool MarkAsObject;
+
+            // light and text
+            public Color Color;
+
+            // light specific
+            public LightType LightType;
+            public float Intensity;
+            public float Range;
+            public float SpotAngle;
+
+            // text specific
+            public string Text;
 
             public override string ToString()
             {
@@ -315,6 +387,102 @@ namespace KarlsonMapEditor
                     st += " mat:" + MaterialId;
                 st += ")";
                 return st;
+            }
+
+            public GameObject LoadObject(GameObject parent, bool playMode)
+            {
+                GameObject go;
+                
+                switch (Type)
+                {
+                    case ObjectType.Prefab:
+                        go = MakePrefab(PrefabId);
+                        if (PrefabId == PrefabType.Enemey)
+                        {
+                            Enemy e = go.GetComponent<Enemy>();
+                            if (PrefabData != 0)
+                            {
+                                e.startGun = MakePrefab((PrefabType)(PrefabData - 1));
+                                typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
+                            }
+                        }
+                        if (playMode && go.GetComponent<Rigidbody>() != null)
+                            go.GetComponent<Rigidbody>().isKinematic = true;
+                        break;
+                    case ObjectType.Geometry:
+                        go = MeshBuilder.GetGeometryGO(ShapeId);
+                        go.GetComponent<KMETextureScaling>().Scale = UVNormalizedScale;
+                        go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[MaterialId];
+                        if (playMode)
+                        {
+                            // set up breakable glass
+                            if (Glass)
+                            {
+                                go.GetComponent<Collider>().isTrigger = true;
+                                Glass newGlass = go.AddComponent<Glass>();
+
+                                // copy in the required GOs
+                                GameObject prefabGlassCube = LoadsonAPI.PrefabManager.NewGlass();
+                                Glass prefabGlass = prefabGlassCube.GetComponent<Glass>();
+                                newGlass.glass = prefabGlass.glass;
+                                newGlass.glassSfx = prefabGlass.glassSfx;
+                                Object.Destroy(prefabGlass);
+                                Object.Destroy(prefabGlassCube);
+
+                                // reset the transform
+                                newGlass.glass.transform.SetParent(go.transform);
+                                newGlass.glass.transform.localPosition = Vector3.zero;
+                                newGlass.glass.transform.localScale = Vector3.one;
+                                newGlass.glass.transform.localRotation = Quaternion.identity;
+
+                                // fix particle system
+                                ParticleSystem ps = newGlass.glass.GetComponent<ParticleSystem>();
+                                ParticleSystem.ShapeModule shape = ps.shape;
+                                shape.scale = go.transform.lossyScale;
+                                float volume = (shape.scale.x * shape.scale.y * shape.scale.z);
+                                ParticleSystem.MainModule main = ps.main;
+                                main.maxParticles = Math.Max((int)(1000f * volume / 160f), 1);
+                                main.startSpeed = 0.5f;
+                            }
+                            // set up deadly lava
+                            else if (Lava)
+                            {
+                                go.GetComponent<Collider>().isTrigger = true;
+                                go.AddComponent<Lava>();
+                            }
+                            // disable wallrun and grappling on objects
+                            if (MarkAsObject)
+                                go.layer = LayerMask.NameToLayer("Object");
+                            // set up bounce
+                            if (Bounce)
+                                go.GetComponent<Collider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                        }
+                        break;
+                    case ObjectType.Light:
+                        go = new GameObject();
+                        Light light = go.AddComponent<Light>();
+                        light.type = LightType;
+                        light.color = Color;
+                        light.intensity = Intensity;
+                        light.range = Range;
+                        light.spotAngle = SpotAngle;
+                        break;
+                    case ObjectType.Text:
+                        go = new GameObject();
+                        TextMesh textMesh = go.AddComponent<TextMesh>();
+                        textMesh.text = Text;
+                        textMesh.color = Color;
+                        break;
+                    default:
+                        go = new GameObject();
+                        break;
+                }
+                go.name = Name;
+                go.transform.parent = parent.transform;
+                go.transform.localPosition = Position;
+                go.transform.localRotation = Quaternion.Euler(Rotation);
+                go.transform.localScale = Scale;
+                return go;
             }
         }
 
@@ -331,6 +499,20 @@ namespace KarlsonMapEditor
             {
                 Groups = new List<ObjectGroup>();
                 Objects = new List<LevelObject>();
+            }
+
+            public GameObject LoadObject(GameObject parent)
+            {
+                GameObject go = new GameObject(Name);
+                if (parent != null)
+                {
+                    go.transform.parent = parent.transform;
+                }
+                go.transform.localPosition = Position;
+                go.transform.localRotation = Quaternion.Euler(Rotation);
+                go.transform.localScale = Scale;
+
+                return go;
             }
         }
         #endregion

@@ -39,49 +39,59 @@ namespace KarlsonMapEditor {
             "YXBwbGVyEAQSEgoOZHVtbXlfZ3JhcHBsZXIQBRIJCgV0YWJsZRAGEgoKBmJh",
             "cnJlbBAHEgoKBmxvY2tlchAIEgoKBnNjcmVlbhAJEggKBG1pbGsQChIKCgZl",
             "bmVtZXkQCyI5CghNYXBHcm91cBItCghjaGlsZHJlbhgBIAMoCzIbLkthcmxz",
-            "b25NYXBFZGl0b3IuTWFwT2JqZWN0IvgBCglNYXBPYmplY3QSDAoEbmFtZRgB",
-            "IAEoCRIXCg9wb3NpdGlvbl92ZWN0b3IYAiADKAISFwoPcm90YXRpb25fdmVj",
-            "dG9yGAMgAygCEhQKDHNjYWxlX3ZlY3RvchgEIAMoAhIxCghnZW9tZXRyeRgF",
-            "IAEoCzIdLkthcmxzb25NYXBFZGl0b3IuTWFwR2VvbWV0cnlIABItCgZwcmVm",
-            "YWIYBiABKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcFByZWZhYkgAEisKBWdy",
-            "b3VwGAcgASgLMhouS2FybHNvbk1hcEVkaXRvci5NYXBHcm91cEgAQgYKBHR5",
-            "cGUiTQoKTWFwVGV4dHVyZRIXCg10ZXh0dXJlX2luZGV4GAEgASgFSAASFAoK",
-            "aW1hZ2VfZGF0YRgCIAEoDEgAQhAKDnRleHR1cmVfc291cmNlIosDCgtNYXBN",
-            "YXRlcmlhbBI5CgRtb2RlGAEgASgOMisuS2FybHNvbk1hcEVkaXRvci5NYXBN",
-            "YXRlcmlhbC5SZW5kZXJpbmdNb2RlEhkKEWFsYmVkb190ZXh0dXJlX2lkGAIg",
-            "ASgFEiEKGW1ldGFsbGljX2dsb3NzX3RleHR1cmVfaWQYAyABKAUSHQoVbm9y",
-            "bWFsX21hcF90ZXh0dXJlX2lkGAQgASgFEhQKDHNjYWxlX3ZlY3RvchgFIAMo",
-            "AhIVCg1vZmZzZXRfdmVjdG9yGAYgAygCEhQKDGFsYmVkb19jb2xvchgHIAMo",
-            "AhIQCghtZXRhbGxpYxgIIAEoAhISCgpzbW9vdGhuZXNzGAkgASgCEhoKEnNw",
-            "ZWN1bGFyX2hpZ2hsaWdodBgKIAEoCBIbChNzcGVjdWxhcl9yZWZsZWN0aW9u",
-            "GAsgASgIIkIKDVJlbmRlcmluZ01vZGUSCgoGb3BhcXVlEAASCgoGY3V0b3V0",
-            "EAESCAoEZmFkZRACEg8KC3RyYW5zcGFyZW50EAMizQEKEU1hcFNpeFNpZGVk",
-            "U2t5Ym94EhgKEGZyb250X3RleHR1cmVfaWQYASABKAUSFwoPYmFja190ZXh0",
-            "dXJlX2lkGAIgASgFEhcKD2xlZnRfdGV4dHVyZV9pZBgDIAEoBRIYChByaWdo",
-            "dF90ZXh0dXJlX2lkGAQgASgFEhUKDXVwX3RleHR1cmVfaWQYBSABKAUSFwoP",
-            "ZG93bl90ZXh0dXJlX2lkGAYgASgFEhAKCHJvdGF0aW9uGAcgASgCEhAKCGV4",
-            "cG9zdXJlGAggASgCIqMBChNNYXBQcm9jZWR1cmFsU2t5Ym94EhAKCHN1bl9z",
-            "aXplGAEgASgCEhwKFHN1bl9zaXplX2NvbnZlcmdlbmNlGAIgASgCEhwKFGF0",
-            "bW9zcGhlcmVfdGhpY2tuZXNzGAMgASgCEhYKDnNreV90aW50X2NvbG9yGAQg",
-            "AygCEhQKDGdyb3VuZF9jb2xvchgFIAMoAhIQCghleHBvc3VyZRgIIAEoAiLT",
-            "AwoDTWFwEhQKDHN0YXJ0aW5nX2d1bhgBIAEoBRIdChVzdGFydF9wb3NpdGlv",
-            "bl92ZWN0b3IYAiADKAISGQoRc3RhcnRfb3JpZW50YXRpb24YAyABKAISKQoE",
-            "cm9vdBgEIAEoCzIbLkthcmxzb25NYXBFZGl0b3IuTWFwT2JqZWN0EhcKD2F1",
-            "dG9tYXRhX3NjcmlwdBgFIAEoCRIuCgh0ZXh0dXJlcxgGIAMoCzIcLkthcmxz",
-            "b25NYXBFZGl0b3IuTWFwVGV4dHVyZRIwCgltYXRlcmlhbHMYByADKAsyHS5L",
-            "YXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFsEjgKCXNpeF9zaWRlZBgIIAEo",
-            "CzIjLkthcmxzb25NYXBFZGl0b3IuTWFwU2l4U2lkZWRTa3lib3hIABI7Cgpw",
-            "cm9jZWR1cmFsGAkgASgLMiUuS2FybHNvbk1hcEVkaXRvci5NYXBQcm9jZWR1",
-            "cmFsU2t5Ym94SAASJQodZ2xvYmFsX2xpZ2h0X2RpcmVjdGlvbl92ZWN0b3IY",
-            "CiADKAISGgoSZ2xvYmFsX2xpZ2h0X2NvbG9yGAsgAygCEhIKCmdyaWRfYWxp",
-            "Z24YDCABKAJCCAoGc2t5Ym94YgZwcm90bzM="));
+            "b25NYXBFZGl0b3IuTWFwT2JqZWN0IsEBCghNYXBMaWdodBI4CgpsaWdodF90",
+            "eXBlGAEgASgOMiQuS2FybHNvbk1hcEVkaXRvci5NYXBMaWdodC5MaWdodFR5",
+            "cGUSEgoKdGludF9jb2xvchgCIAMoAhIRCglpbnRlbnNpdHkYAyABKAISDQoF",
+            "cmFuZ2UYBCABKAISEgoKc3BvdF9hbmdsZRgFIAEoAiIxCglMaWdodFR5cGUS",
+            "CQoFcG9pbnQQABIICgRzcG90EAESDwoLZGlyZWN0aW9uYWwQAiIsCgdNYXBU",
+            "ZXh0EgwKBHRleHQYASABKAkSEwoLc2hhZGVfY29sb3IYAiADKAIi2AIKCU1h",
+            "cE9iamVjdBIMCgRuYW1lGAEgASgJEhcKD3Bvc2l0aW9uX3ZlY3RvchgCIAMo",
+            "AhIXCg9yb3RhdGlvbl92ZWN0b3IYAyADKAISFAoMc2NhbGVfdmVjdG9yGAQg",
+            "AygCEjEKCGdlb21ldHJ5GAUgASgLMh0uS2FybHNvbk1hcEVkaXRvci5NYXBH",
+            "ZW9tZXRyeUgAEi0KBnByZWZhYhgGIAEoCzIbLkthcmxzb25NYXBFZGl0b3Iu",
+            "TWFwUHJlZmFiSAASKwoFZ3JvdXAYByABKAsyGi5LYXJsc29uTWFwRWRpdG9y",
+            "Lk1hcEdyb3VwSAASKwoFbGlnaHQYCCABKAsyGi5LYXJsc29uTWFwRWRpdG9y",
+            "Lk1hcExpZ2h0SAASMQoMdGV4dF9kaXNwbGF5GAkgASgLMhkuS2FybHNvbk1h",
+            "cEVkaXRvci5NYXBUZXh0SABCBgoEdHlwZSJNCgpNYXBUZXh0dXJlEhcKDXRl",
+            "eHR1cmVfaW5kZXgYASABKAVIABIUCgppbWFnZV9kYXRhGAIgASgMSABCEAoO",
+            "dGV4dHVyZV9zb3VyY2UiiwMKC01hcE1hdGVyaWFsEjkKBG1vZGUYASABKA4y",
+            "Ky5LYXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFsLlJlbmRlcmluZ01vZGUS",
+            "GQoRYWxiZWRvX3RleHR1cmVfaWQYAiABKAUSIQoZbWV0YWxsaWNfZ2xvc3Nf",
+            "dGV4dHVyZV9pZBgDIAEoBRIdChVub3JtYWxfbWFwX3RleHR1cmVfaWQYBCAB",
+            "KAUSFAoMc2NhbGVfdmVjdG9yGAUgAygCEhUKDW9mZnNldF92ZWN0b3IYBiAD",
+            "KAISFAoMYWxiZWRvX2NvbG9yGAcgAygCEhAKCG1ldGFsbGljGAggASgCEhIK",
+            "CnNtb290aG5lc3MYCSABKAISGgoSc3BlY3VsYXJfaGlnaGxpZ2h0GAogASgI",
+            "EhsKE3NwZWN1bGFyX3JlZmxlY3Rpb24YCyABKAgiQgoNUmVuZGVyaW5nTW9k",
+            "ZRIKCgZvcGFxdWUQABIKCgZjdXRvdXQQARIICgRmYWRlEAISDwoLdHJhbnNw",
+            "YXJlbnQQAyLNAQoRTWFwU2l4U2lkZWRTa3lib3gSGAoQZnJvbnRfdGV4dHVy",
+            "ZV9pZBgBIAEoBRIXCg9iYWNrX3RleHR1cmVfaWQYAiABKAUSFwoPbGVmdF90",
+            "ZXh0dXJlX2lkGAMgASgFEhgKEHJpZ2h0X3RleHR1cmVfaWQYBCABKAUSFQoN",
+            "dXBfdGV4dHVyZV9pZBgFIAEoBRIXCg9kb3duX3RleHR1cmVfaWQYBiABKAUS",
+            "EAoIcm90YXRpb24YByABKAISEAoIZXhwb3N1cmUYCCABKAIiowEKE01hcFBy",
+            "b2NlZHVyYWxTa3lib3gSEAoIc3VuX3NpemUYASABKAISHAoUc3VuX3NpemVf",
+            "Y29udmVyZ2VuY2UYAiABKAISHAoUYXRtb3NwaGVyZV90aGlja25lc3MYAyAB",
+            "KAISFgoOc2t5X3RpbnRfY29sb3IYBCADKAISFAoMZ3JvdW5kX2NvbG9yGAUg",
+            "AygCEhAKCGV4cG9zdXJlGAggASgCItMDCgNNYXASFAoMc3RhcnRpbmdfZ3Vu",
+            "GAEgASgFEh0KFXN0YXJ0X3Bvc2l0aW9uX3ZlY3RvchgCIAMoAhIZChFzdGFy",
+            "dF9vcmllbnRhdGlvbhgDIAEoAhIpCgRyb290GAQgASgLMhsuS2FybHNvbk1h",
+            "cEVkaXRvci5NYXBPYmplY3QSFwoPYXV0b21hdGFfc2NyaXB0GAUgASgJEi4K",
+            "CHRleHR1cmVzGAYgAygLMhwuS2FybHNvbk1hcEVkaXRvci5NYXBUZXh0dXJl",
+            "EjAKCW1hdGVyaWFscxgHIAMoCzIdLkthcmxzb25NYXBFZGl0b3IuTWFwTWF0",
+            "ZXJpYWwSOAoJc2l4X3NpZGVkGAggASgLMiMuS2FybHNvbk1hcEVkaXRvci5N",
+            "YXBTaXhTaWRlZFNreWJveEgAEjsKCnByb2NlZHVyYWwYCSABKAsyJS5LYXJs",
+            "c29uTWFwRWRpdG9yLk1hcFByb2NlZHVyYWxTa3lib3hIABIlCh1nbG9iYWxf",
+            "bGlnaHRfZGlyZWN0aW9uX3ZlY3RvchgKIAMoAhIaChJnbG9iYWxfbGlnaHRf",
+            "Y29sb3IYCyADKAISEgoKZ3JpZF9hbGlnbhgMIAEoAkIICgZza3lib3hiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGeometry), global::KarlsonMapEditor.MapGeometry.Parser, new[]{ "Shape", "MaterialId", "UvNormalizedScale", "Bounce", "Glass", "Lava", "ObjectLayer" }, null, new[]{ typeof(global::KarlsonMapEditor.MapGeometry.Types.Shape) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapPrefab), global::KarlsonMapEditor.MapPrefab.Parser, new[]{ "PrefabType", "PrefabData" }, null, new[]{ typeof(global::KarlsonMapEditor.MapPrefab.Types.PrefabType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group" }, new[]{ "Type" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapLight), global::KarlsonMapEditor.MapLight.Parser, new[]{ "LightType", "TintColor", "Intensity", "Range", "SpotAngle" }, null, new[]{ typeof(global::KarlsonMapEditor.MapLight.Types.LightType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapText), global::KarlsonMapEditor.MapText.Parser, new[]{ "Text", "ShadeColor" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group", "Light", "TextDisplay" }, new[]{ "Type" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicGlossTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "Metallic", "Smoothness", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapSixSidedSkybox), global::KarlsonMapEditor.MapSixSidedSkybox.Parser, new[]{ "FrontTextureId", "BackTextureId", "LeftTextureId", "RightTextureId", "UpTextureId", "DownTextureId", "Rotation", "Exposure" }, null, null, null, null),
@@ -981,6 +991,589 @@ namespace KarlsonMapEditor {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class MapLight : pb::IMessage<MapLight>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<MapLight> _parser = new pb::MessageParser<MapLight>(() => new MapLight());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<MapLight> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[3]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapLight() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapLight(MapLight other) : this() {
+      lightType_ = other.lightType_;
+      tintColor_ = other.tintColor_.Clone();
+      intensity_ = other.intensity_;
+      range_ = other.range_;
+      spotAngle_ = other.spotAngle_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapLight Clone() {
+      return new MapLight(this);
+    }
+
+    /// <summary>Field number for the "light_type" field.</summary>
+    public const int LightTypeFieldNumber = 1;
+    private global::KarlsonMapEditor.MapLight.Types.LightType lightType_ = global::KarlsonMapEditor.MapLight.Types.LightType.Point;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KarlsonMapEditor.MapLight.Types.LightType LightType {
+      get { return lightType_; }
+      set {
+        lightType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tint_color" field.</summary>
+    public const int TintColorFieldNumber = 2;
+    private static readonly pb::FieldCodec<float> _repeated_tintColor_codec
+        = pb::FieldCodec.ForFloat(18);
+    private readonly pbc::RepeatedField<float> tintColor_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<float> TintColor {
+      get { return tintColor_; }
+    }
+
+    /// <summary>Field number for the "intensity" field.</summary>
+    public const int IntensityFieldNumber = 3;
+    private float intensity_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Intensity {
+      get { return intensity_; }
+      set {
+        intensity_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "range" field.</summary>
+    public const int RangeFieldNumber = 4;
+    private float range_;
+    /// <summary>
+    /// not used in directional lights
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Range {
+      get { return range_; }
+      set {
+        range_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "spot_angle" field.</summary>
+    public const int SpotAngleFieldNumber = 5;
+    private float spotAngle_;
+    /// <summary>
+    /// only used in spot lights
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float SpotAngle {
+      get { return spotAngle_; }
+      set {
+        spotAngle_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as MapLight);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(MapLight other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (LightType != other.LightType) return false;
+      if(!tintColor_.Equals(other.tintColor_)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Intensity, other.Intensity)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Range, other.Range)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(SpotAngle, other.SpotAngle)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) hash ^= LightType.GetHashCode();
+      hash ^= tintColor_.GetHashCode();
+      if (Intensity != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Intensity);
+      if (Range != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Range);
+      if (SpotAngle != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(SpotAngle);
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) LightType);
+      }
+      tintColor_.WriteTo(output, _repeated_tintColor_codec);
+      if (Intensity != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(Intensity);
+      }
+      if (Range != 0F) {
+        output.WriteRawTag(37);
+        output.WriteFloat(Range);
+      }
+      if (SpotAngle != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(SpotAngle);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) LightType);
+      }
+      tintColor_.WriteTo(ref output, _repeated_tintColor_codec);
+      if (Intensity != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(Intensity);
+      }
+      if (Range != 0F) {
+        output.WriteRawTag(37);
+        output.WriteFloat(Range);
+      }
+      if (SpotAngle != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(SpotAngle);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) LightType);
+      }
+      size += tintColor_.CalculateSize(_repeated_tintColor_codec);
+      if (Intensity != 0F) {
+        size += 1 + 4;
+      }
+      if (Range != 0F) {
+        size += 1 + 4;
+      }
+      if (SpotAngle != 0F) {
+        size += 1 + 4;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(MapLight other) {
+      if (other == null) {
+        return;
+      }
+      if (other.LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+        LightType = other.LightType;
+      }
+      tintColor_.Add(other.tintColor_);
+      if (other.Intensity != 0F) {
+        Intensity = other.Intensity;
+      }
+      if (other.Range != 0F) {
+        Range = other.Range;
+      }
+      if (other.SpotAngle != 0F) {
+        SpotAngle = other.SpotAngle;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            LightType = (global::KarlsonMapEditor.MapLight.Types.LightType) input.ReadEnum();
+            break;
+          }
+          case 18:
+          case 21: {
+            tintColor_.AddEntriesFrom(input, _repeated_tintColor_codec);
+            break;
+          }
+          case 29: {
+            Intensity = input.ReadFloat();
+            break;
+          }
+          case 37: {
+            Range = input.ReadFloat();
+            break;
+          }
+          case 45: {
+            SpotAngle = input.ReadFloat();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            LightType = (global::KarlsonMapEditor.MapLight.Types.LightType) input.ReadEnum();
+            break;
+          }
+          case 18:
+          case 21: {
+            tintColor_.AddEntriesFrom(ref input, _repeated_tintColor_codec);
+            break;
+          }
+          case 29: {
+            Intensity = input.ReadFloat();
+            break;
+          }
+          case 37: {
+            Range = input.ReadFloat();
+            break;
+          }
+          case 45: {
+            SpotAngle = input.ReadFloat();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+    #region Nested types
+    /// <summary>Container for nested types declared in the MapLight message type.</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static partial class Types {
+      public enum LightType {
+        [pbr::OriginalName("point")] Point = 0,
+        [pbr::OriginalName("spot")] Spot = 1,
+        [pbr::OriginalName("directional")] Directional = 2,
+      }
+
+    }
+    #endregion
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class MapText : pb::IMessage<MapText>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<MapText> _parser = new pb::MessageParser<MapText>(() => new MapText());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<MapText> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[4]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapText() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapText(MapText other) : this() {
+      text_ = other.text_;
+      shadeColor_ = other.shadeColor_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MapText Clone() {
+      return new MapText(this);
+    }
+
+    /// <summary>Field number for the "text" field.</summary>
+    public const int TextFieldNumber = 1;
+    private string text_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Text {
+      get { return text_; }
+      set {
+        text_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "shade_color" field.</summary>
+    public const int ShadeColorFieldNumber = 2;
+    private static readonly pb::FieldCodec<float> _repeated_shadeColor_codec
+        = pb::FieldCodec.ForFloat(18);
+    private readonly pbc::RepeatedField<float> shadeColor_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<float> ShadeColor {
+      get { return shadeColor_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as MapText);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(MapText other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Text != other.Text) return false;
+      if(!shadeColor_.Equals(other.shadeColor_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Text.Length != 0) hash ^= Text.GetHashCode();
+      hash ^= shadeColor_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Text.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Text);
+      }
+      shadeColor_.WriteTo(output, _repeated_shadeColor_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Text.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Text);
+      }
+      shadeColor_.WriteTo(ref output, _repeated_shadeColor_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Text.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Text);
+      }
+      size += shadeColor_.CalculateSize(_repeated_shadeColor_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(MapText other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Text.Length != 0) {
+        Text = other.Text;
+      }
+      shadeColor_.Add(other.shadeColor_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Text = input.ReadString();
+            break;
+          }
+          case 18:
+          case 21: {
+            shadeColor_.AddEntriesFrom(input, _repeated_shadeColor_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Text = input.ReadString();
+            break;
+          }
+          case 18:
+          case 21: {
+            shadeColor_.AddEntriesFrom(ref input, _repeated_shadeColor_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class MapObject : pb::IMessage<MapObject>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -995,7 +1588,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[3]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1028,6 +1621,12 @@ namespace KarlsonMapEditor {
           break;
         case TypeOneofCase.Group:
           Group = other.Group.Clone();
+          break;
+        case TypeOneofCase.Light:
+          Light = other.Light.Clone();
+          break;
+        case TypeOneofCase.TextDisplay:
+          TextDisplay = other.TextDisplay.Clone();
           break;
       }
 
@@ -1124,6 +1723,30 @@ namespace KarlsonMapEditor {
       }
     }
 
+    /// <summary>Field number for the "light" field.</summary>
+    public const int LightFieldNumber = 8;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KarlsonMapEditor.MapLight Light {
+      get { return typeCase_ == TypeOneofCase.Light ? (global::KarlsonMapEditor.MapLight) type_ : null; }
+      set {
+        type_ = value;
+        typeCase_ = value == null ? TypeOneofCase.None : TypeOneofCase.Light;
+      }
+    }
+
+    /// <summary>Field number for the "text_display" field.</summary>
+    public const int TextDisplayFieldNumber = 9;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KarlsonMapEditor.MapText TextDisplay {
+      get { return typeCase_ == TypeOneofCase.TextDisplay ? (global::KarlsonMapEditor.MapText) type_ : null; }
+      set {
+        type_ = value;
+        typeCase_ = value == null ? TypeOneofCase.None : TypeOneofCase.TextDisplay;
+      }
+    }
+
     private object type_;
     /// <summary>Enum of possible cases for the "type" oneof.</summary>
     public enum TypeOneofCase {
@@ -1131,6 +1754,8 @@ namespace KarlsonMapEditor {
       Geometry = 5,
       Prefab = 6,
       Group = 7,
+      Light = 8,
+      TextDisplay = 9,
     }
     private TypeOneofCase typeCase_ = TypeOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1168,6 +1793,8 @@ namespace KarlsonMapEditor {
       if (!object.Equals(Geometry, other.Geometry)) return false;
       if (!object.Equals(Prefab, other.Prefab)) return false;
       if (!object.Equals(Group, other.Group)) return false;
+      if (!object.Equals(Light, other.Light)) return false;
+      if (!object.Equals(TextDisplay, other.TextDisplay)) return false;
       if (TypeCase != other.TypeCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1183,6 +1810,8 @@ namespace KarlsonMapEditor {
       if (typeCase_ == TypeOneofCase.Geometry) hash ^= Geometry.GetHashCode();
       if (typeCase_ == TypeOneofCase.Prefab) hash ^= Prefab.GetHashCode();
       if (typeCase_ == TypeOneofCase.Group) hash ^= Group.GetHashCode();
+      if (typeCase_ == TypeOneofCase.Light) hash ^= Light.GetHashCode();
+      if (typeCase_ == TypeOneofCase.TextDisplay) hash ^= TextDisplay.GetHashCode();
       hash ^= (int) typeCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1221,6 +1850,14 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(58);
         output.WriteMessage(Group);
       }
+      if (typeCase_ == TypeOneofCase.Light) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Light);
+      }
+      if (typeCase_ == TypeOneofCase.TextDisplay) {
+        output.WriteRawTag(74);
+        output.WriteMessage(TextDisplay);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1250,6 +1887,14 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(58);
         output.WriteMessage(Group);
       }
+      if (typeCase_ == TypeOneofCase.Light) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Light);
+      }
+      if (typeCase_ == TypeOneofCase.TextDisplay) {
+        output.WriteRawTag(74);
+        output.WriteMessage(TextDisplay);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1274,6 +1919,12 @@ namespace KarlsonMapEditor {
       }
       if (typeCase_ == TypeOneofCase.Group) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Group);
+      }
+      if (typeCase_ == TypeOneofCase.Light) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Light);
+      }
+      if (typeCase_ == TypeOneofCase.TextDisplay) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TextDisplay);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1311,6 +1962,18 @@ namespace KarlsonMapEditor {
             Group = new global::KarlsonMapEditor.MapGroup();
           }
           Group.MergeFrom(other.Group);
+          break;
+        case TypeOneofCase.Light:
+          if (Light == null) {
+            Light = new global::KarlsonMapEditor.MapLight();
+          }
+          Light.MergeFrom(other.Light);
+          break;
+        case TypeOneofCase.TextDisplay:
+          if (TextDisplay == null) {
+            TextDisplay = new global::KarlsonMapEditor.MapText();
+          }
+          TextDisplay.MergeFrom(other.TextDisplay);
           break;
       }
 
@@ -1379,6 +2042,24 @@ namespace KarlsonMapEditor {
             Group = subBuilder;
             break;
           }
+          case 66: {
+            global::KarlsonMapEditor.MapLight subBuilder = new global::KarlsonMapEditor.MapLight();
+            if (typeCase_ == TypeOneofCase.Light) {
+              subBuilder.MergeFrom(Light);
+            }
+            input.ReadMessage(subBuilder);
+            Light = subBuilder;
+            break;
+          }
+          case 74: {
+            global::KarlsonMapEditor.MapText subBuilder = new global::KarlsonMapEditor.MapText();
+            if (typeCase_ == TypeOneofCase.TextDisplay) {
+              subBuilder.MergeFrom(TextDisplay);
+            }
+            input.ReadMessage(subBuilder);
+            TextDisplay = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -1444,6 +2125,24 @@ namespace KarlsonMapEditor {
             Group = subBuilder;
             break;
           }
+          case 66: {
+            global::KarlsonMapEditor.MapLight subBuilder = new global::KarlsonMapEditor.MapLight();
+            if (typeCase_ == TypeOneofCase.Light) {
+              subBuilder.MergeFrom(Light);
+            }
+            input.ReadMessage(subBuilder);
+            Light = subBuilder;
+            break;
+          }
+          case 74: {
+            global::KarlsonMapEditor.MapText subBuilder = new global::KarlsonMapEditor.MapText();
+            if (typeCase_ == TypeOneofCase.TextDisplay) {
+              subBuilder.MergeFrom(TextDisplay);
+            }
+            input.ReadMessage(subBuilder);
+            TextDisplay = subBuilder;
+            break;
+          }
         }
       }
     }
@@ -1466,7 +2165,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[4]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1768,7 +2467,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[5]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2336,7 +3035,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[6]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2811,7 +3510,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[7]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3182,7 +3881,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[8]; }
+      get { return global::KarlsonMapEditor.KarlsonMapSaveReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

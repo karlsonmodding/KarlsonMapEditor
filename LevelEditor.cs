@@ -545,14 +545,13 @@ namespace KarlsonMapEditor
                         {
                             ObjectGroup container = new ObjectGroup("Prefab Container");
                             SelectedObject.Group.AddGroup(container);
-                            container.AddObject(new EditorObject(PrefabType.Milk, Vector3.zero));
+                            new EditorObject(Vector3.zero, container, PrefabType.Milk);
                             container.go.transform.position = spawnPos;
                             SelectedObject.SelectGroup(container);
                         }
                         else
                         {
-                            SelectedObject.Group.AddObject(new EditorObject((PrefabType)(spawnPrefabDD.Index - 1), spawnPos));
-                            SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                            SelectedObject.SelectObject(new EditorObject(spawnPos, SelectedObject.Group, (PrefabType)(spawnPrefabDD.Index - 1)));
                         }
                         MarkAsModified();
                         spawnPrefabDD.Index = 0;
@@ -565,8 +564,35 @@ namespace KarlsonMapEditor
                         GeometryShape shape = (GeometryShape)(spawnGeometry.Index - 1);
                         spawnGeometry.Index = 0;
                         MarkAsModified();
-                        SelectedObject.Group.AddObject(new EditorObject(spawnPos, shape));
-                        SelectedObject.SelectObject(SelectedObject.Group.editorObjects.Last());
+                        SelectedObject.SelectObject(new EditorObject(spawnPos, SelectedObject.Group, shape));
+                    }
+
+                    if (GUI.Button(new Rect(400, 20, 150, 20), "Spawn Light"))
+                    {
+                        LevelData.LevelObject data = new LevelData.LevelObject() 
+                        {
+                            Type = ObjectType.Light,
+                            LightType = LightType.Point,
+                            Intensity = 1,
+                            Range = 10,
+                            SpotAngle = 30,
+                            Color = Color.white,
+                            Name = "Light Object"
+                        };
+                        SelectedObject.SelectObject(new EditorObject(data, SelectedObject.Group));
+                    }
+
+                    if (GUI.Button(new Rect(550, 20, 150, 20), "Spawn Text Display"))
+                    {
+                        LevelData.LevelObject data = new LevelData.LevelObject()
+                        {
+                            Type = ObjectType.Text,
+                            Text = "",
+                            Color = Color.black,
+                            Name = "Text Display Object"
+                        };
+
+                        SelectedObject.SelectObject(new EditorObject(data, SelectedObject.Group));
                     }
                 }
             }
@@ -663,13 +689,13 @@ namespace KarlsonMapEditor
                                 label = "Light | " + obj.go.name; ;
                                 break;
                             case ObjectType.Text:
-                                label = "Text Display | " + obj.go.name; ;
+                                label = "Text | " + obj.go.name; ;
                                 break;
                             case ObjectType.Internal:
                                 label = "Internal | " + obj.go.name;
                                 break;
                             default:
-                                label = "Unknown Object | " + obj.go.name; ;
+                                label = "Unknown | " + obj.go.name; ;
                                 break;
                         }
                         GUI.Label(new Rect(depth * 20 + 40, j * 25, 200, 20), label);
@@ -793,6 +819,7 @@ namespace KarlsonMapEditor
                         }
                     }
 
+                    if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || SelectedObject.Object.data.Type != ObjectType.Light)
                     GUI.Label(new Rect(0, 60, 50, 20), "Scale:");
                     {
                         float x = SelectedObject.Basic.aScale.x, y = SelectedObject.Basic.aScale.y, z = SelectedObject.Basic.aScale.z;
@@ -822,241 +849,277 @@ namespace KarlsonMapEditor
                 }
                 GUI.EndGroup();
 
-                GUILayout.BeginArea(new Rect(5, 165, 300, 400));
-                bool hasMat = (SelectedObject.Type == SelectedObject.SelectedType.EditorObject) && (SelectedObject.Object.data.Type == ObjectType.Geometry);
-                if (hasMat)
+                
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
                 {
-                    GUILayout.BeginHorizontal();
-
-                    KMETextureScaling ts = SelectedObject.Object.go.GetComponent<KMETextureScaling>();
-
-                    ts.Enabled = GUILayout.Toggle(ts.Enabled, "UV Normalize");
-                    if (ts.Enabled)
+                    EditorObject selected = SelectedObject.Object;
+                    if (selected.data.Type == ObjectType.Geometry)
                     {
-                        ts.Scale = float.Parse(GUILayout.TextField(ts.Scale.ToString("0.00")));
-                    }
-                    SelectedObject.Object.data.UVNormalizedScale = ts.Scale;
-                    
-                    GUILayout.EndHorizontal();
+                        GUILayout.BeginArea(new Rect(5, 165, 300, 400));
 
-                    GUIStyle matStyle = new GUIStyle();
-                    matStyle.padding.left = 0;
-                    matStyle.padding.right = 0;
-                    matStyle.padding.top = 2;
-                    matStyle.padding.bottom = 0;
-                    matStyle.normal.textColor = Color.white;
+                        GUILayout.BeginHorizontal();
 
-                    GUILayout.BeginVertical(matStyle);
+                        KMETextureScaling ts = selected.go.GetComponent<KMETextureScaling>();
 
-                    GUILayout.Label("Material", matStyle);
+                        ts.Enabled = GUILayout.Toggle(ts.Enabled, "UV Normalize");
+                        if (ts.Enabled)
+                        {
+                            ts.Scale = float.Parse(GUILayout.TextField(ts.Scale.ToString("0.00")));
+                        }
+                        selected.data.UVNormalizedScale = ts.Scale;
 
-                    // material label and buttons
-                    GUILayout.BeginHorizontal(matStyle);
+                        GUILayout.EndHorizontal();
 
-                    if (GUILayout.Button("New", GUILayout.Width(50)) && hasMat)
-                    {
-                        MarkAsModified();
-                        SelectedObject.Object.data.MaterialId = MaterialManager.Materials.Count();
-                        SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
-                    }
-                    if (GUILayout.Button("Copy", GUILayout.Width(50)) && hasMat)
-                    {
-                        clipboardObj = SelectedObject.Object;
-                    }
-                    if (clipboardObj != null)
-                    {
-                        if (GUILayout.Button("Paste") && hasMat)
+                        GUIStyle matStyle = new GUIStyle();
+                        matStyle.padding.left = 0;
+                        matStyle.padding.right = 0;
+                        matStyle.padding.top = 2;
+                        matStyle.padding.bottom = 0;
+                        matStyle.normal.textColor = Color.white;
+
+                        GUILayout.BeginVertical(matStyle);
+
+                        GUILayout.Label("Material", matStyle);
+
+                        // material label and buttons
+                        GUILayout.BeginHorizontal(matStyle);
+
+                        if (GUILayout.Button("New", GUILayout.Width(50)))
                         {
                             MarkAsModified();
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial.CopyPropertiesFromMaterial(clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial);
+                            selected.data.MaterialId = MaterialManager.Materials.Count();
+                            selected.go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.InstanceMaterial();
                         }
-                        if (GUILayout.Button("Reference") && hasMat)
+                        if (GUILayout.Button("Copy", GUILayout.Width(50)))
+                        {
+                            clipboardObj = selected;
+                        }
+                        if (clipboardObj != null)
+                        {
+                            if (GUILayout.Button("Paste"))
+                            {
+                                MarkAsModified();
+                                selected.go.GetComponent<MeshRenderer>().sharedMaterial.CopyPropertiesFromMaterial(clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial);
+                            }
+                            if (GUILayout.Button("Reference"))
+                            {
+                                MarkAsModified();
+                                MaterialManager.ClearMaterial(selected.go.GetComponent<MeshRenderer>().sharedMaterial);
+                                selected.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
+                                selected.data.MaterialId = clipboardObj.data.MaterialId;
+                            }
+                        }
+                        Material selectedMat = selected.go.GetComponent<MeshRenderer>().sharedMaterial;
+
+                        GUILayout.EndHorizontal();
+
+                        // material properties
+                        GUILayout.BeginHorizontal(matStyle);
+
+                        // color and mat sliders
+                        GUILayout.BeginVertical(matStyle);
+
+                        GUILayout.BeginHorizontal(matStyle);
+                        GUILayout.Label("Color", matStyle);
+                        ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; }, 140);
+                        GUILayout.EndHorizontal();
+
+                        /* maybe later
+                        GUILayout.BeginHorizontal(matStyle);
+                        GUILayout.Label("Emission", matStyle);
+                        ColorButton(selectedMat.GetColor("_EmissionColor"), delegate (Color c) { selectedMat.SetColor("_EmissionColor", c); });
+                        GUILayout.EndHorizontal();
+                        */
+
+                        GUILayout.Space(4);
+
+                        int lastMode = (int)selectedMat.GetFloat("_Mode");
+                        materialMode.Index = lastMode;
+                        Rect matModeRect = GUILayoutUtility.GetRect(120, 20, matStyle);
+                        materialMode.Draw(matModeRect);
+                        if (lastMode != materialMode.Index)
                         {
                             MarkAsModified();
-                            MaterialManager.ClearMaterial(SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial);
-                            SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial = clipboardObj.go.GetComponent<MeshRenderer>().sharedMaterial;
-                            SelectedObject.Object.data.MaterialId = clipboardObj.data.MaterialId;
+                            MaterialManager.UpdateMode(selectedMat, (MaterialManager.ShaderBlendMode)materialMode.Index);
                         }
-                    }
-                    Material selectedMat = SelectedObject.Object.go.GetComponent<MeshRenderer>().sharedMaterial;
+                        Texture2D normalTex = (Texture2D)selectedMat.GetTexture("_BumpMap");
+                        Texture2D metalGlossTex = (Texture2D)selectedMat.GetTexture("_MetallicGlossMap");
+                        if (metalGlossTex == null)
+                        {
+                            GUILayout.Label("Smoothness", matStyle);
+                            selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1));
 
-                    GUILayout.EndHorizontal();
+                            GUILayout.Label("Metallic", matStyle);
+                            selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1));
+                        }
+                        if (normalTex != null)
+                        {
+                            GUILayout.Label("Normal Scale", matStyle);
+                            selectedMat.SetFloat("_BumpScale", GUILayout.HorizontalSlider(selectedMat.GetFloat("_BumpScale"), 0, 5));
+                        }
 
-                    // material properties
-                    GUILayout.BeginHorizontal(matStyle);
+                        if (GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights"))
+                        {
+                            selectedMat.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
+                            selectedMat.SetFloat("_SpecularHighlights", 1f);
+                        }
+                        else
+                        {
+                            selectedMat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+                            selectedMat.SetFloat("_SpecularHighlights", 0f);
+                        }
+                        if (GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Glossy Reflections"))
+                        {
+                            selectedMat.DisableKeyword("_GLOSSYREFLECTIONS_OFF");
+                            selectedMat.SetFloat("_GlossyReflections", 1f);
+                        }
+                        else
+                        {
+                            selectedMat.EnableKeyword("_GLOSSYREFLECTIONS_OFF");
+                            selectedMat.SetFloat("_GlossyReflections", 0f);
+                        }
 
-                    // color and mat sliders
-                    GUILayout.BeginVertical(matStyle);
+                        // scale and offset
+                        GUILayout.Label("Texture Mapping", matStyle);
 
-                    GUILayout.BeginHorizontal(matStyle);
-                    GUILayout.Label("Color", matStyle);
-                    ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; }, 140);
-                    GUILayout.EndHorizontal();
+                        Vector2 textureScale = selectedMat.GetTextureScale("_MainTex");
+                        Vector2 textureOffset = selectedMat.GetTextureOffset("_MainTex");
 
-                    /* maybe later
-                    GUILayout.BeginHorizontal(matStyle);
-                    GUILayout.Label("Emission", matStyle);
-                    ColorButton(selectedMat.GetColor("_EmissionColor"), delegate (Color c) { selectedMat.SetColor("_EmissionColor", c); });
-                    GUILayout.EndHorizontal();
-                    */
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Scale");
+                        textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
+                        textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
+                        GUILayout.EndHorizontal();
 
-                    GUILayout.Space(4);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Offset");
+                        textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
+                        textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
+                        GUILayout.EndHorizontal();
 
-                    int lastMode = (int)selectedMat.GetFloat("_Mode");
-                    materialMode.Index = lastMode;
-                    Rect matModeRect = GUILayoutUtility.GetRect(120, 20, matStyle);
-                    materialMode.Draw(matModeRect);
-                    if (lastMode != materialMode.Index)
-                    {
-                        MarkAsModified();
-                        MaterialManager.UpdateMode(selectedMat, (MaterialManager.ShaderBlendMode)materialMode.Index);
-                    }
-                    Texture2D normalTex = (Texture2D)selectedMat.GetTexture("_BumpMap");
-                    Texture2D metalGlossTex = (Texture2D)selectedMat.GetTexture("_MetallicGlossMap");
-                    if (metalGlossTex == null)
-                    {
-                        GUILayout.Label("Smoothness", matStyle);
-                        selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1));
+                        selectedMat.SetTextureScale("_MainTex", textureScale);
+                        selectedMat.SetTextureScale("_BumpMap", textureScale);
+                        selectedMat.SetTextureScale("_MetallicGlossMap", textureScale);
+                        selectedMat.SetTextureOffset("_MainTex", textureOffset);
+                        selectedMat.SetTextureOffset("_BumpMap", textureOffset);
+                        selectedMat.SetTextureOffset("_MetallicGlossMap", textureOffset);
 
-                        GUILayout.Label("Metallic", matStyle);
-                        selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1));
-                    }
-                    if (normalTex != null)
-                    {
-                        GUILayout.Label("Normal Scale", matStyle);
-                        selectedMat.SetFloat("_BumpScale", GUILayout.HorizontalSlider(selectedMat.GetFloat("_BumpScale"), 0, 5));
-                    }
+                        GUILayout.EndVertical();
+                        GUILayout.Space(4);
 
-                    if (GUILayout.Toggle(selectedMat.GetFloat("_SpecularHighlights") != 0, "Specular Highlights"))
-                    {
-                        selectedMat.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
-                        selectedMat.SetFloat("_SpecularHighlights", 1f);
-                    }
-                    else
-                    {
-                        selectedMat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
-                        selectedMat.SetFloat("_SpecularHighlights", 0f);
-                    }
-                    if (GUILayout.Toggle(selectedMat.GetFloat("_GlossyReflections") != 0, "Glossy Reflections"))
-                    {
-                        selectedMat.DisableKeyword("_GLOSSYREFLECTIONS_OFF");
-                        selectedMat.SetFloat("_GlossyReflections", 1f);
-                    }
-                    else
-                    {
-                        selectedMat.EnableKeyword("_GLOSSYREFLECTIONS_OFF");
-                        selectedMat.SetFloat("_GlossyReflections", 0f);
-                    }
+                        // textures
+                        GUILayout.BeginVertical(matStyle);
 
-                    // scale and offset
-                    GUILayout.Label("Texture Mapping", matStyle);
-
-                    Vector2 textureScale = selectedMat.GetTextureScale("_MainTex");
-                    Vector2 textureOffset = selectedMat.GetTextureOffset("_MainTex");
-
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Scale");
-                    textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
-                    textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Offset");
-                    textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
-                    textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
-                    GUILayout.EndHorizontal();
-
-                    selectedMat.SetTextureScale("_MainTex", textureScale);
-                    selectedMat.SetTextureScale("_BumpMap", textureScale);
-                    selectedMat.SetTextureScale("_MetallicGlossMap", textureScale);
-                    selectedMat.SetTextureOffset("_MainTex", textureOffset);
-                    selectedMat.SetTextureOffset("_BumpMap", textureOffset);
-                    selectedMat.SetTextureOffset("_MetallicGlossMap", textureOffset);
-
-                    GUILayout.EndVertical();
-                    GUILayout.Space(4);
-
-                    // textures
-                    GUILayout.BeginVertical(matStyle);
-
-                    // image
-                    const int imageButtonSize = 75;
-                    GUILayout.Label("Main Texture", matStyle);
-                    if (GUILayout.Button(selectedMat.mainTexture, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
-                    {
-                        tex_browser_enabled = true;
-                        MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
-                        MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
-                    }
-                    
-                    if (GUILayout.Toggle(normalTex != null, "Normal Map"))
-                    {
-                        if (normalTex == null || GUILayout.Button(normalTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                        // image
+                        const int imageButtonSize = 75;
+                        GUILayout.Label("Main Texture", matStyle);
+                        if (GUILayout.Button(selectedMat.mainTexture, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                         {
                             tex_browser_enabled = true;
-                            MaterialManager.SelectedTexture = normalTex;
-                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
-                                selectedMat.EnableKeyword("_NORMALMAP");
-                                selectedMat.SetTexture("_BumpMap", tex);
-                                MarkAsModified();
-                            };
+                            MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
+                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) { selectedMat.mainTexture = tex; MarkAsModified(); };
                         }
-                    }
-                    else if (normalTex != null) {
-                        selectedMat.DisableKeyword("_NORMALMAP");
-                        selectedMat.SetTexture("_BumpMap", null);
-                        MarkAsModified();
-                    }
-                    
-                    if (GUILayout.Toggle(metalGlossTex != null, "Metal & Gloss"))
-                    {
-                        if (metalGlossTex == null || GUILayout.Button(metalGlossTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+
+                        if (GUILayout.Toggle(normalTex != null, "Normal Map"))
                         {
-                            tex_browser_enabled = true;
-                            MaterialManager.SelectedTexture = metalGlossTex;
-                            MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
-                                selectedMat.EnableKeyword("_METALLICGLOSSMAP");
-                                selectedMat.SetTexture("_MetallicGlossMap", tex);
-                                MarkAsModified();
-                            };
+                            if (normalTex == null || GUILayout.Button(normalTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                            {
+                                tex_browser_enabled = true;
+                                MaterialManager.SelectedTexture = normalTex;
+                                MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
+                                    selectedMat.EnableKeyword("_NORMALMAP");
+                                    selectedMat.SetTexture("_BumpMap", tex);
+                                    MarkAsModified();
+                                };
+                            }
                         }
-                    }
-                    else if (metalGlossTex != null) {
-                        selectedMat.DisableKeyword("_METALLICGLOSSMAP");
-                        selectedMat.SetTexture("_MetallicGlossMap", null);
-                        MarkAsModified();
+                        else if (normalTex != null)
+                        {
+                            selectedMat.DisableKeyword("_NORMALMAP");
+                            selectedMat.SetTexture("_BumpMap", null);
+                            MarkAsModified();
+                        }
+
+                        if (GUILayout.Toggle(metalGlossTex != null, "Metal & Gloss"))
+                        {
+                            if (metalGlossTex == null || GUILayout.Button(metalGlossTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                            {
+                                tex_browser_enabled = true;
+                                MaterialManager.SelectedTexture = metalGlossTex;
+                                MaterialManager.UpdateSelectedTexture = delegate (Texture2D tex) {
+                                    selectedMat.EnableKeyword("_METALLICGLOSSMAP");
+                                    selectedMat.SetTexture("_MetallicGlossMap", tex);
+                                    MarkAsModified();
+                                };
+                            }
+                        }
+                        else if (metalGlossTex != null)
+                        {
+                            selectedMat.DisableKeyword("_METALLICGLOSSMAP");
+                            selectedMat.SetTexture("_MetallicGlossMap", null);
+                            MarkAsModified();
+                        }
+
+                        GUILayout.EndVertical();
+                        GUILayout.EndHorizontal();
+                        GUILayout.EndVertical();
+
+                        // draw over
+                        materialMode.Draw(matModeRect);
+                        GUILayout.EndArea();
+
+                        bool bRes;
+                        bRes = GUI.Toggle(new Rect(5, 60, 75, 20), selected.data.Bounce, "Bounce");
+                        if (selected.data.Bounce != bRes) { MarkAsModified(); selected.data.Bounce = bRes; }
+
+                        // only convex objects can be used as triggers (whyyyy???)
+                        MeshCollider mColl = selected.go.GetComponent<MeshCollider>();
+                        if (mColl == null || mColl.convex)
+                        {
+                            bRes = GUI.Toggle(new Rect(85, 60, 75, 20), selected.data.Glass, "Glass");
+                            if (selected.data.Glass != bRes) { MarkAsModified(); selected.data.Glass = bRes; }
+
+                            if (!selected.data.Glass)
+                            {
+                                bRes = GUI.Toggle(new Rect(165, 60, 75, 20), selected.data.Lava, "Lava");
+                                if (selected.data.Lava != bRes) { MarkAsModified(); selected.data.Lava = bRes; }
+                            }
+                        }
+                        bRes = GUI.Toggle(new Rect(5, 80, 120, 20), selected.data.MarkAsObject, "Mark as Object");
+                        if (selected.data.MarkAsObject != bRes) { MarkAsModified(); selected.data.MarkAsObject = bRes; }
                     }
 
-                    GUILayout.EndVertical();
-                    GUILayout.EndHorizontal();
-                    GUILayout.EndVertical();
+                    else if (selected.data.Type == ObjectType.Light)
+                    {
+                        GUILayout.BeginArea(new Rect(5, 165, 300, 400));
+                        GUILayout.BeginVertical();
 
-                    // draw over
-                    materialMode.Draw(matModeRect);
+                        Light light = selected.go.GetComponent<Light>();
+
+                        ColorButton(light.color, delegate (Color c) { light.color = c; }, 140);
+                        GUILayout.EndVertical();
+                        GUILayout.EndArea();
+                    }
+                    else if (selected.data.Type == ObjectType.Text)
+                    {
+                        GUILayout.BeginArea(new Rect(5, 165, 300, 400));
+                        GUILayout.BeginVertical();
+
+                        TextMesh textMesh = selected.go.GetComponent<TextMesh>();
+
+                        textMesh.text = GUILayout.TextField(textMesh.text);
+                        ColorButton(textMesh.color, delegate (Color c) { textMesh.color = c; }, 140);
+
+                        GUILayout.EndVertical();
+                        GUILayout.EndArea();
+                    }
+
                 }
-                GUILayout.EndArea();
+                
 
                 if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Geometry))
                 {
-                    bool bRes;
-                    bRes = GUI.Toggle(new Rect(5, 60, 75, 20), SelectedObject.Object.data.Bounce, "Bounce");
-                    if (SelectedObject.Object.data.Bounce != bRes) { MarkAsModified(); SelectedObject.Object.data.Bounce = bRes; }
                     
-                    // only convex objects can be used as triggers (whyyyy???)
-                    MeshCollider mColl = SelectedObject.Object.go.GetComponent<MeshCollider>();
-                    if (mColl == null || mColl.convex)
-                    {
-                        bRes = GUI.Toggle(new Rect(85, 60, 75, 20), SelectedObject.Object.data.Glass, "Glass");
-                        if (SelectedObject.Object.data.Glass != bRes) { MarkAsModified(); SelectedObject.Object.data.Glass = bRes; }
-                        
-                        if (!SelectedObject.Object.data.Glass)
-                        {
-                            bRes = GUI.Toggle(new Rect(165, 60, 75, 20), SelectedObject.Object.data.Lava, "Lava");
-                            if (SelectedObject.Object.data.Lava != bRes) { MarkAsModified(); SelectedObject.Object.data.Lava = bRes; }
-                        }
-                    }
-                    bRes = GUI.Toggle(new Rect(5, 80, 120, 20), SelectedObject.Object.data.MarkAsObject, "Mark as Object");
-                    if (SelectedObject.Object.data.MarkAsObject != bRes) { MarkAsModified(); SelectedObject.Object.data.MarkAsObject = bRes; }
                 }
                 else
                 {
@@ -1548,24 +1611,16 @@ namespace KarlsonMapEditor
             Loadson.Console.Log("setting up level editor");
             ObjectGroup ReplicateObjectGroup(LevelData.ObjectGroup group, ObjectGroup parentGroup)
             {
-                ObjectGroup objGroup = new ObjectGroup(group.Name);
-                if (parentGroup != null)
+                // set up this group
+                ObjectGroup objGroup = new ObjectGroup(group, parentGroup);
+                // load objects
+                foreach (var obj in group.Objects)
                 {
-                    objGroup.go.transform.parent = parentGroup.go.transform;
-                    parentGroup.objectGroups.Add(objGroup);
+                    EditorObject eo = new EditorObject(obj, objGroup);
+                    Loadson.Console.Log("position: " + eo.go.transform.position.ToString());
                 }
-                objGroup.go.transform.localPosition = group.Position;
-                objGroup.go.transform.localRotation = Quaternion.Euler(group.Rotation);
-                objGroup.go.transform.localScale = group.Scale;
-                foreach(var obj in group.Objects)
-                {
-                    var eo = new EditorObject(obj);
-                    objGroup.editorObjects.Add(eo);
-                    eo.go.transform.parent = objGroup.go.transform;
-                    eo.go.transform.localPosition = obj.Position;
-                    eo.go.transform.localRotation = Quaternion.Euler(obj.Rotation);
-                    eo.go.transform.localScale = obj.Scale;
-                }
+
+                // load sub groups
                 foreach(var grp in group.Groups)
                     ReplicateObjectGroup(grp, objGroup);
                 return objGroup;
@@ -1659,50 +1714,26 @@ namespace KarlsonMapEditor
 
         public class EditorObject : IBasicProperties
         {
-            public EditorObject(Vector3 position, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, 6, Color.white, "Geometry Object", false, false, false, false, false, shape)) { }
-
-            public EditorObject(PrefabType _prefabId, Vector3 position)
+            // main constructor
+            public EditorObject(LevelData.LevelObject playObj, ObjectGroup group)
             {
-                go = LevelData.MakePrefab(_prefabId);
-                go.AddComponent<KME_Object>();
-                go.transform.position = position;
-                go.transform.rotation = Quaternion.identity;
-                if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
-                data = new LevelData.LevelObject(_prefabId, go.transform.localPosition, go.transform.localRotation.eulerAngles, go.transform.localScale, go.name, 0);
-            }
-
-            public EditorObject(LevelData.LevelObject playObj)
-            {
+                group.editorObjects.Add(this);
                 data = playObj;
-                if(data.Type == ObjectType.Prefab)
-                {
-                    go = LevelData.MakePrefab(data.PrefabId);
-                    if (go.GetComponent<Rigidbody>() != null) go.GetComponent<Rigidbody>().isKinematic = true;
-                }
-                else if (data.Type == ObjectType.Geometry)
-                {
-                    go = MeshBuilder.GetGeometryGO(playObj.ShapeId);
-                    go.GetComponent<KMETextureScaling>().Scale = playObj.UVNormalizedScale;
-                    go.GetComponent<MeshRenderer>().sharedMaterial = MaterialManager.Materials[playObj.MaterialId];
-                    if (playObj.Glass)
-                        go.AddComponent<Glass>();
-                    if (playObj.Lava)
-                        go.AddComponent<Lava>();
-                }
+                go = data.LoadObject(group.go, false);
                 go.AddComponent<KME_Object>();
-                go.transform.position = data.Position;
-                go.transform.rotation = Quaternion.Euler(data.Rotation);
-                go.transform.localScale = data.Scale;
-                go.name = data.Name;
             }
 
-            // player spawn constructor
+            // create new geometry
+            public EditorObject(Vector3 position, ObjectGroup group, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, "Geometry Object", 6, Color.white, false, false, false, false, false, shape), group) { }
+            // create new prefab
+            public EditorObject(Vector3 position, ObjectGroup group, PrefabType _prefabId) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, _prefabId.ToString(), _prefabId, 0), group) { }
+            
+            // create player spawn
             public EditorObject(Vector3 pos, float orientation)
             {
                 data = new LevelData.LevelObject
                 {
                     Name = "Player Spawn",
-                    GroupName = "_internal",
                     Position = pos,
                     Rotation = Vector3.zero,
                     Scale = Vector3.one,
@@ -1715,42 +1746,15 @@ namespace KarlsonMapEditor
                 go.transform.eulerAngles = new Vector3(0f, orientation, 0f);
                 go.name = "Player Spawn";
                 go.GetComponent<MeshRenderer>().material.color = Color.yellow;
-                //internalObject = true;
             }
 
-            //public bool internalObject { get; private set; } = false;
             public LevelData.LevelObject data;
             public GameObject go;
 
             public void Clone(ObjectGroup parent)
             {
-                EditorObject toAdd;
-                switch (data.Type)
-                {
-                    case ObjectType.Prefab:
-                        toAdd = new EditorObject(data.PrefabId, aPosition);
-                        break;
-                    case ObjectType.Geometry:
-                        toAdd = new EditorObject(aPosition, data.ShapeId);
-                        toAdd.data.MaterialId = data.MaterialId;
-                        toAdd.go.GetComponent<MeshRenderer>().sharedMaterial = go.GetComponent<MeshRenderer>().sharedMaterial;
-                        toAdd.go.GetComponent<KMETextureScaling>().Scale = go.GetComponent<KMETextureScaling>().Scale;
-                        toAdd.data.Bounce = data.Bounce;
-                        toAdd.data.Glass = data.Glass;
-                        toAdd.data.Lava = data.Lava;
-                        toAdd.data.MarkAsObject = data.MarkAsObject;
-                        break;
-                    default:
-                        toAdd = new EditorObject(data);
-                        break;
-                }
-                
-                parent.editorObjects.Add(toAdd);
-                toAdd.go.transform.parent = parent.go.transform;
-                toAdd.aPosition = aPosition;
-                toAdd.aRotation = aRotation;
-                toAdd.aScale = aScale;
-                toAdd.go.name = go.name + " (Clone)";
+                EditorObject obj = new EditorObject(new LevelData.LevelObject(data), parent);
+                obj.go.name = go.name + " (Clone)";
             }
 
             public Vector3 aPosition
@@ -1940,14 +1944,24 @@ namespace KarlsonMapEditor
 
             public ObjectGroup(string name = null)
             {
-                if (name == null)
-                    name = "Object Group #" + UnityEngine.Random.Range(0, 32768);
-                go = new GameObject(name);
+                go = new GameObject(name ?? "Object Group #" + UnityEngine.Random.Range(0, 32768));
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localRotation = Quaternion.identity;
                 go.transform.localScale = Vector3.one;
                 editorObjects = new List<EditorObject>();
-                objectGroups = new List<ObjectGroup>(); 
+                objectGroups = new List<ObjectGroup>();
+            }
+            public ObjectGroup(LevelData.ObjectGroup group, ObjectGroup parentGroup)
+            {
+                editorObjects = new List<EditorObject>();
+                objectGroups = new List<ObjectGroup>();
+
+                if (parentGroup != null)
+                {
+                    go = group.LoadObject(parentGroup.go);
+                    parentGroup.objectGroups.Add(this);
+                }
+                else go = group.LoadObject(null);
             }
 
             public Vector3 aPosition

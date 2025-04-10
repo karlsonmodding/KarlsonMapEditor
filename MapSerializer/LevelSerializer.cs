@@ -241,6 +241,24 @@ namespace KarlsonMapEditor
         }
     }
 
+    public partial class MapLight
+    {
+        public Color Tint
+        {
+            get { return LevelSerializer.ReadColor(TintColor); }
+            set { LevelSerializer.WriteColor(value, TintColor); }
+        }
+    }
+
+    public partial class MapText
+    {
+        public Color Shade
+        {
+            get { return LevelSerializer.ReadColor(ShadeColor); }
+            set { LevelSerializer.WriteColor(value, ShadeColor); }
+        }
+    }
+
     public partial class MapObject
     {
         // recursive function to save all children of this object group
@@ -286,6 +304,27 @@ namespace KarlsonMapEditor
                     Glass = obj.data.Glass,
                     Lava = obj.data.Lava,
                     ObjectLayer = obj.data.MarkAsObject
+                };
+            }
+            else if (obj.data.Type == ObjectType.Light)
+            {
+                Light component = obj.go.GetComponent<Light>();
+                Light = new MapLight
+                {
+                    LightType = (MapLight.Types.LightType)component.type,
+                    Tint = component.color,
+                    Intensity = component.intensity,
+                    Range = component.range,
+                    SpotAngle = component.spotAngle,
+                };
+            }
+            else if (obj.data.Type == ObjectType.Text)
+            {
+                TextMesh component = obj.go.GetComponent<TextMesh>();
+                TextDisplay = new MapText
+                {
+                    Text = component.text,
+                    Shade = component.color,
                 };
             }
         }
@@ -336,7 +375,7 @@ namespace KarlsonMapEditor
                 levelObject.PrefabId = (PrefabType)Prefab.PrefabType;
                 levelObject.PrefabData = Prefab.PrefabData;
             }
-            if (TypeCase == TypeOneofCase.Geometry)
+            else if (TypeCase == TypeOneofCase.Geometry)
             {
                 levelObject.Type = ObjectType.Geometry;
                 levelObject.ShapeId = (GeometryShape)Geometry.Shape;
@@ -347,7 +386,22 @@ namespace KarlsonMapEditor
                 levelObject.Lava = Geometry.Lava;
                 levelObject.MarkAsObject = Geometry.ObjectLayer;
             }
-            
+            else if (TypeCase == TypeOneofCase.Light)
+            {
+                levelObject.Type = ObjectType.Light;
+                levelObject.LightType = (LightType)Light.LightType;
+                levelObject.Color = Light.Tint;
+                levelObject.Intensity = Light.Intensity;
+                levelObject.Range = Light.Range;
+                levelObject.SpotAngle = Light.SpotAngle;
+            }
+            else if (TypeCase == TypeOneofCase.TextDisplay)
+            {
+                levelObject.Type = ObjectType.Text;
+                levelObject.Text = TextDisplay.Text;
+                levelObject.Color = TextDisplay.Shade;
+            }
+
             return levelObject;
         }
 

@@ -1,0 +1,1 @@
+protoc karlson_map_save.proto --csharp_out=.

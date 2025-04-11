@@ -39,11 +39,9 @@ namespace KarlsonMapEditor {
             "YXBwbGVyEAQSEgoOZHVtbXlfZ3JhcHBsZXIQBRIJCgV0YWJsZRAGEgoKBmJh",
             "cnJlbBAHEgoKBmxvY2tlchAIEgoKBnNjcmVlbhAJEggKBG1pbGsQChIKCgZl",
             "bmVtZXkQCyI5CghNYXBHcm91cBItCghjaGlsZHJlbhgBIAMoCzIbLkthcmxz",
-            "b25NYXBFZGl0b3IuTWFwT2JqZWN0IsEBCghNYXBMaWdodBI4CgpsaWdodF90",
-            "eXBlGAEgASgOMiQuS2FybHNvbk1hcEVkaXRvci5NYXBMaWdodC5MaWdodFR5",
-            "cGUSEgoKdGludF9jb2xvchgCIAMoAhIRCglpbnRlbnNpdHkYAyABKAISDQoF",
-            "cmFuZ2UYBCABKAISEgoKc3BvdF9hbmdsZRgFIAEoAiIxCglMaWdodFR5cGUS",
-            "CQoFcG9pbnQQABIICgRzcG90EAESDwoLZGlyZWN0aW9uYWwQAiIsCgdNYXBU",
+            "b25NYXBFZGl0b3IuTWFwT2JqZWN0ImgKCE1hcExpZ2h0EhIKCnNwb3RfbGln",
+            "aHQYASABKAgSEgoKdGludF9jb2xvchgCIAMoAhIRCglpbnRlbnNpdHkYAyAB",
+            "KAISDQoFcmFuZ2UYBCABKAISEgoKc3BvdF9hbmdsZRgFIAEoAiIsCgdNYXBU",
             "ZXh0EgwKBHRleHQYASABKAkSEwoLc2hhZGVfY29sb3IYAiADKAIi2AIKCU1h",
             "cE9iamVjdBIMCgRuYW1lGAEgASgJEhcKD3Bvc2l0aW9uX3ZlY3RvchgCIAMo",
             "AhIXCg9yb3RhdGlvbl92ZWN0b3IYAyADKAISFAoMc2NhbGVfdmVjdG9yGAQg",
@@ -89,7 +87,7 @@ namespace KarlsonMapEditor {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGeometry), global::KarlsonMapEditor.MapGeometry.Parser, new[]{ "Shape", "MaterialId", "UvNormalizedScale", "Bounce", "Glass", "Lava", "ObjectLayer" }, null, new[]{ typeof(global::KarlsonMapEditor.MapGeometry.Types.Shape) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapPrefab), global::KarlsonMapEditor.MapPrefab.Parser, new[]{ "PrefabType", "PrefabData" }, null, new[]{ typeof(global::KarlsonMapEditor.MapPrefab.Types.PrefabType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapGroup), global::KarlsonMapEditor.MapGroup.Parser, new[]{ "Children" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapLight), global::KarlsonMapEditor.MapLight.Parser, new[]{ "LightType", "TintColor", "Intensity", "Range", "SpotAngle" }, null, new[]{ typeof(global::KarlsonMapEditor.MapLight.Types.LightType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapLight), global::KarlsonMapEditor.MapLight.Parser, new[]{ "SpotLight", "TintColor", "Intensity", "Range", "SpotAngle" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapText), global::KarlsonMapEditor.MapText.Parser, new[]{ "Text", "ShadeColor" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group", "Light", "TextDisplay" }, new[]{ "Type" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
@@ -1025,7 +1023,7 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MapLight(MapLight other) : this() {
-      lightType_ = other.lightType_;
+      spotLight_ = other.spotLight_;
       tintColor_ = other.tintColor_.Clone();
       intensity_ = other.intensity_;
       range_ = other.range_;
@@ -1039,15 +1037,15 @@ namespace KarlsonMapEditor {
       return new MapLight(this);
     }
 
-    /// <summary>Field number for the "light_type" field.</summary>
-    public const int LightTypeFieldNumber = 1;
-    private global::KarlsonMapEditor.MapLight.Types.LightType lightType_ = global::KarlsonMapEditor.MapLight.Types.LightType.Point;
+    /// <summary>Field number for the "spot_light" field.</summary>
+    public const int SpotLightFieldNumber = 1;
+    private bool spotLight_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public global::KarlsonMapEditor.MapLight.Types.LightType LightType {
-      get { return lightType_; }
+    public bool SpotLight {
+      get { return spotLight_; }
       set {
-        lightType_ = value;
+        spotLight_ = value;
       }
     }
 
@@ -1119,7 +1117,7 @@ namespace KarlsonMapEditor {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (LightType != other.LightType) return false;
+      if (SpotLight != other.SpotLight) return false;
       if(!tintColor_.Equals(other.tintColor_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Intensity, other.Intensity)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Range, other.Range)) return false;
@@ -1131,7 +1129,7 @@ namespace KarlsonMapEditor {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) hash ^= LightType.GetHashCode();
+      if (SpotLight != false) hash ^= SpotLight.GetHashCode();
       hash ^= tintColor_.GetHashCode();
       if (Intensity != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Intensity);
       if (Range != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Range);
@@ -1154,9 +1152,9 @@ namespace KarlsonMapEditor {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+      if (SpotLight != false) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) LightType);
+        output.WriteBool(SpotLight);
       }
       tintColor_.WriteTo(output, _repeated_tintColor_codec);
       if (Intensity != 0F) {
@@ -1181,9 +1179,9 @@ namespace KarlsonMapEditor {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
+      if (SpotLight != false) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) LightType);
+        output.WriteBool(SpotLight);
       }
       tintColor_.WriteTo(ref output, _repeated_tintColor_codec);
       if (Intensity != 0F) {
@@ -1208,8 +1206,8 @@ namespace KarlsonMapEditor {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) LightType);
+      if (SpotLight != false) {
+        size += 1 + 1;
       }
       size += tintColor_.CalculateSize(_repeated_tintColor_codec);
       if (Intensity != 0F) {
@@ -1233,8 +1231,8 @@ namespace KarlsonMapEditor {
       if (other == null) {
         return;
       }
-      if (other.LightType != global::KarlsonMapEditor.MapLight.Types.LightType.Point) {
-        LightType = other.LightType;
+      if (other.SpotLight != false) {
+        SpotLight = other.SpotLight;
       }
       tintColor_.Add(other.tintColor_);
       if (other.Intensity != 0F) {
@@ -1266,7 +1264,7 @@ namespace KarlsonMapEditor {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            LightType = (global::KarlsonMapEditor.MapLight.Types.LightType) input.ReadEnum();
+            SpotLight = input.ReadBool();
             break;
           }
           case 18:
@@ -1306,7 +1304,7 @@ namespace KarlsonMapEditor {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            LightType = (global::KarlsonMapEditor.MapLight.Types.LightType) input.ReadEnum();
+            SpotLight = input.ReadBool();
             break;
           }
           case 18:
@@ -1330,20 +1328,6 @@ namespace KarlsonMapEditor {
       }
     }
     #endif
-
-    #region Nested types
-    /// <summary>Container for nested types declared in the MapLight message type.</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static partial class Types {
-      public enum LightType {
-        [pbr::OriginalName("point")] Point = 0,
-        [pbr::OriginalName("spot")] Spot = 1,
-        [pbr::OriginalName("directional")] Directional = 2,
-      }
-
-    }
-    #endregion
 
   }
 

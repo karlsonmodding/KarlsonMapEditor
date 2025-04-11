@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
+using TMPro;
 
 namespace KarlsonMapEditor
 {
@@ -311,7 +312,7 @@ namespace KarlsonMapEditor
                 Light component = obj.go.GetComponent<Light>();
                 Light = new MapLight
                 {
-                    LightType = (MapLight.Types.LightType)component.type,
+                    SpotLight = component.type == LightType.Spot,
                     Tint = component.color,
                     Intensity = component.intensity,
                     Range = component.range,
@@ -320,7 +321,7 @@ namespace KarlsonMapEditor
             }
             else if (obj.data.Type == ObjectType.Text)
             {
-                TextMesh component = obj.go.GetComponent<TextMesh>();
+                TextMeshPro component = obj.go.GetComponent<TextMeshPro>();
                 TextDisplay = new MapText
                 {
                     Text = component.text,
@@ -389,7 +390,7 @@ namespace KarlsonMapEditor
             else if (TypeCase == TypeOneofCase.Light)
             {
                 levelObject.Type = ObjectType.Light;
-                levelObject.LightType = (LightType)Light.LightType;
+                levelObject.LightType = Light.SpotLight ? LightType.Spot : LightType.Point;
                 levelObject.Color = Light.Tint;
                 levelObject.Intensity = Light.Intensity;
                 levelObject.Range = Light.Range;

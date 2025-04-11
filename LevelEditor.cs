@@ -21,6 +21,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Google.Protobuf;
 using System.Buffers;
+using TMPro;
 
 namespace KarlsonMapEditor
 {
@@ -1096,7 +1097,25 @@ namespace KarlsonMapEditor
 
                         Light light = selected.go.GetComponent<Light>();
 
-                        ColorButton(light.color, delegate (Color c) { light.color = c; }, 140);
+                        light.type = GUILayout.Toggle(light.type == LightType.Spot, "Spot Light") ? LightType.Spot : LightType.Point;
+                        selected.data.LightType = light.type;
+
+                        ColorButton(light.color, delegate (Color c) { light.color = c; selected.data.Color = c; }, 140);
+                        
+                        GUILayout.Label("Intensity");
+                        light.intensity = float.Parse(GUILayout.TextField(light.intensity.ToString()));
+                        selected.data.Intensity = light.intensity;
+
+                        GUILayout.Label("Range");
+                        light.range = float.Parse(GUILayout.TextField(light.range.ToString()));
+                        selected.data.Range = light.range;
+
+                        if (light.type == LightType.Spot)
+                        {
+                            GUILayout.Label("Spot Angle");
+                            light.spotAngle = GUILayout.HorizontalSlider(light.spotAngle, 0, 180);
+                        }
+
                         GUILayout.EndVertical();
                         GUILayout.EndArea();
                     }
@@ -1105,10 +1124,12 @@ namespace KarlsonMapEditor
                         GUILayout.BeginArea(new Rect(5, 165, 300, 400));
                         GUILayout.BeginVertical();
 
-                        TextMesh textMesh = selected.go.GetComponent<TextMesh>();
+                        TextMeshPro tmp = selected.go.GetComponent<TextMeshPro>();
 
-                        textMesh.text = GUILayout.TextField(textMesh.text);
-                        ColorButton(textMesh.color, delegate (Color c) { textMesh.color = c; }, 140);
+                        tmp.text = GUILayout.TextField(tmp.text);
+                        selected.data.Text = tmp.text;
+
+                        ColorButton(tmp.color, delegate (Color c) { tmp.color = c; selected.data.Color = c; }, 140);
 
                         GUILayout.EndVertical();
                         GUILayout.EndArea();
@@ -1813,16 +1834,31 @@ namespace KarlsonMapEditor
 
             public void MoveByGizmo(Vector3 delta)
             {
+                // global position
                 go.transform.position = preMove + delta;
-                if (gridAlign != 0) { aPosition = Vector3Extensions.SnapPos(aPosition, positionSnap, aRotation); }
-                data.Position = go.transform.localPosition;
+                if (gridAlign != 0)
+                {
+                    aPosition = Vector3Extensions.SnapPos(aPosition, positionSnap, aRotation);
+                    if (data.Type == ObjectType.Text)
+                    {
+                        // bring slightly forward to prevent z fighting
+                        aPosition -= go.transform.forward * 0.01f;
+                    }
+                }
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale = preScale + delta;
-                // only snap scale if it's geometry
-                if (gridAlign != 0 && (data.Type == ObjectType.Geometry)) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
-                data.Scale = go.transform.localScale;
+                if (data.Type == ObjectType.Internal) return;
+                
+                else if (data.Type == ObjectType.Text)
+                    // scale all dimensions by the same amount, so text isn't stretched
+                    aScale = preScale + (Vector3.one * (delta.x + delta.y + delta.z));
+                else
+                    aScale = preScale + delta;
+
+                // only snap scale for geometry and text objects
+                if (gridAlign != 0 && (data.Type == ObjectType.Geometry || data.Type == ObjectType.Text))
+                    aScale = Vector3Extensions.SnapScale(aScale, scaleSnap);
             }
             public void RotateByGizmo(Quaternion delta)
             {

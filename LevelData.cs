@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
+using TMPro;
 
 namespace KarlsonMapEditor
 {
@@ -46,7 +47,7 @@ namespace KarlsonMapEditor
 
     public class LevelData
     {
-        
+
         public LevelData(byte[] _data)
         {
             // decompress
@@ -469,9 +470,11 @@ namespace KarlsonMapEditor
                         break;
                     case ObjectType.Text:
                         go = new GameObject();
-                        TextMesh textMesh = go.AddComponent<TextMesh>();
-                        textMesh.text = Text;
-                        textMesh.color = Color;
+                        TextMeshPro tmp = go.AddComponent<TextMeshPro>();
+                        tmp.alignment = TextAlignmentOptions.Center;
+                        tmp.enableWordWrapping = false;
+                        tmp.text = Text;
+                        tmp.color = Color;
                         break;
                     default:
                         go = new GameObject();

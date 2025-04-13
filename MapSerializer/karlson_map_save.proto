@@ -106,6 +106,7 @@ message MapMaterial {
   // visual properties
   float metallic = 8;
   float smoothness = 9;
+  float bump_scale = 12; // for the normal map
   bool specular_highlight = 10;
   bool specular_reflection = 11;
 }

@@ -37,6 +37,7 @@ namespace KarlsonMapEditor
                     Albedo = material.color,
                     Smoothness = material.GetFloat("_Glossiness"),
                     Metallic = material.GetFloat("_Metallic"),
+                    BumpScale = material.GetFloat("_BumpScale"),
                     SpecularHighlight = material.GetFloat("_SpecularHighlights") != 0,
                     SpecularReflection = material.GetFloat("_GlossyReflections") != 0,
                     AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
@@ -109,6 +110,7 @@ namespace KarlsonMapEditor
                 material.color = mm.Albedo;
                 material.SetFloat("_Glossiness", mm.Smoothness);
                 material.SetFloat("_Metallic", mm.Metallic);
+                material.SetFloat("_BumpScale", mm.BumpScale);
                 material.SetFloat("_SpecularHighlights", mm.SpecularHighlight ? 1 : 0);
                 material.SetFloat("_GlossyReflections", mm.SpecularReflection ? 1 : 0);
                 material.mainTextureScale = mm.Scale;

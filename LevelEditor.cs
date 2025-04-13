@@ -182,7 +182,7 @@ namespace KarlsonMapEditor
                 if (c.gameObject != PlayerMovement.Instance.gameObject & c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
             // remove lights
             foreach (Light l in UnityEngine.Object.FindObjectsOfType<Light>())
-                if (l != RenderSettings.sun) UnityEngine.Object.Destroy(l.gameObject);
+                UnityEngine.Object.Destroy(l.gameObject);
 
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             PlayerMovement.Instance.gameObject.GetComponent<Rigidbody>().useGravity = false; //eh
@@ -389,6 +389,48 @@ namespace KarlsonMapEditor
                 UpdateSourceColor = updateSource;
             }
         }
+        private static readonly Dictionary<string, string> textFieldsTexts = new Dictionary<string, string>();
+        private static readonly Dictionary<string, float> textFieldsValues = new Dictionary<string, float>();
+        private static void FloatField(string key, ref float source, int width = 50, int height = 20)
+        {
+            if ((!textFieldsValues.ContainsKey(key)) || textFieldsValues[key] != source)
+            {
+                textFieldsValues[key] = source;
+                textFieldsTexts[key] = source.ToString();
+            }
+            string oldText = textFieldsTexts[key];
+            string newText = GUILayout.TextField(oldText, GUILayout.Width(width), GUILayout.Height(height));
+            if (oldText != newText)
+            {
+                textFieldsTexts[key] = newText;
+                if (float.TryParse(newText, out float newValue) && newValue != source)
+                {
+                    textFieldsValues[key] = newValue;
+                    source = newValue;
+                    MarkAsModified();
+                }
+            }
+        }
+        private static void FloatField(string key, float source, Action<float> updateSource, int width = 50, int height = 20)
+        {
+            if (!textFieldsValues.ContainsKey(key) || textFieldsValues[key] != source)
+            {
+                textFieldsValues[key] = source;
+                textFieldsTexts[key] = source.ToString();
+            }
+            string oldText = textFieldsTexts[key];
+            string newText = GUILayout.TextField(oldText, GUILayout.Width(width), GUILayout.Height(height));
+            if (oldText != newText)
+            {
+                textFieldsTexts[key] = newText;
+                if (float.TryParse(newText, out float newValue) && newValue != source)
+                {
+                    textFieldsValues[key] = newValue;
+                    updateSource(newValue);
+                    MarkAsModified();
+                }
+            }
+        }
 
         public static void _ongui()
         {
@@ -529,7 +571,7 @@ namespace KarlsonMapEditor
 
             if (dd_level)
             {
-                GUI.Box(new Rect(100, 20, 300, 20), "");
+                GUI.Box(new Rect(100, 20, SelectedObject.Selected ? 600 : 300, 20), "");
                 if (!SelectedObject.Selected)
                 {
                     GUI.Label(new Rect(105, 20, 300, 20), "Select an Object / Object Group to spawn objects");
@@ -538,8 +580,9 @@ namespace KarlsonMapEditor
                 {
                     spawnPrefabDD.Draw(new Rect(100, 20, 150, 20));
 
-                    Vector3 spawnPos = PlayerMovement.Instance.gameObject.transform.position;
-                    if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, 1); }
+                    // local spawn Position
+                    Vector3 spawnPos = SelectedObject.Group.go.transform.worldToLocalMatrix.MultiplyPoint3x4(PlayerMovement.Instance.gameObject.transform.position);
+                    if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, positionSnap); }
                     if (spawnPrefabDD.Index != 0)
                     {
                         if ((PrefabType)(spawnPrefabDD.Index - 1) == PrefabType.Milk)
@@ -547,7 +590,7 @@ namespace KarlsonMapEditor
                             ObjectGroup container = new ObjectGroup("Prefab Container");
                             SelectedObject.Group.AddGroup(container);
                             new EditorObject(Vector3.zero, container, PrefabType.Milk);
-                            container.go.transform.position = spawnPos;
+                            container.aPosition = spawnPos;
                             SelectedObject.SelectGroup(container);
                         }
                         else
@@ -570,7 +613,7 @@ namespace KarlsonMapEditor
 
                     if (GUI.Button(new Rect(400, 20, 150, 20), "Spawn Light"))
                     {
-                        LevelData.LevelObject data = new LevelData.LevelObject() 
+                        LevelData.LevelObject data = new LevelData.LevelObject()
                         {
                             Type = ObjectType.Light,
                             LightType = LightType.Point,
@@ -578,7 +621,8 @@ namespace KarlsonMapEditor
                             Range = 10,
                             SpotAngle = 30,
                             Color = Color.white,
-                            Name = "Light Object"
+                            Name = "Light Object",
+                            Position = spawnPos,
                         };
                         SelectedObject.SelectObject(new EditorObject(data, SelectedObject.Group));
                     }
@@ -590,7 +634,8 @@ namespace KarlsonMapEditor
                             Type = ObjectType.Text,
                             Text = "",
                             Color = Color.black,
-                            Name = "Text Display Object"
+                            Name = "Text Display Object",
+                            Position = spawnPos,
                         };
 
                         SelectedObject.SelectObject(new EditorObject(data, SelectedObject.Group));
@@ -713,8 +758,13 @@ namespace KarlsonMapEditor
                 if (SelectedObject.Selected)
                     if (GUI.Button(new Rect(260, 20, 20, 20), "+"))
                     {
+                        Vector3 spawnPos = SelectedObject.Group.go.transform.worldToLocalMatrix.MultiplyPoint3x4(PlayerMovement.Instance.gameObject.transform.position);
+                        if (gridAlign != 0) { spawnPos = Vector3Extensions.Snap(spawnPos, positionSnap); }
+
                         MarkAsModified();
-                        SelectedObject.Group.AddGroup(new ObjectGroup());
+                        ObjectGroup g = new ObjectGroup();
+                        SelectedObject.Group.AddGroup(g);
+                        g.aPosition = spawnPos;
                         SelectedObject.SelectGroup(SelectedObject.Group.objectGroups.Last());
                         return;
                     }
@@ -790,10 +840,59 @@ namespace KarlsonMapEditor
                     }
                 }
 
+                
+                GUILayout.BeginArea(new Rect(5, 100, 300, 80));
+                GUILayout.BeginVertical();
+
+                float x, y, z;
+                // limit rotation if the object is not internal
+                bool fullRotation = !(SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type == ObjectType.Internal);
+                // only do scale if the object is an editor object that isn't a light
+                bool doScale = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type != ObjectType.Light;
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Pos:");
+                x = SelectedObject.Basic.aPosition.x;
+                y = SelectedObject.Basic.aPosition.y;
+                z = SelectedObject.Basic.aPosition.z;
+                FloatField("PosX", ref x);
+                FloatField("PosY", ref y);
+                FloatField("PosZ", ref z);
+                SelectedObject.Basic.aPosition = new Vector3(x, y, z);
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Rot:");
+                x = SelectedObject.Basic.aRotation.x;
+                y = SelectedObject.Basic.aRotation.y;
+                z = SelectedObject.Basic.aRotation.z;
+                if (fullRotation) FloatField("RotX", ref x);
+                FloatField("RotY", ref y);
+                if (fullRotation) FloatField("RotZ", ref z);
+                SelectedObject.Basic.aRotation = new Vector3(x, y, z);
+                GUILayout.EndHorizontal();
+
+                if (doScale)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Scale:");
+                    x = SelectedObject.Basic.aScale.x;
+                    y = SelectedObject.Basic.aScale.y;
+                    z = SelectedObject.Basic.aScale.z;
+                    FloatField("ScaleX", ref x);
+                    FloatField("ScaleY", ref y);
+                    FloatField("ScaleZ", ref z);
+                    SelectedObject.Basic.aScale = new Vector3(x, y, z);
+                    GUILayout.EndHorizontal();
+                }
+
+                GUILayout.EndVertical();
+                GUILayout.EndArea();
+                /*
                 GUI.BeginGroup(new Rect(5, 80, 300, 80));
                 GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
                 {
-                    float x = SelectedObject.Basic.aPosition.x, y = SelectedObject.Basic.aPosition.y, z = SelectedObject.Basic.aPosition.z;
+                    
                     x = float.Parse(GUI.TextField(new Rect(50, 20, 70, 20), x.ToString("0.00")));
                     y = float.Parse(GUI.TextField(new Rect(125, 20, 70, 20), y.ToString("0.00")));
                     z = float.Parse(GUI.TextField(new Rect(200, 20, 70, 20), z.ToString("0.00")));
@@ -804,7 +903,8 @@ namespace KarlsonMapEditor
                         SelectedObject.Basic.aPosition = newPos;
                     }
                 }
-                if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || (SelectedObject.Object.data.Type != ObjectType.Internal))
+                // if the selected object is not internal
+                if (!(SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Internal)))
                 {
                     GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
                     {
@@ -819,8 +919,8 @@ namespace KarlsonMapEditor
                             SelectedObject.Basic.aRotation = newRot;
                         }
                     }
-
-                    if (SelectedObject.Type == SelectedObject.SelectedType.ObjectGroup || SelectedObject.Object.data.Type != ObjectType.Light)
+                    // if the selected object is not a light
+                    if (!(SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type == ObjectType.Light))
                     GUI.Label(new Rect(0, 60, 50, 20), "Scale:");
                     {
                         float x = SelectedObject.Basic.aScale.x, y = SelectedObject.Basic.aScale.y, z = SelectedObject.Basic.aScale.z;
@@ -849,8 +949,8 @@ namespace KarlsonMapEditor
                     }
                 }
                 GUI.EndGroup();
+                */
 
-                
                 if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
                 {
                     EditorObject selected = SelectedObject.Object;
@@ -862,13 +962,11 @@ namespace KarlsonMapEditor
 
                         KMETextureScaling ts = selected.go.GetComponent<KMETextureScaling>();
 
-                        ts.Enabled = GUILayout.Toggle(ts.Enabled, "UV Normalize");
+                        ts.Enabled = GUILayout.Toggle(ts.Enabled, "UV Normalize", GUILayout.Width(150));
                         if (ts.Enabled)
                         {
-                            ts.Scale = float.Parse(GUILayout.TextField(ts.Scale.ToString("0.00")));
+                            FloatField("UVNormalizedScale", ts.Scale, delegate (float v) { ts.Scale = v; selected.data.UVNormalizedScale = ts.Scale; }, 100);
                         }
-                        selected.data.UVNormalizedScale = ts.Scale;
-
                         GUILayout.EndHorizontal();
 
                         GUIStyle matStyle = new GUIStyle();
@@ -988,14 +1086,18 @@ namespace KarlsonMapEditor
 
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Scale");
-                        textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
-                        textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
+                        FloatField("TextureScaleX", ref textureScale.x);
+                        FloatField("TextureScaleY", ref textureScale.y);
+                        //textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
+                        //textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
                         GUILayout.EndHorizontal();
 
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Offset");
-                        textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
-                        textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
+                        FloatField("TextureOffsetX", ref textureOffset.x);
+                        FloatField("TextureOffsetY", ref textureOffset.y);
+                        //textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
+                        //textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
                         GUILayout.EndHorizontal();
 
                         selectedMat.SetTextureScale("_MainTex", textureScale);
@@ -1090,7 +1192,7 @@ namespace KarlsonMapEditor
                         if (selected.data.MarkAsObject != bRes) { MarkAsModified(); selected.data.MarkAsObject = bRes; }
                     }
 
-                    else if (selected.data.Type == ObjectType.Light)
+                    if (selected.data.Type == ObjectType.Light)
                     {
                         GUILayout.BeginArea(new Rect(5, 165, 300, 400));
                         GUILayout.BeginVertical();
@@ -1103,12 +1205,14 @@ namespace KarlsonMapEditor
                         ColorButton(light.color, delegate (Color c) { light.color = c; selected.data.Color = c; }, 140);
                         
                         GUILayout.Label("Intensity");
-                        light.intensity = float.Parse(GUILayout.TextField(light.intensity.ToString()));
-                        selected.data.Intensity = light.intensity;
+                        FloatField("LightIntensity", light.intensity, delegate (float v) { light.intensity = v; selected.data.Intensity = light.intensity; });
+                        //light.intensity = float.Parse(GUILayout.TextField(light.intensity.ToString()));
+                        
 
                         GUILayout.Label("Range");
-                        light.range = float.Parse(GUILayout.TextField(light.range.ToString()));
-                        selected.data.Range = light.range;
+                        FloatField("LightRange", light.range, delegate (float v) { light.range = v; selected.data.Range = light.range; });
+                        //light.range = float.Parse(GUILayout.TextField(light.range.ToString()));
+                        
 
                         if (light.type == LightType.Spot)
                         {
@@ -1119,7 +1223,8 @@ namespace KarlsonMapEditor
                         GUILayout.EndVertical();
                         GUILayout.EndArea();
                     }
-                    else if (selected.data.Type == ObjectType.Text)
+
+                    if (selected.data.Type == ObjectType.Text)
                     {
                         GUILayout.BeginArea(new Rect(5, 165, 300, 400));
                         GUILayout.BeginVertical();
@@ -1204,7 +1309,14 @@ namespace KarlsonMapEditor
 
                         GUILayout.Label("Angle");
                         Vector2 sunAngle = (Vector2)sun.gameObject.transform.rotation.eulerAngles;
-                        sun.gameObject.transform.rotation = Quaternion.Euler(GUILayout.HorizontalSlider(((sunAngle.x + 90) % 360) - 90, -90, 90), GUILayout.HorizontalSlider(sunAngle.y, 0, 360), 0);
+                        sunAngle.x = ((sunAngle.x + 90) % 360) - 90;
+                        Vector2 newSunAngle = new Vector2(GUILayout.HorizontalSlider(sunAngle.x, -90, 90), GUILayout.HorizontalSlider(sunAngle.y, 0, 360));
+                        if (sunAngle != newSunAngle)
+                        {
+                            sun.gameObject.transform.rotation = Quaternion.Euler(newSunAngle.x, newSunAngle.y, 0);
+                            baker.UpdateEnvironment();
+                            MarkAsModified();
+                        }
                     }
                     else
                     {
@@ -1842,7 +1954,7 @@ namespace KarlsonMapEditor
                     if (data.Type == ObjectType.Text)
                     {
                         // bring slightly forward to prevent z fighting
-                        aPosition -= go.transform.forward * 0.01f;
+                        aPosition -= go.transform.forward * 0.001f;
                     }
                 }
             }

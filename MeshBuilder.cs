@@ -17,11 +17,7 @@ namespace KarlsonMapEditor
             GameObject go = new GameObject();
             go.layer = 9;
             go.AddComponent<MeshFilter>().mesh = mesh;
-            MeshRenderer mr = go.AddComponent<MeshRenderer>();
-            // possible save on performance since shadows are disabled anyways
-            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            mr.receiveShadows = false;
-
+            go.AddComponent<MeshRenderer>();
             go.AddComponent<KMETextureScaling>().Init();
 
             switch (shape)
@@ -457,13 +453,15 @@ namespace KarlsonMapEditor
 
         #region Gizmo Meshes
 
+        public static Shader gizmoShader;
+
         public static GameObject GetAxisGO(LevelEditor.GizmoMode mode)
         {
             Mesh mesh = AxisMeshes[(int)mode];
             GameObject go = new GameObject();
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             go.AddComponent<MeshCollider>().sharedMesh = mesh;
-            go.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Diffuse"));
+            go.AddComponent<MeshRenderer>().material = new Material(gizmoShader);
             return go;
         }
 

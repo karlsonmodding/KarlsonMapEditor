@@ -398,6 +398,7 @@ namespace KarlsonMapEditor
                 {
                     case ObjectType.Prefab:
                         go = MakePrefab(PrefabId);
+                        Scale = go.transform.localScale;
                         if (PrefabId == PrefabType.Enemey)
                         {
                             Enemy e = go.GetComponent<Enemy>();

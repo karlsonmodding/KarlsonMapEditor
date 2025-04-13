@@ -85,8 +85,9 @@ namespace KarlsonMapEditor
         }
 
         private static GUIStyle multiPick;
+        private static readonly GUIStyle noSpace = new GUIStyle() { border = new RectOffset(0, 0, 0, 0), normal = new GUIStyleState() { textColor = Color.white } };
         private static ColorPicker picker;
-
+        
         private static int[] wid;
         private static Rect[] wir;
         private static Rect[] wirInitial;
@@ -839,10 +840,9 @@ namespace KarlsonMapEditor
                         SelectedObject.Object.data.PrefabData = enemyGun.Index;
                     }
                 }
-
                 
                 GUILayout.BeginArea(new Rect(5, 100, 300, 80));
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(noSpace);
 
                 float x, y, z;
                 // limit rotation if the object is not internal
@@ -850,8 +850,8 @@ namespace KarlsonMapEditor
                 // only do scale if the object is an editor object that isn't a light
                 bool doScale = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type != ObjectType.Light;
 
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Pos:");
+                GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
+                GUILayout.Label("Pos:", GUILayout.Width(80));
                 x = SelectedObject.Basic.aPosition.x;
                 y = SelectedObject.Basic.aPosition.y;
                 z = SelectedObject.Basic.aPosition.z;
@@ -861,8 +861,8 @@ namespace KarlsonMapEditor
                 SelectedObject.Basic.aPosition = new Vector3(x, y, z);
                 GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Rot:");
+                GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
+                GUILayout.Label("Rot:", GUILayout.Width(80));
                 x = SelectedObject.Basic.aRotation.x;
                 y = SelectedObject.Basic.aRotation.y;
                 z = SelectedObject.Basic.aRotation.z;
@@ -874,8 +874,8 @@ namespace KarlsonMapEditor
 
                 if (doScale)
                 {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Scale:");
+                    GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
+                    GUILayout.Label("Scale:", GUILayout.Width(80));
                     x = SelectedObject.Basic.aScale.x;
                     y = SelectedObject.Basic.aScale.y;
                     z = SelectedObject.Basic.aScale.z;
@@ -885,72 +885,9 @@ namespace KarlsonMapEditor
                     SelectedObject.Basic.aScale = new Vector3(x, y, z);
                     GUILayout.EndHorizontal();
                 }
-
                 GUILayout.EndVertical();
                 GUILayout.EndArea();
-                /*
-                GUI.BeginGroup(new Rect(5, 80, 300, 80));
-                GUI.Label(new Rect(0, 20, 50, 20), "Pos:");
-                {
-                    
-                    x = float.Parse(GUI.TextField(new Rect(50, 20, 70, 20), x.ToString("0.00")));
-                    y = float.Parse(GUI.TextField(new Rect(125, 20, 70, 20), y.ToString("0.00")));
-                    z = float.Parse(GUI.TextField(new Rect(200, 20, 70, 20), z.ToString("0.00")));
-                    var newPos = new Vector3(x, y, z);
-                    if (newPos != SelectedObject.Basic.aPosition)
-                    {
-                        MarkAsModified();
-                        SelectedObject.Basic.aPosition = newPos;
-                    }
-                }
-                // if the selected object is not internal
-                if (!(SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Internal)))
-                {
-                    GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
-                    {
-                        float x = SelectedObject.Basic.aRotation.x, y = SelectedObject.Basic.aRotation.y, z = SelectedObject.Basic.aRotation.z;
-                        x = float.Parse(GUI.TextField(new Rect(50, 40, 70, 20), x.ToString("0.00")));
-                        y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
-                        z = float.Parse(GUI.TextField(new Rect(200, 40, 70, 20), z.ToString("0.00")));
-                        var newRot = new Vector3(x, y, z);
-                        if (SelectedObject.Basic.aRotation != newRot)
-                        {
-                            MarkAsModified();
-                            SelectedObject.Basic.aRotation = newRot;
-                        }
-                    }
-                    // if the selected object is not a light
-                    if (!(SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type == ObjectType.Light))
-                    GUI.Label(new Rect(0, 60, 50, 20), "Scale:");
-                    {
-                        float x = SelectedObject.Basic.aScale.x, y = SelectedObject.Basic.aScale.y, z = SelectedObject.Basic.aScale.z;
-                        x = float.Parse(GUI.TextField(new Rect(50, 60, 70, 20), x.ToString("0.00")));
-                        y = float.Parse(GUI.TextField(new Rect(125, 60, 70, 20), y.ToString("0.00")));
-                        z = float.Parse(GUI.TextField(new Rect(200, 60, 70, 20), z.ToString("0.00")));
-                        var newScale = new Vector3(x, y, z);
-                        if (SelectedObject.Basic.aScale != newScale)
-                        {
-                            MarkAsModified();
-                            SelectedObject.Basic.aScale = newScale;
-                        }
-                    }
-                }
-                else
-                {
-                    GUI.Label(new Rect(0, 40, 50, 20), "Rot:");
-                    {
-                        float y = SelectedObject.Basic.aRotation.y;
-                        y = float.Parse(GUI.TextField(new Rect(125, 40, 70, 20), y.ToString("0.00")));
-                        if (SelectedObject.Basic.aRotation.y != y)
-                        {
-                            MarkAsModified();
-                            SelectedObject.Basic.aRotation = new Vector3(0, y, 0);
-                        }
-                    }
-                }
-                GUI.EndGroup();
-                */
-
+                
                 if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject)
                 {
                     EditorObject selected = SelectedObject.Object;
@@ -969,19 +906,12 @@ namespace KarlsonMapEditor
                         }
                         GUILayout.EndHorizontal();
 
-                        GUIStyle matStyle = new GUIStyle();
-                        matStyle.padding.left = 0;
-                        matStyle.padding.right = 0;
-                        matStyle.padding.top = 2;
-                        matStyle.padding.bottom = 0;
-                        matStyle.normal.textColor = Color.white;
+                        GUILayout.BeginVertical(noSpace);
 
-                        GUILayout.BeginVertical(matStyle);
-
-                        GUILayout.Label("Material", matStyle);
+                        GUILayout.Label("Material", noSpace);
 
                         // material label and buttons
-                        GUILayout.BeginHorizontal(matStyle);
+                        GUILayout.BeginHorizontal(noSpace);
 
                         if (GUILayout.Button("New", GUILayout.Width(50)))
                         {
@@ -1013,19 +943,19 @@ namespace KarlsonMapEditor
                         GUILayout.EndHorizontal();
 
                         // material properties
-                        GUILayout.BeginHorizontal(matStyle);
+                        GUILayout.BeginHorizontal(noSpace);
 
                         // color and mat sliders
-                        GUILayout.BeginVertical(matStyle);
+                        GUILayout.BeginVertical(noSpace);
 
-                        GUILayout.BeginHorizontal(matStyle);
-                        GUILayout.Label("Color", matStyle);
+                        GUILayout.BeginHorizontal(noSpace);
+                        GUILayout.Label("Color", noSpace);
                         ColorButton(selectedMat.color, delegate (Color c) { selectedMat.color = c; }, 140);
                         GUILayout.EndHorizontal();
 
                         /* maybe later
-                        GUILayout.BeginHorizontal(matStyle);
-                        GUILayout.Label("Emission", matStyle);
+                        GUILayout.BeginHorizontal(noSpace);
+                        GUILayout.Label("Emission", noSpace);
                         ColorButton(selectedMat.GetColor("_EmissionColor"), delegate (Color c) { selectedMat.SetColor("_EmissionColor", c); });
                         GUILayout.EndHorizontal();
                         */
@@ -1034,7 +964,7 @@ namespace KarlsonMapEditor
 
                         int lastMode = (int)selectedMat.GetFloat("_Mode");
                         materialMode.Index = lastMode;
-                        Rect matModeRect = GUILayoutUtility.GetRect(120, 20, matStyle);
+                        Rect matModeRect = GUILayoutUtility.GetRect(120, 20, noSpace);
                         materialMode.Draw(matModeRect);
                         if (lastMode != materialMode.Index)
                         {
@@ -1045,15 +975,15 @@ namespace KarlsonMapEditor
                         Texture2D metalGlossTex = (Texture2D)selectedMat.GetTexture("_MetallicGlossMap");
                         if (metalGlossTex == null)
                         {
-                            GUILayout.Label("Smoothness", matStyle);
+                            GUILayout.Label("Smoothness", noSpace);
                             selectedMat.SetFloat("_Glossiness", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Glossiness"), 0, 1));
 
-                            GUILayout.Label("Metallic", matStyle);
+                            GUILayout.Label("Metallic", noSpace);
                             selectedMat.SetFloat("_Metallic", GUILayout.HorizontalSlider(selectedMat.GetFloat("_Metallic"), 0, 1));
                         }
                         if (normalTex != null)
                         {
-                            GUILayout.Label("Normal Scale", matStyle);
+                            GUILayout.Label("Normal Scale", noSpace);
                             selectedMat.SetFloat("_BumpScale", GUILayout.HorizontalSlider(selectedMat.GetFloat("_BumpScale"), 0, 5));
                         }
 
@@ -1079,7 +1009,7 @@ namespace KarlsonMapEditor
                         }
 
                         // scale and offset
-                        GUILayout.Label("Texture Mapping", matStyle);
+                        GUILayout.Label("Texture Mapping", noSpace);
 
                         Vector2 textureScale = selectedMat.GetTextureScale("_MainTex");
                         Vector2 textureOffset = selectedMat.GetTextureOffset("_MainTex");
@@ -1111,12 +1041,12 @@ namespace KarlsonMapEditor
                         GUILayout.Space(4);
 
                         // textures
-                        GUILayout.BeginVertical(matStyle);
+                        GUILayout.BeginVertical(noSpace);
 
                         // image
                         const int imageButtonSize = 75;
-                        GUILayout.Label("Main Texture", matStyle);
-                        if (GUILayout.Button(selectedMat.mainTexture, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                        GUILayout.Label("Main Texture", noSpace);
+                        if (GUILayout.Button(selectedMat.mainTexture, noSpace, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                         {
                             tex_browser_enabled = true;
                             MaterialManager.SelectedTexture = (Texture2D)selectedMat.mainTexture;
@@ -1125,7 +1055,7 @@ namespace KarlsonMapEditor
 
                         if (GUILayout.Toggle(normalTex != null, "Normal Map"))
                         {
-                            if (normalTex == null || GUILayout.Button(normalTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                            if (normalTex == null || GUILayout.Button(normalTex, noSpace, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                             {
                                 tex_browser_enabled = true;
                                 MaterialManager.SelectedTexture = normalTex;
@@ -1145,7 +1075,7 @@ namespace KarlsonMapEditor
 
                         if (GUILayout.Toggle(metalGlossTex != null, "Metal & Gloss"))
                         {
-                            if (metalGlossTex == null || GUILayout.Button(metalGlossTex, matStyle, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
+                            if (metalGlossTex == null || GUILayout.Button(metalGlossTex, noSpace, GUILayout.Width(imageButtonSize), GUILayout.Height(imageButtonSize)))
                             {
                                 tex_browser_enabled = true;
                                 MaterialManager.SelectedTexture = metalGlossTex;

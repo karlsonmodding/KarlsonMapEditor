@@ -410,7 +410,7 @@ namespace KarlsonMapEditor
                 }
             }
 
-            public GameObject LoadObject(GameObject parent, bool playMode)
+            public GameObject LoadObject(GameObject parent, bool playMode, bool originalScale = false)
             {
                 GameObject go;
                 
@@ -418,9 +418,8 @@ namespace KarlsonMapEditor
                 {
                     case ObjectType.Prefab:
                         go = MakePrefab(PrefabId);
-                        Scale = go.transform.localScale;
-                        if (PrefabId == PrefabType.Enemy)
-                            setGun(go);
+                        if (originalScale) Scale = go.transform.localScale;
+                        if (PrefabId == PrefabType.Enemy) setGun(go);
                         if (!playMode && go.GetComponent<Rigidbody>() != null)
                             go.GetComponent<Rigidbody>().isKinematic = true;
                         break;

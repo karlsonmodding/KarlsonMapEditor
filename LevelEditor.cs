@@ -1757,18 +1757,18 @@ namespace KarlsonMapEditor
         public class EditorObject : IBasicProperties
         {
             // main constructor
-            public EditorObject(LevelData.LevelObject playObj, ObjectGroup group)
+            public EditorObject(LevelData.LevelObject playObj, ObjectGroup group, bool newObject = false)
             {
                 group.editorObjects.Add(this);
                 data = playObj;
-                go = data.LoadObject(group.go, false);
+                go = data.LoadObject(group.go, false, newObject);
                 go.AddComponent<KME_Object>();
             }
 
             // create new geometry
-            public EditorObject(Vector3 position, ObjectGroup group, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, "Geometry Object", 6, Color.white, false, false, false, false, false, shape), group) { }
+            public EditorObject(Vector3 position, ObjectGroup group, GeometryShape shape = GeometryShape.Cube) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, "Geometry Object", 6, Color.white, false, false, false, false, false, shape), group, true) { }
             // create new prefab
-            public EditorObject(Vector3 position, ObjectGroup group, PrefabType _prefabId) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, _prefabId.ToString(), _prefabId, 0), group) { }
+            public EditorObject(Vector3 position, ObjectGroup group, PrefabType _prefabId) : this(new LevelData.LevelObject(position, Vector3.zero, Vector3.one, _prefabId.ToString(), _prefabId, 0), group, true) { }
             
             // create player spawn
             public EditorObject(Vector3 pos, float orientation)

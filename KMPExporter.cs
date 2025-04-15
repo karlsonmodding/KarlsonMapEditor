@@ -69,7 +69,7 @@ namespace KarlsonMapEditor
                 }
                 int internalCount = 0;
                 foreach (var obj in objects)
-                    if (obj.internalObject || obj.go.name.StartsWith("!KMP") || obj.data.IsPrefab) internalCount++;
+                    if (obj.data.Type != ObjectType.Geometry || obj.go.name.StartsWith("!KMP")) internalCount++;
                 bw.Write(objects.Count - internalCount);
                 foreach (var obj in objects)
                 {
@@ -83,8 +83,8 @@ namespace KarlsonMapEditor
                         kmp_data[key].Add((value, obj.go.transform.position, obj.go.transform.rotation.eulerAngles));
                         continue;
                     }
-                    if (obj.internalObject || obj.data.IsPrefab) continue;
-                    bw.Write(obj.data.IsPrefab);
+                    if (obj.data.Type != ObjectType.Geometry) continue;
+                    bw.Write(obj.data.Type == ObjectType.Prefab);
                     bw.Write(base64(objid++));
                     bw.Write("");
                     /*if (obj.data.IsPrefab) // prefabs are not supported by kmp

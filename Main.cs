@@ -17,6 +17,8 @@ namespace KarlsonMapEditor
 {
     public class Main : Mod
     {
+        public const string Version = "4.1";
+
         public override void OnEnable()
         {
             prefs = Preferences.GetPreferences();
@@ -102,6 +104,7 @@ namespace KarlsonMapEditor
             LevelEditor.ProceduralSkybox = LoadAsset<Material>("SkyboxProcedural");
             LevelEditor.SixSidedSkybox = LoadAsset<Material>("SkyboxSixSided");
             LevelEditor.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
+            MeshBuilder.gizmoShader = LoadAsset<Shader>("GizmoShader");
 
             if (!DiscordAPI.HasDiscord)
                 Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");

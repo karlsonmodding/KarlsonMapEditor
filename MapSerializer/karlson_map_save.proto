@@ -47,6 +47,19 @@ message MapPrefab {
 
 message MapGroup { repeated MapObject children = 1; }
 
+message MapLight {
+  bool spot_light = 1;
+  repeated float tint_color = 2;
+  float intensity = 3;
+  float range = 4;
+  float spot_angle = 5; // only used in spot lights
+}
+
+message MapText {
+  string text = 1;
+  repeated float shade_color = 2;
+}
+
 message MapObject {
   string name = 1;
 
@@ -60,6 +73,8 @@ message MapObject {
     MapGeometry geometry = 5;
     MapPrefab prefab = 6;
     MapGroup group = 7;
+    MapLight light = 8;
+    MapText text_display = 9;
   }
 }
 
@@ -91,6 +106,7 @@ message MapMaterial {
   // visual properties
   float metallic = 8;
   float smoothness = 9;
+  float bump_scale = 12; // for the normal map
   bool specular_highlight = 10;
   bool specular_reflection = 11;
 }

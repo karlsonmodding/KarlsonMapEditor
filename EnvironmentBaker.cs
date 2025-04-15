@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,14 +22,16 @@ namespace KarlsonMapEditor
             cubemap = new Cubemap(baker.resolution, baker.hdr ? TextureFormat.RGBAHalf : TextureFormat.RGBA32, true);
 
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
-            StartCoroutine(UpdateEnvironmentCoroutine());
+            UpdateEnvironment();
         }
 
         private IEnumerator UpdateEnvironmentCoroutine()
         {
             DynamicGI.UpdateEnvironment();
-            baker.RenderProbe();
-            yield return new WaitForEndOfFrame();
+            int id = baker.RenderProbe();
+
+            while (!baker.IsFinishedRendering(id))
+                yield return new WaitForEndOfFrame();
 
             Graphics.CopyTexture(baker.texture, cubemap);
             RenderSettings.customReflection = cubemap;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
+using TMPro;
 
 namespace KarlsonMapEditor
 {
@@ -36,6 +37,7 @@ namespace KarlsonMapEditor
                     Albedo = material.color,
                     Smoothness = material.GetFloat("_Glossiness"),
                     Metallic = material.GetFloat("_Metallic"),
+                    BumpScale = material.GetFloat("_BumpScale"),
                     SpecularHighlight = material.GetFloat("_SpecularHighlights") != 0,
                     SpecularReflection = material.GetFloat("_GlossyReflections") != 0,
                     AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
@@ -108,6 +110,7 @@ namespace KarlsonMapEditor
                 material.color = mm.Albedo;
                 material.SetFloat("_Glossiness", mm.Smoothness);
                 material.SetFloat("_Metallic", mm.Metallic);
+                material.SetFloat("_BumpScale", mm.BumpScale);
                 material.SetFloat("_SpecularHighlights", mm.SpecularHighlight ? 1 : 0);
                 material.SetFloat("_GlossyReflections", mm.SpecularReflection ? 1 : 0);
                 material.mainTextureScale = mm.Scale;
@@ -241,6 +244,24 @@ namespace KarlsonMapEditor
         }
     }
 
+    public partial class MapLight
+    {
+        public Color Tint
+        {
+            get { return LevelSerializer.ReadColor(TintColor); }
+            set { LevelSerializer.WriteColor(value, TintColor); }
+        }
+    }
+
+    public partial class MapText
+    {
+        public Color Shade
+        {
+            get { return LevelSerializer.ReadColor(ShadeColor); }
+            set { LevelSerializer.WriteColor(value, ShadeColor); }
+        }
+    }
+
     public partial class MapObject
     {
         // recursive function to save all children of this object group
@@ -256,7 +277,7 @@ namespace KarlsonMapEditor
             }
             foreach (EditorObject childObject in group.editorObjects)
             {
-                if (childObject.internalObject) continue;
+                if (childObject.data.Type == ObjectType.Internal) continue;
                 MapObject mo = new MapObject();
                 mo.SaveEditorObject(childObject);
                 Group.Children.Add(mo);
@@ -266,7 +287,7 @@ namespace KarlsonMapEditor
         public void SaveEditorObject(EditorObject obj)
         {
             SaveBasicObject(obj);
-            if (obj.data.IsPrefab) // prefab
+            if (obj.data.Type == ObjectType.Prefab)
             {
                 Prefab = new MapPrefab
                 {
@@ -274,7 +295,7 @@ namespace KarlsonMapEditor
                     PrefabData = obj.data.PrefabData
                 };
             }
-            else // geometry
+            else if (obj.data.Type == ObjectType.Geometry)
             {
                 Geometry = new MapGeometry
                 {
@@ -286,6 +307,27 @@ namespace KarlsonMapEditor
                     Glass = obj.data.Glass,
                     Lava = obj.data.Lava,
                     ObjectLayer = obj.data.MarkAsObject
+                };
+            }
+            else if (obj.data.Type == ObjectType.Light)
+            {
+                Light component = obj.go.GetComponent<Light>();
+                Light = new MapLight
+                {
+                    SpotLight = component.type == LightType.Spot,
+                    Tint = component.color,
+                    Intensity = component.intensity,
+                    Range = component.range,
+                    SpotAngle = component.spotAngle,
+                };
+            }
+            else if (obj.data.Type == ObjectType.Text)
+            {
+                TextMeshPro component = obj.go.GetComponent<TextMeshPro>();
+                TextDisplay = new MapText
+                {
+                    Text = component.text,
+                    Shade = component.color,
                 };
             }
         }
@@ -332,13 +374,13 @@ namespace KarlsonMapEditor
             };
             if (TypeCase == TypeOneofCase.Prefab)
             {
-                levelObject.IsPrefab = true;
+                levelObject.Type = ObjectType.Prefab;
                 levelObject.PrefabId = (PrefabType)Prefab.PrefabType;
                 levelObject.PrefabData = Prefab.PrefabData;
             }
-            if (TypeCase == TypeOneofCase.Geometry)
+            else if (TypeCase == TypeOneofCase.Geometry)
             {
-                levelObject.IsPrefab = false;
+                levelObject.Type = ObjectType.Geometry;
                 levelObject.ShapeId = (GeometryShape)Geometry.Shape;
                 levelObject.MaterialId = Geometry.MaterialId;
                 levelObject.UVNormalizedScale = Geometry.UvNormalizedScale;
@@ -347,7 +389,22 @@ namespace KarlsonMapEditor
                 levelObject.Lava = Geometry.Lava;
                 levelObject.MarkAsObject = Geometry.ObjectLayer;
             }
-            
+            else if (TypeCase == TypeOneofCase.Light)
+            {
+                levelObject.Type = ObjectType.Light;
+                levelObject.LightType = Light.SpotLight ? LightType.Spot : LightType.Point;
+                levelObject.Color = Light.Tint;
+                levelObject.Intensity = Light.Intensity;
+                levelObject.Range = Light.Range;
+                levelObject.SpotAngle = Light.SpotAngle;
+            }
+            else if (TypeCase == TypeOneofCase.TextDisplay)
+            {
+                levelObject.Type = ObjectType.Text;
+                levelObject.Text = TextDisplay.Text;
+                levelObject.Color = TextDisplay.Shade;
+            }
+
             return levelObject;
         }
 

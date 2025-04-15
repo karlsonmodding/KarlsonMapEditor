@@ -22,7 +22,7 @@ namespace KarlsonMapEditor
         {
             get { if (_enabled) return _scale; else return 0; }
             set {
-                if (value == 0) { Enabled = false; return; }
+                if (value == 0) return;
                 if (_scale == value) return;
                 _scale = value;
                 if (_enabled) UpdateUVs();

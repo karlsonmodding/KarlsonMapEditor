@@ -15,7 +15,7 @@ namespace KarlsonMapEditor
         {
             Mesh mesh = GeometryMeshes[(int)shape];
             GameObject go = new GameObject();
-            go.layer = 9;
+            go.layer = LayerMask.NameToLayer("Ground");
             go.AddComponent<MeshFilter>().mesh = mesh;
             go.AddComponent<MeshRenderer>();
             go.AddComponent<KMETextureScaling>().Init();

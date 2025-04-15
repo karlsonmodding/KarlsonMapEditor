@@ -830,14 +830,16 @@ namespace KarlsonMapEditor
                     SelectedObject.Identify();
                 if (GUI.Button(new Rect(245, 40, 50, 20), "Find")) { PlayerMovement.Instance.gameObject.transform.position = SelectedObject.Basic.worldPos + Camera.main.transform.forward * -5f; SelectedObject.Identify(); }
 
-                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.PrefabId == PrefabType.Enemey)
+                if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.PrefabId == PrefabType.Enemy)
                 {
                     GUI.Label(new Rect(5, 60, 40, 20), "Gun");
+                    enemyGun.Index = SelectedObject.Object.data.PrefabData;
                     enemyGun.Draw(new Rect(35, 60, 100, 20));
                     if (SelectedObject.Object.data.PrefabData != enemyGun.Index)
                     {
                         MarkAsModified();
                         SelectedObject.Object.data.PrefabData = enemyGun.Index;
+                        SelectedObject.Object.data.setGun(SelectedObject.Object.go);
                     }
                 }
                 
@@ -1179,7 +1181,7 @@ namespace KarlsonMapEditor
                 }
                 else
                 {
-                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Prefab) && SelectedObject.Object.data.PrefabId == PrefabType.Enemey) // only draw, so it appears on top
+                    if (SelectedObject.Type == SelectedObject.SelectedType.EditorObject && (SelectedObject.Object.data.Type == ObjectType.Prefab) && SelectedObject.Object.data.PrefabId == PrefabType.Enemy) // only draw, so it appears on top
                         enemyGun.Draw(new Rect(35, 60, 100, 20));
                     // for some reason, the first button rendered takes priority over the mouse click
                     // even if it is below .. idk
@@ -1678,11 +1680,7 @@ namespace KarlsonMapEditor
                 ObjectGroup objGroup = new ObjectGroup(group, parentGroup);
                 // load objects
                 foreach (var obj in group.Objects)
-                {
-                    EditorObject eo = new EditorObject(obj, objGroup);
-                    Loadson.Console.Log("position: " + eo.go.transform.position.ToString());
-                }
-
+                    new EditorObject(obj, objGroup);
                 // load sub groups
                 foreach(var grp in group.Groups)
                     ReplicateObjectGroup(grp, objGroup);

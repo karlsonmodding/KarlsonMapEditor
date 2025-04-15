@@ -42,7 +42,7 @@ namespace KarlsonMapEditor
         Locker,
         Screen,
         Milk,
-        Enemey
+        Enemy
     }
 
     public class LevelData
@@ -353,10 +353,6 @@ namespace KarlsonMapEditor
             public PrefabType PrefabId;
             public int PrefabData;
 
-            // ai pathfinding fix
-            public GameObject _enemyFix;
-            public float _enemyFixY;
-
             // geometry specific
             public GeometryShape ShapeId;
             public int MaterialId;
@@ -390,6 +386,29 @@ namespace KarlsonMapEditor
                 return st;
             }
 
+            private System.Reflection.MethodInfo GiveGun = typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            public void setGun(GameObject go)
+            {
+                if (Type != ObjectType.Prefab || PrefabId != PrefabType.Enemy) return;
+                Enemy e = go.GetComponent<Enemy>();
+                if (e == null) return;
+
+                if (e.currentGun != null)
+                {
+                    Object.Destroy(e.currentGun);
+                    e.currentGun = null;
+                }
+                if (PrefabData != 0)
+                {
+                    PrefabType gun = (PrefabType)(PrefabData - 1);
+                    e.startGun = MakePrefab(gun);
+                    GiveGun.Invoke(e, null);
+
+                    Object.Destroy(e.startGun);
+                    e.startGun = null;
+                }
+            }
+
             public GameObject LoadObject(GameObject parent, bool playMode)
             {
                 GameObject go;
@@ -399,16 +418,13 @@ namespace KarlsonMapEditor
                     case ObjectType.Prefab:
                         go = MakePrefab(PrefabId);
                         Scale = go.transform.localScale;
-                        if (PrefabId == PrefabType.Enemey)
+                        if (PrefabId == PrefabType.Enemy)
                         {
-                            Enemy e = go.GetComponent<Enemy>();
-                            if (PrefabData != 0)
-                            {
-                                e.startGun = MakePrefab((PrefabType)(PrefabData - 1));
-                                typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(e, Array.Empty<object>());
-                            }
+                            Loadson.Console.Log("giving gun");
+                            setGun(go);
                         }
-                        if (playMode && go.GetComponent<Rigidbody>() != null)
+                            
+                        if (!playMode && go.GetComponent<Rigidbody>() != null)
                             go.GetComponent<Rigidbody>().isKinematic = true;
                         break;
                     case ObjectType.Geometry:
@@ -486,6 +502,7 @@ namespace KarlsonMapEditor
                 go.transform.localPosition = Position;
                 go.transform.localRotation = Quaternion.Euler(Rotation);
                 go.transform.localScale = Scale;
+                if (playMode && Type == ObjectType.Prefab) go.transform.SetParent(null, true);
                 return go;
             }
         }
@@ -547,7 +564,7 @@ namespace KarlsonMapEditor
                     return LoadsonAPI.PrefabManager.NewScreen();
                 case PrefabType.Milk:
                     return LoadsonAPI.PrefabManager.NewMilk();
-                case PrefabType.Enemey:
+                case PrefabType.Enemy:
                     return LoadsonAPI.PrefabManager.NewEnemy();
                 default:
                     return null;

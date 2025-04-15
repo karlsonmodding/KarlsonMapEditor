@@ -9,12 +9,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static KarlsonMapEditor.LevelEditor;
 
 namespace KarlsonMapEditor
@@ -26,8 +29,7 @@ namespace KarlsonMapEditor
         private static LevelData levelData;
         private static Automata.Backbone.FunctionRunner mainFunction = null;
         public static ScriptRunner currentScript { get; private set; } = null;
-        private static bool dirtyNavMesh;
-        private static bool needsNavMesh;
+        public static NavMeshData navData;
 
         static void LoadScript()
         {
@@ -49,37 +51,101 @@ namespace KarlsonMapEditor
             currentLevel = name;
             levelData = new LevelData(data);
             LoadScript();
-            dirtyNavMesh = true;
-            needsNavMesh = false;
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
         }
 
-        public static void GenerateNavMesh()
+        // recursively get bounds of colliders under this transform
+        public static void GetBounds(Transform t, ref Bounds b)
         {
-            if (dirtyNavMesh && needsNavMesh)
+            Collider coll = t.GetComponent<Collider>();
+            if (coll)
             {
-                GameObject navmeshGO = new GameObject("NavMesh Surface");
-                navmeshGO.transform.position = levelData.startPosition;
-                var navmeshs = navmeshGO.AddComponent<NavMeshSurface>();
-                navmeshs.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-                navmeshs.collectObjects = CollectObjects.All;
-                navmeshs.BuildNavMesh();
-                Loadson.Console.Log("navmesh pos: " + navmeshs.navMeshData.position);
+                // encapsulate the world-space bounds of the object
+                Vector3 corner = t.rotation * Vector3.Scale(coll.bounds.extents, t.lossyScale);
+                Bounds objectBounds = new Bounds(t.position, Vector3.Max(corner, corner));
+
+                b.Encapsulate(objectBounds);
             }
-            dirtyNavMesh = false;
+            
+            for (int i = 0; i < t.childCount; i++)
+                GetBounds(t.GetChild(i), ref b);
+        }
+        
+        // generate a navigation mesh for Enemy AI
+        public static void GenerateNavMesh(Transform sourceRoot)
+        {
+            Loadson.Console.Log("making nav mesh");
+
+            // set up navigation settings
+            NavMeshBuildSettings settings = new NavMeshBuildSettings();
+            settings.agentRadius = 1.5f;
+            settings.agentHeight = 6f;
+            settings.agentSlope = 45;
+            settings.agentClimb = 0.75f;
+            settings.minRegionArea = 2f;
+
+            // find the bounds
+            Bounds navBounds = new Bounds();
+            GetBounds(sourceRoot, ref navBounds);
+
+            // get geometry sources
+            List<NavMeshBuildMarkup> navMeshBuildMarkups = new List<NavMeshBuildMarkup>();
+            List<NavMeshBuildSource> navMeshBuildSources = new List<NavMeshBuildSource>();
+            NavMeshBuilder.CollectSources(
+                sourceRoot,
+                LayerMask.GetMask("Ground"),
+                NavMeshCollectGeometry.PhysicsColliders,
+                NavMesh.GetAreaFromName("Walkable"),
+                navMeshBuildMarkups,
+                navMeshBuildSources
+                );
+            
+            // create nav mesh data
+            navData = NavMeshBuilder.BuildNavMeshData(
+                settings,
+                navMeshBuildSources,
+                navBounds,
+                Vector3.zero,
+                Quaternion.identity
+                );
+        }
+
+        // the scene for escape0 is loaded
+        // this method removes all escape0-specific data after loading it
+        public static void PrepareLevel()
+        {
+            NavMesh.RemoveAllNavMeshData();
+
+            string[] removeNames = new string[] { "Table", "Locker", "Cube", "Enemy", "Barrel", "Enemy", "Door", "GroundCheck" };
+            foreach (GameObject go in UnityEngine.Object.FindObjectsOfType<GameObject>())
+            {
+                if (go == PlayerMovement.Instance.gameObject || go.GetComponent<DetectWeapons>()) continue;
+                // remove objects with colliders and lights
+                if (go.GetComponent<Collider>() || go.GetComponent<Light>())
+                {
+                    go.SetActive(false);
+                    Object.Destroy(go);
+                    continue;
+                }
+                // remove specific named objects
+                foreach (string s in removeNames)
+                {
+                    if (go.name.StartsWith(s))
+                    {
+                        go.SetActive(false);
+                        Object.Destroy(go);
+                        continue;
+                    }
+                }
+            }
         }
 
         public static void LoadLevelData(Scene arg0, LoadSceneMode arg1)
         {
-            Loadson.Console.Log("loading level data...");
+            PrepareLevel();
 
-            // remove objects with colliders
-            foreach (Collider c in UnityEngine.Object.FindObjectsOfType<Collider>())
-                if (c.gameObject != PlayerMovement.Instance.gameObject && c.gameObject.GetComponent<DetectWeapons>() == null) UnityEngine.Object.Destroy(c.gameObject);
-            // remove lights
-            foreach (Light l in UnityEngine.Object.FindObjectsOfType<Light>())
-                if (l != RenderSettings.sun) UnityEngine.Object.Destroy(l.gameObject);
+            Loadson.Console.Log("loading level data...");
 
             // set up materials for geometry objects
             levelData.SetupMaterials();
@@ -101,53 +167,29 @@ namespace KarlsonMapEditor
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
 
-            List<LevelData.LevelObject> enemyToFix = new List<LevelData.LevelObject>();
+            List<LevelData.LevelObject> enemyObj = new List<LevelData.LevelObject>();
+            List<GameObject> enemyGroup = new List<GameObject>();
+
             void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
             {
+                // set up this group
                 GameObject objGroup = group.LoadObject(parentObject);
-
-                foreach (var obj in group.Objects)
-                {
-                    GameObject go = obj.LoadObject(objGroup, true);
-
-                    // fix enemies
-                    if ((obj.Type == ObjectType.Prefab) && (obj.PrefabId == PrefabType.Enemey))
-                    {
-                        needsNavMesh = true;
-                        enemyToFix.Add(obj);
-                        obj._enemyFixY = go.transform.position.y;
-                        Enemy e = go.GetComponent<Enemy>();
-                        if (obj.PrefabData != 0)
-                        {
-                            go.GetComponent<NavMeshAgent>().enabled = true;
-                            go.GetComponent<NavMeshAgent>().enabled = false;
-                            go.GetComponent<NavMeshAgent>().enabled = true;
-                        }
-                        obj._enemyFix = go;
-                    }
-                }
+                // load objects
+                foreach (LevelData.LevelObject obj in group.Objects)
+                    obj.LoadObject(objGroup, true);
+                // load sub groups
                 foreach (var grp in group.Groups)
                     ReplicateObjectGroup(grp, objGroup);
             }
+
+            GameObject root = new GameObject("Static Root");
+            ReplicateObjectGroup(levelData.GlobalObject, root);
+
+            // set up nav mesh data
+            if (navData == null)
+                GenerateNavMesh(root.transform);
+            NavMesh.AddNavMeshData(navData);
             
-            ReplicateObjectGroup(levelData.GlobalObject, null);
-
-            GenerateNavMesh();
-            IEnumerator enemyFix()
-            {
-                yield return new WaitForEndOfFrame();
-                foreach (var obj in enemyToFix)
-                {
-                    if (obj.PrefabId == PrefabType.Enemey)
-                    {
-                        float deltaY = obj._enemyFix.GetComponent<NavMeshAgent>().nextPosition.y - obj._enemyFixY;
-                        Loadson.Console.Log("delta: " + deltaY);
-                        obj._enemyFix.AddComponent<Enemy_ProjectPos>().delta = deltaY;
-                    }
-                }
-            }
-            Coroutines.StartCoroutine(enemyFix());
-
             // load script
             if (mainFunction != null)
                 currentScript = new ScriptRunner(mainFunction);

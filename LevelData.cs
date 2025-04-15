@@ -453,11 +453,11 @@ namespace KarlsonMapEditor
                                 // fix particle system
                                 ParticleSystem ps = newGlass.glass.GetComponent<ParticleSystem>();
                                 ParticleSystem.ShapeModule shape = ps.shape;
-                                shape.scale = go.transform.lossyScale;
-                                float volume = (shape.scale.x * shape.scale.y * shape.scale.z);
+                                shape.scale = Scale;
+                                shape.rotation = Rotation;
+                                float volume = shape.scale.x * shape.scale.y * shape.scale.z;
                                 ParticleSystem.MainModule main = ps.main;
                                 main.maxParticles = Math.Max((int)(1000f * volume / 160f), 1);
-                                main.startSpeed = 0.5f;
                             }
                             // set up deadly lava
                             else if (Lava)

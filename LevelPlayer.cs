@@ -1,24 +1,10 @@
 ﻿using HarmonyLib;
 using KarlsonMapEditor.Scripting_API;
-using Loadson;
-using LoadsonAPI;
-using SevenZip.Compression.LZMA;
-using System;
-using System.CodeDom;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using static KarlsonMapEditor.LevelEditor;
 
 namespace KarlsonMapEditor
 {
@@ -50,6 +36,7 @@ namespace KarlsonMapEditor
             Loadson.Console.Log("setting up level player");
             currentLevel = name;
             levelData = new LevelData(data);
+            navData = null;
             LoadScript();
             SceneManager.sceneLoaded += LoadLevelData;
             UnityEngine.Object.FindObjectOfType<Lobby>().LoadMap("4Escape0");
@@ -59,15 +46,21 @@ namespace KarlsonMapEditor
         public static void GetBounds(Transform t, ref Bounds b)
         {
             Collider coll = t.GetComponent<Collider>();
+            // encapsulate the world-space bounds of the object
             if (coll)
             {
-                // encapsulate the world-space bounds of the object
-                Vector3 corner = t.rotation * Vector3.Scale(coll.bounds.extents, t.lossyScale);
-                Bounds objectBounds = new Bounds(t.position, Vector3.Max(corner, corner));
+                // algorithm to bound a transformed box
+                // doesn't need to check individual vertices
+                Vector3 size = Vector3.Scale(coll.bounds.size, t.lossyScale);
+                Vector3 xBasis = t.rotation * new Vector3(size.x, 0, 0);
+                Vector3 yBasis = t.rotation * new Vector3(0, size.y, 0);
+                Vector3 zBasis = t.rotation * new Vector3(0, 0, size.z);
+                Vector3 boundedSize = Vector3.Max(xBasis, -xBasis) + Vector3.Max(yBasis, -yBasis) + Vector3.Max(zBasis, -zBasis);
 
+                Bounds objectBounds = new Bounds(t.position, boundedSize);
                 b.Encapsulate(objectBounds);
             }
-            
+            // recursive call for children
             for (int i = 0; i < t.childCount; i++)
                 GetBounds(t.GetChild(i), ref b);
         }
@@ -75,11 +68,11 @@ namespace KarlsonMapEditor
         // generate a navigation mesh for Enemy AI
         public static void GenerateNavMesh(Transform sourceRoot)
         {
-            Loadson.Console.Log("making nav mesh");
+            Loadson.Console.Log("Creating navigation mesh");
 
             // set up navigation settings
             NavMeshBuildSettings settings = new NavMeshBuildSettings();
-            settings.agentRadius = 1.5f;
+            settings.agentRadius = 1.25f;
             settings.agentHeight = 6f;
             settings.agentSlope = 45;
             settings.agentClimb = 0.75f;

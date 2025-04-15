@@ -1,6 +1,4 @@
-﻿using Loadson;
-using LoadsonAPI;
-using Microsoft.SqlServer.Server;
+﻿using LoadsonAPI;
 using SevenZip.Compression.LZMA;
 using System;
 using System.Collections;
@@ -8,17 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management.Instrumentation;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 using Google.Protobuf;
 using System.Buffers;
 using TMPro;
@@ -853,7 +842,7 @@ namespace KarlsonMapEditor
                 bool doScale = SelectedObject.Type == SelectedObject.SelectedType.EditorObject && SelectedObject.Object.data.Type != ObjectType.Light;
 
                 GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
-                GUILayout.Label("Pos:", GUILayout.Width(80));
+                GUILayout.Label("Pos:", noSpace, GUILayout.Width(80));
                 x = SelectedObject.Basic.aPosition.x;
                 y = SelectedObject.Basic.aPosition.y;
                 z = SelectedObject.Basic.aPosition.z;
@@ -864,7 +853,7 @@ namespace KarlsonMapEditor
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
-                GUILayout.Label("Rot:", GUILayout.Width(80));
+                GUILayout.Label("Rot:", noSpace, GUILayout.Width(80));
                 x = SelectedObject.Basic.aRotation.x;
                 y = SelectedObject.Basic.aRotation.y;
                 z = SelectedObject.Basic.aRotation.z;
@@ -877,7 +866,7 @@ namespace KarlsonMapEditor
                 if (doScale)
                 {
                     GUILayout.BeginHorizontal(noSpace, GUILayout.Height(20));
-                    GUILayout.Label("Scale:", GUILayout.Width(80));
+                    GUILayout.Label("Scale:", noSpace, GUILayout.Width(80));
                     x = SelectedObject.Basic.aScale.x;
                     y = SelectedObject.Basic.aScale.y;
                     z = SelectedObject.Basic.aScale.z;
@@ -1020,16 +1009,12 @@ namespace KarlsonMapEditor
                         GUILayout.Label("Scale");
                         FloatField("TextureScaleX", ref textureScale.x);
                         FloatField("TextureScaleY", ref textureScale.y);
-                        //textureScale.x = float.Parse(GUILayout.TextField(textureScale.x.ToString("0.00")));
-                        //textureScale.y = float.Parse(GUILayout.TextField(textureScale.y.ToString("0.00")));
                         GUILayout.EndHorizontal();
 
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Offset");
                         FloatField("TextureOffsetX", ref textureOffset.x);
                         FloatField("TextureOffsetY", ref textureOffset.y);
-                        //textureOffset.x = float.Parse(GUILayout.TextField(textureOffset.x.ToString("0.00")));
-                        //textureOffset.y = float.Parse(GUILayout.TextField(textureOffset.y.ToString("0.00")));
                         GUILayout.EndHorizontal();
 
                         selectedMat.SetTextureScale("_MainTex", textureScale);
@@ -1138,14 +1123,10 @@ namespace KarlsonMapEditor
                         
                         GUILayout.Label("Intensity");
                         FloatField("LightIntensity", light.intensity, delegate (float v) { light.intensity = v; selected.data.Intensity = light.intensity; });
-                        //light.intensity = float.Parse(GUILayout.TextField(light.intensity.ToString()));
                         
-
                         GUILayout.Label("Range");
                         FloatField("LightRange", light.range, delegate (float v) { light.range = v; selected.data.Range = light.range; });
-                        //light.range = float.Parse(GUILayout.TextField(light.range.ToString()));
                         
-
                         if (light.type == LightType.Spot)
                         {
                             GUILayout.Label("Spot Angle");

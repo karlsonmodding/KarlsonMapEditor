@@ -264,7 +264,6 @@
     <Compile Include="7z\SevenZipHelper.cs" />
     <Compile Include="BinaryExtensions.cs" />
     <Compile Include="ColorPicker.cs" />
-    <Compile Include="Enemy_ProjectPos.cs" />
     <Compile Include="EnvironmentBaker.cs" />
     <Compile Include="FilePicker.cs" />
     <Compile Include="GUIex.cs" />

@@ -17,6 +17,8 @@ namespace KarlsonMapEditor
 {
     public class Main : Mod
     {
+        public const string Version = "4.1";
+
         public override void OnEnable()
         {
             prefs = Preferences.GetPreferences();

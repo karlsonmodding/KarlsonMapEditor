@@ -78,26 +78,38 @@ namespace KarlsonMapEditor
             settings.agentClimb = 0.75f;
             settings.minRegionArea = 2f;
 
-            // find the bounds
-            Bounds navBounds = new Bounds();
-            GetBounds(sourceRoot, ref navBounds);
+            // apply modifiers to geometry
+            List<NavMeshBuildMarkup> markups = new List<NavMeshBuildMarkup>();
+            foreach (NavMeshModifier mod in NavMeshModifier.activeModifiers)
+            {
+                NavMeshBuildMarkup markup = new NavMeshBuildMarkup();
+                markup.area = mod.area;
+                markup.overrideArea = mod.overrideArea;
+                markup.ignoreFromBuild = mod.ignoreFromBuild;
+                markup.root = mod.transform;
+                markups.Add(markup);
 
-            // get geometry sources
-            List<NavMeshBuildMarkup> navMeshBuildMarkups = new List<NavMeshBuildMarkup>();
-            List<NavMeshBuildSource> navMeshBuildSources = new List<NavMeshBuildSource>();
+            }
+
+            // get build sources
+            List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
             NavMeshBuilder.CollectSources(
                 sourceRoot,
                 LayerMask.GetMask("Ground"),
                 NavMeshCollectGeometry.PhysicsColliders,
                 NavMesh.GetAreaFromName("Walkable"),
-                navMeshBuildMarkups,
-                navMeshBuildSources
+                markups,
+                sources
                 );
-            
+
+            // find the bounds
+            Bounds navBounds = new Bounds();
+            GetBounds(sourceRoot, ref navBounds);
+
             // create nav mesh data
             navData = NavMeshBuilder.BuildNavMeshData(
                 settings,
-                navMeshBuildSources,
+                sources,
                 navBounds,
                 Vector3.zero,
                 Quaternion.identity
@@ -138,7 +150,7 @@ namespace KarlsonMapEditor
         {
             PrepareLevel();
 
-            Loadson.Console.Log("loading level data...");
+            Loadson.Console.Log("Loading level data");
 
             // set up materials for geometry objects
             levelData.SetupMaterials();
@@ -159,9 +171,6 @@ namespace KarlsonMapEditor
             PlayerMovement.Instance.transform.position = levelData.startPosition;
             PlayerMovement.Instance.playerCam.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
             PlayerMovement.Instance.orientation.transform.localRotation = Quaternion.Euler(0f, levelData.startOrientation, 0f);
-
-            List<LevelData.LevelObject> enemyObj = new List<LevelData.LevelObject>();
-            List<GameObject> enemyGroup = new List<GameObject>();
 
             void ReplicateObjectGroup(LevelData.ObjectGroup group, GameObject parentObject)
             {

@@ -6,6 +6,7 @@ using System.Linq;
 using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
 using TMPro;
+using UnityEngine.AI;
 
 namespace KarlsonMapEditor
 {
@@ -419,11 +420,7 @@ namespace KarlsonMapEditor
                         go = MakePrefab(PrefabId);
                         Scale = go.transform.localScale;
                         if (PrefabId == PrefabType.Enemy)
-                        {
-                            Loadson.Console.Log("giving gun");
                             setGun(go);
-                        }
-                            
                         if (!playMode && go.GetComponent<Rigidbody>() != null)
                             go.GetComponent<Rigidbody>().isKinematic = true;
                         break;
@@ -474,6 +471,13 @@ namespace KarlsonMapEditor
                             // set up bounce
                             if (Bounce)
                                 go.GetComponent<Collider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                            // prevent enemies from walking on objects they shouldn't be on
+                            if (Glass || Lava || Bounce)
+                            {
+                                NavMeshModifier modifier = go.AddComponent<NavMeshModifier>();
+                                modifier.area = NavMesh.GetAreaFromName("Not Walkable");
+                                modifier.overrideArea = true;
+                            }
                         }
                         break;
                     case ObjectType.Light:

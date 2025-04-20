@@ -116,6 +116,7 @@ namespace KarlsonMapEditor
         static bool onGizmo = false;
         static bool holdingGizmo = false;
         static Vector3 gizmoPos;
+        static Quaternion gizmoRot;
         static Vector3 initialGizmoPoint;
         static Vector3 gizmoMoveDirection;
         public enum GizmoMode
@@ -152,6 +153,7 @@ namespace KarlsonMapEditor
         // grid alignmnet
         const float positionSnap = 0.5f;
         const float scaleSnap = 1f;
+        const float scaleSnapExp = 1.148698354997035f; // 2^(1/5) there are 5 discrete steps between each doubling of scale
         const float rotationSnap = 15f;
 
         // non-clickable gizmo
@@ -613,6 +615,7 @@ namespace KarlsonMapEditor
                             Color = Color.white,
                             Name = "Light Object",
                             Position = spawnPos,
+                            Rotation = new Vector3(90, 0, 0) // pointing down
                         };
                         SelectedObject.SelectObject(new EditorObject(data, SelectedObject.Group));
                     }
@@ -622,7 +625,7 @@ namespace KarlsonMapEditor
                         LevelData.LevelObject data = new LevelData.LevelObject()
                         {
                             Type = ObjectType.Text,
-                            Text = "",
+                            Text = "Text",
                             Color = Color.black,
                             Name = "Text Display Object",
                             Position = spawnPos,
@@ -1119,7 +1122,7 @@ namespace KarlsonMapEditor
                         light.type = GUILayout.Toggle(light.type == LightType.Spot, "Spot Light") ? LightType.Spot : LightType.Point;
                         selected.data.LightType = light.type;
 
-                        ColorButton(light.color, delegate (Color c) { light.color = c; selected.data.Color = c; }, 140);
+                        ColorButton(light.color, delegate (Color c) { light.color = c; selected.data.Color = c; selected.go.GetComponent<MeshRenderer>().material.color = c; }, 140);
                         
                         GUILayout.Label("Intensity");
                         FloatField("LightIntensity", light.intensity, delegate (float v) { light.intensity = v; selected.data.Intensity = light.intensity; });
@@ -1144,7 +1147,7 @@ namespace KarlsonMapEditor
 
                         TextMeshPro tmp = selected.go.GetComponent<TextMeshPro>();
 
-                        tmp.text = GUILayout.TextField(tmp.text);
+                        tmp.text = GUILayout.TextArea(tmp.text);
                         selected.data.Text = tmp.text;
 
                         ColorButton(tmp.color, delegate (Color c) { tmp.color = c; selected.data.Color = c; }, 140);
@@ -1446,6 +1449,7 @@ namespace KarlsonMapEditor
                 {
                     // transform the gizmo so its on the slected object
                     gizmoPos = SelectedObject.Basic.worldPos;
+                    gizmoRot = Quaternion.Euler(SelectedObject.Basic.aRotation);
                     clickGizmo.transform.position = gizmoPos;
                     if (gizmoMode == GizmoMode.Translate) { clickGizmo.transform.rotation = Quaternion.identity; }
                     else { clickGizmo.transform.rotation = SelectedObject.Basic.transformRotation; }
@@ -1483,20 +1487,14 @@ namespace KarlsonMapEditor
                     if (hit.transform.gameObject == GizmoXAxis)
                     {
                         gizmoMoveDirection = new Vector3(1, 0, 0);
-                        GizmoYAxis.SetActive(false);
-                        GizmoZAxis.SetActive(false);
                     }
                     else if (hit.transform.gameObject == GizmoYAxis)
                     {
                         gizmoMoveDirection = new Vector3(0, 1, 0);
-                        GizmoXAxis.SetActive(false);
-                        GizmoZAxis.SetActive(false);
                     }
                     else if (hit.transform.gameObject == GizmoZAxis)
                     {
                         gizmoMoveDirection = new Vector3(0, 0, 1);
-                        GizmoXAxis.SetActive(false);
-                        GizmoYAxis.SetActive(false);
                     }
 
                     if (gizmoMode == GizmoMode.Rotate)
@@ -1524,6 +1522,7 @@ namespace KarlsonMapEditor
                         float offset = Vector3.SignedAngle(initialGizmoPoint - gizmoPos, intersect - gizmoPos, gizmoDir);
 
                         SelectedObject.Basic.RotateByGizmo(Quaternion.AngleAxis(offset, gizmoMoveDirection));
+                        clickGizmo.transform.localRotation = gizmoRot * Quaternion.AngleAxis(offset, gizmoMoveDirection);
                     }
                     else
                     {
@@ -1548,6 +1547,7 @@ namespace KarlsonMapEditor
                         {
                             // scale the object by the relative difference in the current and last recorded offset
                             SelectedObject.Basic.ScaleByGizmo(gizmoMoveDirection * offset);
+                            // clickGizmo.transform.localScale += gizmoMoveDirection * offset;
                         }
                     }
                 }
@@ -1555,10 +1555,6 @@ namespace KarlsonMapEditor
                 {
                     // stop holding
                     holdingGizmo = false;
-
-                    GizmoXAxis.SetActive(true);
-                    GizmoYAxis.SetActive(true);
-                    GizmoZAxis.SetActive(true);
                 }
                 
             }
@@ -1869,7 +1865,7 @@ namespace KarlsonMapEditor
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                if (data.Type == ObjectType.Internal) return;
+                if (data.Type == ObjectType.Internal || data.Type == ObjectType.Light) return;
                 
                 else if (data.Type == ObjectType.Text)
                     // scale all dimensions by the same amount, so text isn't stretched
@@ -1878,8 +1874,14 @@ namespace KarlsonMapEditor
                     aScale = preScale + delta;
 
                 // only snap scale for geometry and text objects
-                if (gridAlign != 0 && (data.Type == ObjectType.Geometry || data.Type == ObjectType.Text))
-                    aScale = Vector3Extensions.SnapScale(aScale, scaleSnap);
+                if (gridAlign != 0)
+                    if (data.Type == ObjectType.Geometry)
+                        aScale = Vector3Extensions.SnapScale(aScale, scaleSnap);
+                    else if  (data.Type == ObjectType.Text)
+                    {
+                        float s = Vector3Extensions.SnapScaleExp(aScale.x, scaleSnapExp);
+                        aScale = new Vector3(s, s, s);
+                    }
             }
             public void RotateByGizmo(Quaternion delta)
             {
@@ -2063,8 +2065,9 @@ namespace KarlsonMapEditor
             }
             public void ScaleByGizmo(Vector3 delta)
             {
-                go.transform.localScale = preScale + delta;
-                if (gridAlign != 0) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
+                return;
+                //go.transform.localScale = preScale + delta;
+                //if (gridAlign != 0) { aScale = Vector3Extensions.SnapScale(aScale, scaleSnap); }
             }
             public void RotateByGizmo(Quaternion delta)
             {
@@ -2084,6 +2087,19 @@ namespace KarlsonMapEditor
             public static Action<Texture2D> UpdateSelectedTexture;
             
             public static Shader defaultShader;
+
+            public static Shader lightBillboardShader;
+            public static Texture2D lightbulbTransparent;
+            public static Texture2D lightbulbTransparentColor;
+
+            public static Material InstanceLightMaterial(Color color)
+            {
+                Material mat = new Material(lightBillboardShader);
+                mat.mainTexture = lightbulbTransparent;
+                mat.SetTexture("_ColoredTex", lightbulbTransparentColor);
+                mat.color = color;
+                return mat;
+            }
 
             public enum ShaderBlendMode
             {

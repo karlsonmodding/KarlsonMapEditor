@@ -84,12 +84,20 @@ namespace KarlsonMapEditor
             if (Mathf.Abs(original.z) < snap) snapped.z = snap * Mathf.Sign(original.z);
             return snapped;
         }
-
-        static Vector3 HalfOne = Vector3.one * 0.5f;
+        // snaps to an exponential scale (one dimensional)
+        public static float SnapScaleExp(float original, float power, float precision = 0.01f)
+        {
+            original = Mathf.Abs(original);
+            if (original == 0) original = 1;
+            float snap = Mathf.Pow(power, Mathf.RoundToInt(Mathf.Log(original, power)));
+            float snapped = snap * Mathf.RoundToInt(original / snap);
+            snapped = Mathf.Round(snapped / precision) * precision;
+            return snapped;
+        }
         // snaps to the nearest snap point
         public static Vector3 Snap(Vector3 original, float snap)
         {
-            return snap * (Vector3)Vector3Int.FloorToInt((original / snap) + HalfOne);
+            return snap * (Vector3)Vector3Int.RoundToInt(original / snap);
         }
     }
 }

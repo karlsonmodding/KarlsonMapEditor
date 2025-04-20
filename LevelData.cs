@@ -487,6 +487,17 @@ namespace KarlsonMapEditor
                         light.intensity = Intensity;
                         light.range = Range;
                         light.spotAngle = SpotAngle;
+                        Scale = Vector3.one;
+                        if (!playMode)
+                        {
+                            // clickable hitbox
+                            go.AddComponent<SphereCollider>().radius = 0.4f;
+                            // render as billboard
+                            GameObject vis = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                            vis.transform.parent = go.transform;
+                            vis.GetComponent<MeshRenderer>().material = MaterialManager.InstanceLightMaterial(Color);
+                            Object.Destroy(vis.GetComponent<MeshCollider>());
+                        }
                         break;
                     case ObjectType.Text:
                         go = new GameObject();
@@ -495,6 +506,8 @@ namespace KarlsonMapEditor
                         tmp.enableWordWrapping = false;
                         tmp.text = Text;
                         tmp.color = Color;
+                        if (!playMode)
+                            go.AddComponent<MeshCollider>().sharedMesh = tmp.mesh;
                         break;
                     default:
                         go = new GameObject();

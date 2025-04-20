@@ -105,6 +105,9 @@ namespace KarlsonMapEditor
             LevelEditor.SixSidedSkybox = LoadAsset<Material>("SkyboxSixSided");
             LevelEditor.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
             MeshBuilder.gizmoShader = LoadAsset<Shader>("GizmoShader");
+            LevelEditor.MaterialManager.lightBillboardShader = LoadAsset<Shader>("LightBillboardShader");
+            LevelEditor.MaterialManager.lightbulbTransparent = LoadAsset<Texture2D>("lightbulb_transparent");
+            LevelEditor.MaterialManager.lightbulbTransparentColor = LoadAsset<Texture2D>("lightbulb_transparent_color");
 
             if (!DiscordAPI.HasDiscord)
                 Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");

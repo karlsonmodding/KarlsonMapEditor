@@ -1144,13 +1144,14 @@ namespace KarlsonMapEditor
                     {
                         GUILayout.BeginArea(new Rect(5, 165, 300, 400));
                         GUILayout.BeginVertical();
+                        GUILayout.Space(5);
 
                         TextMeshPro tmp = selected.go.GetComponent<TextMeshPro>();
 
+                        ColorButton(tmp.color, delegate (Color c) { tmp.color = c; selected.data.Color = c; }, 140);
+
                         tmp.text = GUILayout.TextArea(tmp.text);
                         selected.data.Text = tmp.text;
-
-                        ColorButton(tmp.color, delegate (Color c) { tmp.color = c; selected.data.Color = c; }, 140);
 
                         GUILayout.EndVertical();
                         GUILayout.EndArea();

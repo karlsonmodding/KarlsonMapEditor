@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace KarlsonMapEditor.Scripting_API
 {
-    public class ScriptRunner
+    public class AutomataScriptRunner
     {
         public Scope scope;
 
-        public ScriptRunner(FunctionRunner mainFn)
+        public AutomataScriptRunner(FunctionRunner mainFn)
         {
             scope = new Scope();
             scope.LogFunction = a => Loadson.Console.Log("[amta] " + a);

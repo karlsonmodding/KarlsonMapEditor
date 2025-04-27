@@ -92,7 +92,9 @@ namespace KarlsonMapEditor
             SceneManager.LoadScene(6);
             if (File.Exists(Path.Combine(Main.directory, "_temp.amta")))
                 File.Delete(Path.Combine(Main.directory, "_temp.amta"));
-            if(fileWatcher != null)
+            if (File.Exists(LuaScriptRunner.ScriptPath))
+                File.Delete(LuaScriptRunner.ScriptPath);
+            if (fileWatcher != null)
                 Coroutines.StopCoroutine(fileWatcher);
         }
 
@@ -528,7 +530,8 @@ namespace KarlsonMapEditor
             if (GUI.Button(new Rect(200, 0, 100, 20), "Skybox Editor")) skyboxEditorEnabled = !skyboxEditorEnabled;
             if (GUI.Button(new Rect(300, 0, 100, 20), "KMP Export")) KMPExporter.Export(levelName, globalObject, MaterialManager.GetExternalTextures());
             GUI.Label(new Rect(405, 0, 1000, 20), $"<b>Karlson Map Editor</b> v{Main.Version} | Current map: <b>{(unsaved ? (levelName + '*') : levelName)}</b> | Object count: <b>{_countAll.Item1 + _countAll.Item2}</b> | Hold <b>right click</b> down to move and look around | Select an object by <b>middle clicking</b> it");
-            if (GUI.Button(new Rect(Screen.width - 100, 0, 100, 20), "Open Script")) Process.Start(Path.Combine(Main.directory, "_temp.amta"));
+            if (GUI.Button(new Rect(Screen.width - 150, 0, 150, 20), "Open Automata Script")) Process.Start(Path.Combine(Main.directory, "_temp.amta"));
+            if (GUI.Button(new Rect(Screen.width - 300, 0, 150, 20), "Open Lua Script")) Process.Start(LuaScriptRunner.ScriptPath);
 
             if (dd_file)
             {
@@ -1617,7 +1620,8 @@ namespace KarlsonMapEditor
                 StartOrientation = startOrientation,
 
                 // level data
-                AutomataScript = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta"))
+                AutomataScript = File.ReadAllText(Path.Combine(Main.directory, "_temp.amta")),
+                LuaScript = File.ReadAllText(LuaScriptRunner.ScriptPath),
             };
             map.SaveGlobalLight(sun);
             map.SaveTree(globalObject);
@@ -1702,19 +1706,28 @@ namespace KarlsonMapEditor
 
             // scripting
             File.WriteAllText(Path.Combine(Main.directory, "_temp.amta"), data.AutomataScript.Trim().Length > 0 ? data.AutomataScript : "# Any code written below will be executed every time the level is (re)started.\n# Be sure to use LF instead of CRLF line endings.\n# Any modifications to this file will be reflected by marking the level as modified (unsaved).\n# Saving the level will also save this script.\n# Automata documentation: https://github.com/devilExE3/automataV2/blob/master/automata.md\n# KME API: https://github.com/karlsonmodding/KarlsonMapEditor/wiki/Scripting-API\n$:print(\"Hello, world!\")");
+            File.WriteAllText(LuaScriptRunner.ScriptPath, data.LuaScript ?? LuaScriptRunner.DefaultCode);
             fileWatcher = Coroutines.StartCoroutine(FileWatcher());
         }
 
         static IEnumerator FileWatcher()
         {
-            DateTime lastMod = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
-            while(true)
+            DateTime lastAmtaMod = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
+            DateTime lastLuaMod = new FileInfo(Path.Combine(Main.directory, "_temp.lua")).LastWriteTime;
+            while (true)
             {
                 yield return new WaitForSecondsRealtime(1f);
-                var modNow = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
-                if (modNow != lastMod)
+                DateTime modAmtaNow = new FileInfo(Path.Combine(Main.directory, "_temp.amta")).LastWriteTime;
+                DateTime modLuaNow = new FileInfo(Path.Combine(Main.directory, "_temp.lua")).LastWriteTime;
+                
+                if (modAmtaNow != lastAmtaMod)
                 {
-                    lastMod = modNow;
+                    lastAmtaMod = modAmtaNow;
+                    MarkAsModified();
+                }
+                if (modLuaNow != lastLuaMod)
+                {
+                    lastLuaMod = modLuaNow;
                     MarkAsModified();
                 }
             }
@@ -1758,7 +1771,7 @@ namespace KarlsonMapEditor
             {
                 group.editorObjects.Add(this);
                 data = playObj;
-                go = data.LoadObject(group.go, false, newObject);
+                go = data.LoadEditorObject(group.go, newObject);
                 go.AddComponent<KME_Object>();
             }
 

@@ -14,7 +14,8 @@ namespace KarlsonMapEditor
         public static void ExitedLevel() => currentLevel = "";
         private static LevelData levelData;
         private static Automata.Backbone.FunctionRunner mainFunction = null;
-        public static ScriptRunner currentScript { get; private set; } = null;
+        public static AutomataScriptRunner currentScript { get; private set; } = null;
+        public static LuaScriptRunner LuaScript;
         public static NavMeshData navData;
 
         static void LoadScript()
@@ -162,8 +163,7 @@ namespace KarlsonMapEditor
             levelData.SetupGlobalLight(sun);
 
             // bake skybox reflections
-            GameObject bakerGO = new GameObject();
-            bakerGO.AddComponent<EnvironmentBaker>();
+            EnvironmentBaker baker = new GameObject().AddComponent<EnvironmentBaker>();
 
             // init the player
             if (levelData.startingGun != 0)
@@ -178,7 +178,7 @@ namespace KarlsonMapEditor
                 GameObject objGroup = group.LoadObject(parentObject);
                 // load objects
                 foreach (LevelData.LevelObject obj in group.Objects)
-                    obj.LoadObject(objGroup, true);
+                    obj.LoadObject(objGroup);
                 // load sub groups
                 foreach (var grp in group.Groups)
                     ReplicateObjectGroup(grp, objGroup);
@@ -194,9 +194,16 @@ namespace KarlsonMapEditor
             
             // load script
             if (mainFunction != null)
-                currentScript = new ScriptRunner(mainFunction);
+                currentScript = new AutomataScriptRunner(mainFunction);
             else
                 currentScript = null;
+
+            if (LuaScript == null)
+            {
+                LuaScript = new GameObject("LuaScript").AddComponent<LuaScriptRunner>();
+                LuaScript.Code = levelData.LuaScript;
+            }
+            LuaScript.LuaStart(root, sunGO, PlayerMovement.Instance.gameObject, baker.UpdateEnvironment);
         }
     }
 
@@ -209,6 +216,8 @@ namespace KarlsonMapEditor
             SceneManager.sceneLoaded -= LevelPlayer.LoadLevelData;
         }
     }
+
+    // event hooks
 
     [HarmonyPatch(typeof(Glass), "OnTriggerEnter")]
     class Hook_Glass_OnTriggerEnter
@@ -235,6 +244,36 @@ namespace KarlsonMapEditor
             var retN = (double)ret.Value;
             if(retN > 0) // insta-break
                 UnityEngine.Object.Destroy(__instance.gameObject);
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(Game), "Win")]
+    public class Hook_Game_Win
+    {
+        public static bool Prefix(Game __instance)
+        {
+            if (LevelPlayer.currentLevel == "") return true;
+            if (LevelPlayer.currentScript != null)
+            {
+                var ret = LevelPlayer.currentScript.InvokeFunction("onwin");
+                if (ret.HoldsTrue()) return false;
+            }
+            __instance.playing = false;
+            Timer.Instance.Stop();
+            Time.timeScale = 0.05f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            UIManger.Instance.WinUI(true);
+            float timer = Timer.Instance.GetTimer();
+            float num3 = LevelTimeDB.getForLevel(LevelPlayer.currentLevel);
+            if (timer < num3 || num3 == 0f)
+            {
+                LevelTimeDB.writeForLevel(LevelPlayer.currentLevel, timer);
+                LevelTimeDB.Save();
+            }
+            MonoBehaviour.print("time has been saved as: " + Timer.Instance.GetFormattedTime(timer) + " on timetable");
+            __instance.done = true;
             return false;
         }
     }

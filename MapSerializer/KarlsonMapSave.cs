@@ -58,9 +58,9 @@ namespace KarlsonMapEditor {
             "dGV4dHVyZV9pZBgDIAEoBRIdChVub3JtYWxfbWFwX3RleHR1cmVfaWQYBCAB",
             "KAUSFAoMc2NhbGVfdmVjdG9yGAUgAygCEhUKDW9mZnNldF92ZWN0b3IYBiAD",
             "KAISFAoMYWxiZWRvX2NvbG9yGAcgAygCEhAKCG1ldGFsbGljGAggASgCEhIK",
-            "CnNtb290aG5lc3MYCSABKAISGgoSc3BlY3VsYXJfaGlnaGxpZ2h0GAogASgI",
-            "EhsKE3NwZWN1bGFyX3JlZmxlY3Rpb24YCyABKAgSEgoKYnVtcF9zY2FsZRgM",
-            "IAEoAiJCCg1SZW5kZXJpbmdNb2RlEgoKBm9wYXF1ZRAAEgoKBmN1dG91dBAB",
+            "CnNtb290aG5lc3MYCSABKAISEgoKYnVtcF9zY2FsZRgMIAEoAhIaChJzcGVj",
+            "dWxhcl9oaWdobGlnaHQYCiABKAgSGwoTc3BlY3VsYXJfcmVmbGVjdGlvbhgL",
+            "IAEoCCJCCg1SZW5kZXJpbmdNb2RlEgoKBm9wYXF1ZRAAEgoKBmN1dG91dBAB",
             "EggKBGZhZGUQAhIPCgt0cmFuc3BhcmVudBADIs0BChFNYXBTaXhTaWRlZFNr",
             "eWJveBIYChBmcm9udF90ZXh0dXJlX2lkGAEgASgFEhcKD2JhY2tfdGV4dHVy",
             "ZV9pZBgCIAEoBRIXCg9sZWZ0X3RleHR1cmVfaWQYAyABKAUSGAoQcmlnaHRf",
@@ -69,18 +69,18 @@ namespace KarlsonMapEditor {
             "c3VyZRgIIAEoAiKjAQoTTWFwUHJvY2VkdXJhbFNreWJveBIQCghzdW5fc2l6",
             "ZRgBIAEoAhIcChRzdW5fc2l6ZV9jb252ZXJnZW5jZRgCIAEoAhIcChRhdG1v",
             "c3BoZXJlX3RoaWNrbmVzcxgDIAEoAhIWCg5za3lfdGludF9jb2xvchgEIAMo",
-            "AhIUCgxncm91bmRfY29sb3IYBSADKAISEAoIZXhwb3N1cmUYCCABKAIi0wMK",
+            "AhIUCgxncm91bmRfY29sb3IYBSADKAISEAoIZXhwb3N1cmUYCCABKAIi5wMK",
             "A01hcBIUCgxzdGFydGluZ19ndW4YASABKAUSHQoVc3RhcnRfcG9zaXRpb25f",
             "dmVjdG9yGAIgAygCEhkKEXN0YXJ0X29yaWVudGF0aW9uGAMgASgCEikKBHJv",
             "b3QYBCABKAsyGy5LYXJsc29uTWFwRWRpdG9yLk1hcE9iamVjdBIXCg9hdXRv",
-            "bWF0YV9zY3JpcHQYBSABKAkSLgoIdGV4dHVyZXMYBiADKAsyHC5LYXJsc29u",
-            "TWFwRWRpdG9yLk1hcFRleHR1cmUSMAoJbWF0ZXJpYWxzGAcgAygLMh0uS2Fy",
-            "bHNvbk1hcEVkaXRvci5NYXBNYXRlcmlhbBI4CglzaXhfc2lkZWQYCCABKAsy",
-            "Iy5LYXJsc29uTWFwRWRpdG9yLk1hcFNpeFNpZGVkU2t5Ym94SAASOwoKcHJv",
-            "Y2VkdXJhbBgJIAEoCzIlLkthcmxzb25NYXBFZGl0b3IuTWFwUHJvY2VkdXJh",
-            "bFNreWJveEgAEiUKHWdsb2JhbF9saWdodF9kaXJlY3Rpb25fdmVjdG9yGAog",
-            "AygCEhoKEmdsb2JhbF9saWdodF9jb2xvchgLIAMoAhISCgpncmlkX2FsaWdu",
-            "GAwgASgCQggKBnNreWJveGIGcHJvdG8z"));
+            "bWF0YV9zY3JpcHQYBSABKAkSEgoKbHVhX3NjcmlwdBgNIAEoCRIuCgh0ZXh0",
+            "dXJlcxgGIAMoCzIcLkthcmxzb25NYXBFZGl0b3IuTWFwVGV4dHVyZRIwCglt",
+            "YXRlcmlhbHMYByADKAsyHS5LYXJsc29uTWFwRWRpdG9yLk1hcE1hdGVyaWFs",
+            "EjgKCXNpeF9zaWRlZBgIIAEoCzIjLkthcmxzb25NYXBFZGl0b3IuTWFwU2l4",
+            "U2lkZWRTa3lib3hIABI7Cgpwcm9jZWR1cmFsGAkgASgLMiUuS2FybHNvbk1h",
+            "cEVkaXRvci5NYXBQcm9jZWR1cmFsU2t5Ym94SAASJQodZ2xvYmFsX2xpZ2h0",
+            "X2RpcmVjdGlvbl92ZWN0b3IYCiADKAISGgoSZ2xvYmFsX2xpZ2h0X2NvbG9y",
+            "GAsgAygCEhIKCmdyaWRfYWxpZ24YDCABKAJCCAoGc2t5Ym94YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -91,10 +91,10 @@ namespace KarlsonMapEditor {
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapText), global::KarlsonMapEditor.MapText.Parser, new[]{ "Text", "ShadeColor" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapObject), global::KarlsonMapEditor.MapObject.Parser, new[]{ "Name", "PositionVector", "RotationVector", "ScaleVector", "Geometry", "Prefab", "Group", "Light", "TextDisplay" }, new[]{ "Type" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapTexture), global::KarlsonMapEditor.MapTexture.Parser, new[]{ "TextureIndex", "ImageData" }, new[]{ "TextureSource" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicGlossTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "Metallic", "Smoothness", "SpecularHighlight", "SpecularReflection", "BumpScale" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapMaterial), global::KarlsonMapEditor.MapMaterial.Parser, new[]{ "Mode", "AlbedoTextureId", "MetallicGlossTextureId", "NormalMapTextureId", "ScaleVector", "OffsetVector", "AlbedoColor", "Metallic", "Smoothness", "BumpScale", "SpecularHighlight", "SpecularReflection" }, null, new[]{ typeof(global::KarlsonMapEditor.MapMaterial.Types.RenderingMode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapSixSidedSkybox), global::KarlsonMapEditor.MapSixSidedSkybox.Parser, new[]{ "FrontTextureId", "BackTextureId", "LeftTextureId", "RightTextureId", "UpTextureId", "DownTextureId", "Rotation", "Exposure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.MapProceduralSkybox), global::KarlsonMapEditor.MapProceduralSkybox.Parser, new[]{ "SunSize", "SunSizeConvergence", "AtmosphereThickness", "SkyTintColor", "GroundColor", "Exposure" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "AutomataScript", "Textures", "Materials", "SixSided", "Procedural", "GlobalLightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::KarlsonMapEditor.Map), global::KarlsonMapEditor.Map.Parser, new[]{ "StartingGun", "StartPositionVector", "StartOrientation", "Root", "AutomataScript", "LuaScript", "Textures", "Materials", "SixSided", "Procedural", "GlobalLightDirectionVector", "GlobalLightColor", "GridAlign" }, new[]{ "Skybox" }, null, null, null)
           }));
     }
     #endregion
@@ -2477,9 +2477,9 @@ namespace KarlsonMapEditor {
       albedoColor_ = other.albedoColor_.Clone();
       metallic_ = other.metallic_;
       smoothness_ = other.smoothness_;
+      bumpScale_ = other.bumpScale_;
       specularHighlight_ = other.specularHighlight_;
       specularReflection_ = other.specularReflection_;
-      bumpScale_ = other.bumpScale_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2606,6 +2606,21 @@ namespace KarlsonMapEditor {
       }
     }
 
+    /// <summary>Field number for the "bump_scale" field.</summary>
+    public const int BumpScaleFieldNumber = 12;
+    private float bumpScale_;
+    /// <summary>
+    /// for the normal map
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float BumpScale {
+      get { return bumpScale_; }
+      set {
+        bumpScale_ = value;
+      }
+    }
+
     /// <summary>Field number for the "specular_highlight" field.</summary>
     public const int SpecularHighlightFieldNumber = 10;
     private bool specularHighlight_;
@@ -2627,21 +2642,6 @@ namespace KarlsonMapEditor {
       get { return specularReflection_; }
       set {
         specularReflection_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "bump_scale" field.</summary>
-    public const int BumpScaleFieldNumber = 12;
-    private float bumpScale_;
-    /// <summary>
-    /// for the normal map
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public float BumpScale {
-      get { return bumpScale_; }
-      set {
-        bumpScale_ = value;
       }
     }
 
@@ -2669,9 +2669,9 @@ namespace KarlsonMapEditor {
       if(!albedoColor_.Equals(other.albedoColor_)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Metallic, other.Metallic)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Smoothness, other.Smoothness)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(BumpScale, other.BumpScale)) return false;
       if (SpecularHighlight != other.SpecularHighlight) return false;
       if (SpecularReflection != other.SpecularReflection) return false;
-      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(BumpScale, other.BumpScale)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2688,9 +2688,9 @@ namespace KarlsonMapEditor {
       hash ^= albedoColor_.GetHashCode();
       if (Metallic != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Metallic);
       if (Smoothness != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Smoothness);
+      if (BumpScale != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(BumpScale);
       if (SpecularHighlight != false) hash ^= SpecularHighlight.GetHashCode();
       if (SpecularReflection != false) hash ^= SpecularReflection.GetHashCode();
-      if (BumpScale != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(BumpScale);
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2828,14 +2828,14 @@ namespace KarlsonMapEditor {
       if (Smoothness != 0F) {
         size += 1 + 4;
       }
+      if (BumpScale != 0F) {
+        size += 1 + 4;
+      }
       if (SpecularHighlight != false) {
         size += 1 + 1;
       }
       if (SpecularReflection != false) {
         size += 1 + 1;
-      }
-      if (BumpScale != 0F) {
-        size += 1 + 4;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2870,14 +2870,14 @@ namespace KarlsonMapEditor {
       if (other.Smoothness != 0F) {
         Smoothness = other.Smoothness;
       }
+      if (other.BumpScale != 0F) {
+        BumpScale = other.BumpScale;
+      }
       if (other.SpecularHighlight != false) {
         SpecularHighlight = other.SpecularHighlight;
       }
       if (other.SpecularReflection != false) {
         SpecularReflection = other.SpecularReflection;
-      }
-      if (other.BumpScale != 0F) {
-        BumpScale = other.BumpScale;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3927,6 +3927,7 @@ namespace KarlsonMapEditor {
       startOrientation_ = other.startOrientation_;
       root_ = other.root_ != null ? other.root_.Clone() : null;
       automataScript_ = other.automataScript_;
+      luaScript_ = other.luaScript_;
       textures_ = other.textures_.Clone();
       materials_ = other.materials_.Clone();
       globalLightDirectionVector_ = other.globalLightDirectionVector_.Clone();
@@ -4012,6 +4013,18 @@ namespace KarlsonMapEditor {
       get { return automataScript_; }
       set {
         automataScript_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "lua_script" field.</summary>
+    public const int LuaScriptFieldNumber = 13;
+    private string luaScript_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string LuaScript {
+      get { return luaScript_; }
+      set {
+        luaScript_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -4142,6 +4155,7 @@ namespace KarlsonMapEditor {
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(StartOrientation, other.StartOrientation)) return false;
       if (!object.Equals(Root, other.Root)) return false;
       if (AutomataScript != other.AutomataScript) return false;
+      if (LuaScript != other.LuaScript) return false;
       if(!textures_.Equals(other.textures_)) return false;
       if(!materials_.Equals(other.materials_)) return false;
       if (!object.Equals(SixSided, other.SixSided)) return false;
@@ -4162,6 +4176,7 @@ namespace KarlsonMapEditor {
       if (StartOrientation != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(StartOrientation);
       if (root_ != null) hash ^= Root.GetHashCode();
       if (AutomataScript.Length != 0) hash ^= AutomataScript.GetHashCode();
+      if (LuaScript.Length != 0) hash ^= LuaScript.GetHashCode();
       hash ^= textures_.GetHashCode();
       hash ^= materials_.GetHashCode();
       if (skyboxCase_ == SkyboxOneofCase.SixSided) hash ^= SixSided.GetHashCode();
@@ -4221,6 +4236,10 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(101);
         output.WriteFloat(GridAlign);
       }
+      if (LuaScript.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(LuaScript);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4264,6 +4283,10 @@ namespace KarlsonMapEditor {
         output.WriteRawTag(101);
         output.WriteFloat(GridAlign);
       }
+      if (LuaScript.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(LuaScript);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -4286,6 +4309,9 @@ namespace KarlsonMapEditor {
       }
       if (AutomataScript.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(AutomataScript);
+      }
+      if (LuaScript.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(LuaScript);
       }
       size += textures_.CalculateSize(_repeated_textures_codec);
       size += materials_.CalculateSize(_repeated_materials_codec);
@@ -4327,6 +4353,9 @@ namespace KarlsonMapEditor {
       }
       if (other.AutomataScript.Length != 0) {
         AutomataScript = other.AutomataScript;
+      }
+      if (other.LuaScript.Length != 0) {
+        LuaScript = other.LuaScript;
       }
       textures_.Add(other.textures_);
       materials_.Add(other.materials_);
@@ -4433,6 +4462,10 @@ namespace KarlsonMapEditor {
             GridAlign = input.ReadFloat();
             break;
           }
+          case 106: {
+            LuaScript = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -4514,6 +4547,10 @@ namespace KarlsonMapEditor {
           }
           case 101: {
             GridAlign = input.ReadFloat();
+            break;
+          }
+          case 106: {
+            LuaScript = input.ReadString();
             break;
           }
         }

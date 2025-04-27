@@ -7,6 +7,7 @@ using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
 using TMPro;
 using UnityEngine.AI;
+using MoonSharp.Interpreter;
 
 namespace KarlsonMapEditor
 {
@@ -85,6 +86,7 @@ namespace KarlsonMapEditor
             ReadTextures(br);
             GlobalObject = ReadObjectGroup_v1(br);
             AutomataScript = "";
+            LuaScript = "";
         }
 
         private void LoadLevel_Version2(BinaryReader br)
@@ -95,6 +97,7 @@ namespace KarlsonMapEditor
             ReadTextures(br);
             GlobalObject = ReadObjectGroup_v1(br, true);
             AutomataScript = "";
+            LuaScript = "";
         }
 
         private void LoadLevel_Version3(BinaryReader br)
@@ -105,6 +108,7 @@ namespace KarlsonMapEditor
             ReadTextures(br);
             GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
             AutomataScript = "";
+            LuaScript = "";
         }
 
         private void LoadLevel_Version4(BinaryReader br)
@@ -115,6 +119,7 @@ namespace KarlsonMapEditor
             ReadTextures(br);
             AutomataScript = br.ReadString();
             GlobalObject = ReadObjectGroup_v3(br.ReadByteArray());
+            LuaScript = "";
         }
 
         private void LoadLevel_Version5(Stream stream)
@@ -126,6 +131,7 @@ namespace KarlsonMapEditor
             startPosition = map.StartPosition;
             startOrientation = map.StartOrientation;
             AutomataScript = map.AutomataScript;
+            LuaScript = map.LuaScript;
             GlobalObject = map.LoadTree();
             SetupMaterials = map.LoadMaterials;
             SetupGlobalLight = map.LoadGlobalLight;
@@ -252,6 +258,7 @@ namespace KarlsonMapEditor
         public ObjectGroup GlobalObject;
 
         public string AutomataScript;
+        public string LuaScript;
         public Action<Light> SetupGlobalLight = delegate(Light sun) { sun.Reset(); sun.enabled = false; sun.gameObject.transform.rotation = Quaternion.Euler(70, 0, 0); };
         public Action SetupMaterials;
 
@@ -303,6 +310,7 @@ namespace KarlsonMapEditor
                 Text = model.Text;
             }
             // prefab
+            [MoonSharpHidden]
             public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, string name, PrefabType prefabId, int prefabData)
             {
                 Type = ObjectType.Prefab;
@@ -317,6 +325,7 @@ namespace KarlsonMapEditor
                 PrefabData = prefabData;
             }
             // geometry
+            [MoonSharpHidden]
             public LevelObject(Vector3 position, Vector3 rotation, Vector3 scale, string name, int textureId, Color color, bool bounce, bool glass, bool lava, bool disableTrigger, bool markAsObject, GeometryShape shape = GeometryShape.Cube, List<(int, Color, bool)> textureData = null)
             {
                 Type = ObjectType.Geometry;
@@ -388,6 +397,7 @@ namespace KarlsonMapEditor
             }
 
             private System.Reflection.MethodInfo GiveGun = typeof(Enemy).GetMethod("GiveGun", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            [MoonSharpHidden]
             public void setGun(GameObject go)
             {
                 if (Type != ObjectType.Prefab || PrefabId != PrefabType.Enemy) return;
@@ -410,7 +420,16 @@ namespace KarlsonMapEditor
                 }
             }
 
-            public GameObject LoadObject(GameObject parent, bool playMode, bool originalScale = false)
+            public GameObject LoadObject(GameObject parent, bool originalScale = false) // used by lua as well
+            {
+                return LoadObject(parent, true, originalScale);
+            }
+            [MoonSharpHidden]
+            public GameObject LoadEditorObject(GameObject parent, bool newObject)
+            {
+                return LoadObject(parent, false, newObject);
+            }
+            private GameObject LoadObject(GameObject parent, bool playMode, bool originalScale = false)
             {
                 GameObject go;
                 

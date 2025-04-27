@@ -47,34 +47,4 @@ namespace KarlsonMapEditor
             db.Add((level, time));
         }
     }
-
-    [HarmonyPatch(typeof(Game), "Win")]
-    public class Hook_Game_Win
-    {
-        public static bool Prefix(Game __instance)
-        {
-            if (LevelPlayer.currentLevel == "") return true;
-            if(LevelPlayer.currentScript != null)
-            {
-                var ret = LevelPlayer.currentScript.InvokeFunction("onwin");
-                if (ret.HoldsTrue()) return false;
-            }
-            __instance.playing = false;
-            Timer.Instance.Stop();
-            Time.timeScale = 0.05f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            UIManger.Instance.WinUI(true);
-            float timer = Timer.Instance.GetTimer();
-            float num3 = LevelTimeDB.getForLevel(LevelPlayer.currentLevel);
-            if (timer < num3 || num3 == 0f)
-            {
-                LevelTimeDB.writeForLevel(LevelPlayer.currentLevel, timer);
-                LevelTimeDB.Save();
-            }
-            MonoBehaviour.print("time has been saved as: " + Timer.Instance.GetFormattedTime(timer) + " on timetable");
-            __instance.done = true;
-            return false;
-        }
-    }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace KarlsonMapEditor
 {
@@ -48,7 +49,7 @@ namespace KarlsonMapEditor
                     dfs(g);
             }
             dfs(globalObject);
-            Dictionary<string, List<(string, Vector3, Vector3)>> kmp_data = new Dictionary<string, List<(string, Vector3, Vector3)>>();
+            Dictionary<string, List<(string, Vector3, Vector3, Vector3)>> kmp_data = new Dictionary<string, List<(string, Vector3, Vector3, Vector3)>>();
 
             ulong objid = 1;
             using (MemoryStream ms = new MemoryStream())
@@ -79,8 +80,8 @@ namespace KarlsonMapEditor
                         string key = obj.go.name.Split('.')[1];
                         string value = obj.go.name.Split('.')[2];
                         if (!kmp_data.ContainsKey(key))
-                            kmp_data.Add(key, new List<(string, Vector3, Vector3)>());
-                        kmp_data[key].Add((value, obj.go.transform.position, obj.go.transform.rotation.eulerAngles));
+                            kmp_data.Add(key, new List<(string, Vector3, Vector3, Vector3)>());
+                        kmp_data[key].Add((value, obj.go.transform.position, obj.go.transform.rotation.eulerAngles, obj.go.transform.lossyScale));
                         continue;
                     }
                     if (obj.data.Type != ObjectType.Geometry) continue;
@@ -100,10 +101,13 @@ namespace KarlsonMapEditor
                     bw.Write(obj.go.transform.lossyScale);
                     bw.Write(LevelEditor.MaterialManager.GetMainTextureIndex(obj.data.MaterialId));
                     bw.Write(obj.go.GetComponent<MeshRenderer>().material.color);
+                    // edge case for transparent object, kmp doesn't implement this shit
+                    bool transparent = obj.go.GetComponent<MeshRenderer>().material.renderQueue == (int)RenderQueue.Transparent;
+                    // so if it's transparent just do the old hack with glass & disable trigger
                     bw.Write(obj.data.Bounce);
-                    bw.Write(obj.data.Glass);
+                    bw.Write(transparent || obj.data.Glass);
                     bw.Write(obj.data.Lava);
-                    bw.Write(false); // DisableTrigger will always be false now that objects can be transparent without being glass
+                    bw.Write(transparent);
                     bw.Write(obj.data.MarkAsObject);
                 }
                 bw.Flush();
@@ -123,6 +127,7 @@ namespace KarlsonMapEditor
                         bw.Write(val.Item1);
                         bw.Write(val.Item2);
                         bw.Write(val.Item3);
+                        bw.Write(val.Item4);
                     }
                 }
                 bw.Flush();

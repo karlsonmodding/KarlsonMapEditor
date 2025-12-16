@@ -27,23 +27,6 @@ namespace KarlsonMapEditor.Workshop_API
             }
         }
 
-        public static byte[] Encode(KWM data)
-        {
-            using(MemoryStream stream = new MemoryStream())
-            using(BinaryWriter writer = new BinaryWriter(stream))
-            {
-                writer.Write(Encoding.ASCII.GetBytes("KWM"));
-                writer.Write(data.Name);
-                byte[] img_cmp = SevenZipHelper.Compress(data.Thumbnail);
-                writer.Write(img_cmp.Length);
-                writer.Write(img_cmp);
-                writer.Write(data.LevelData.Length);
-                writer.Write(data.LevelData);
-                writer.Flush();
-                return stream.ToArray();
-            }
-        }
-
         public class KWM
         {
             public KWM(string name, byte[] thumbnail, byte[] levelData)

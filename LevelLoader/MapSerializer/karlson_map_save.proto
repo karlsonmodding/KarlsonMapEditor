@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package KarlsonMapEditor;
+package KarlsonMapEditor.LevelLoader;
 
 message MapGeometry {
   enum Shape {

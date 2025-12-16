@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
-namespace KarlsonMapEditor
+namespace KarlsonMapEditor.LevelLoader
 {
     // similar to TextureScaling, but works with any mesh, not just boxes
-    internal class KMETextureScaling : MonoBehaviour
+    public class KMETextureScaling : MonoBehaviour
     {
         private bool _enabled = true;
         private float _scale = 1;
@@ -12,7 +16,8 @@ namespace KarlsonMapEditor
         public bool Enabled
         {
             get { return _enabled; }
-            set { 
+            set
+            {
                 if (_enabled == value) return;
                 _enabled = value;
                 UpdateUVs();
@@ -21,7 +26,8 @@ namespace KarlsonMapEditor
         public float Scale
         {
             get { if (_enabled) return _scale; else return 0; }
-            set {
+            set
+            {
                 if (value == 0) return;
                 if (_scale == value) return;
                 _scale = value;

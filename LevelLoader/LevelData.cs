@@ -3,12 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static KarlsonMapEditor.LevelEditor;
 using UnityEngine;
 using TMPro;
 using UnityEngine.AI;
 
-namespace KarlsonMapEditor
+namespace KarlsonMapEditor.LevelLoader
 {
     public enum ObjectType
     {
@@ -57,7 +56,7 @@ namespace KarlsonMapEditor
             using (BinaryReader br = new BinaryReader(stream))
             {
                 int version = br.ReadInt32();
-                Loadson.Console.Log("Loading level version " + version);
+                Main.Logger("Loading level version " + version);
                 if (version == 1)
                     LoadLevel_Version1(br);
                 else if (version == 2)
@@ -70,8 +69,8 @@ namespace KarlsonMapEditor
                     LoadLevel_Version5(stream);
                 else
                 {
-                    Loadson.Console.Log("<color=red>Unknown level version " + version + "</color>");
-                    Loadson.Console.Log("Try to update KME to the latest version.");
+                    Main.Logger("<color=red>Unknown level version " + version + "</color>");
+                    Main.Logger("Try to update KME to the latest version.");
                 }
             }
         }
@@ -436,7 +435,7 @@ namespace KarlsonMapEditor
                                 Glass newGlass = go.AddComponent<Glass>();
 
                                 // copy in the required GOs
-                                GameObject prefabGlassCube = LoadsonAPI.PrefabManager.NewGlass();
+                                GameObject prefabGlassCube = Main.PrefabManager.NewGlass();
                                 Glass prefabGlass = prefabGlassCube.GetComponent<Glass>();
                                 newGlass.glass = prefabGlass.glass;
                                 newGlass.glassSfx = prefabGlass.glassSfx;
@@ -469,7 +468,7 @@ namespace KarlsonMapEditor
                                 go.layer = LayerMask.NameToLayer("Object");
                             // set up bounce
                             if (Bounce)
-                                go.GetComponent<Collider>().material = LoadsonAPI.PrefabManager.BounceMaterial();
+                                go.GetComponent<Collider>().material = Main.PrefabManager.BounceMaterial();
                             // prevent enemies from walking on objects they shouldn't be on
                             if (Glass || Lava || Bounce)
                             {
@@ -487,6 +486,16 @@ namespace KarlsonMapEditor
                         light.intensity = Intensity;
                         light.range = Range;
                         light.spotAngle = SpotAngle;
+                        Scale = Vector3.one;
+                        if(!playMode)
+                        {
+                            go.AddComponent<SphereCollider>().radius = .4f;
+                            // billboard
+                            GameObject bb = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                            bb.transform.parent = go.transform;
+                            bb.GetComponent<MeshRenderer>().material = MaterialManager.InstanceLightMaterial(Color);
+                            UnityEngine.Object.Destroy(bb.GetComponent<MeshCollider>());
+                        }
                         break;
                     case ObjectType.Text:
                         go = new GameObject();
@@ -495,6 +504,8 @@ namespace KarlsonMapEditor
                         tmp.enableWordWrapping = false;
                         tmp.text = Text;
                         tmp.color = Color;
+                        if (!playMode)
+                            go.AddComponent<MeshCollider>().sharedMesh = tmp.mesh;
                         break;
                     default:
                         go = new GameObject();
@@ -546,29 +557,29 @@ namespace KarlsonMapEditor
             switch (prefab)
             {
                 case PrefabType.Pistol:
-                    return LoadsonAPI.PrefabManager.NewPistol();
+                    return Main.PrefabManager.NewPistol();
                 case PrefabType.Ak47:
-                    return LoadsonAPI.PrefabManager.NewAk47();
+                    return Main.PrefabManager.NewAk47();
                 case PrefabType.Shotgun:
-                    return LoadsonAPI.PrefabManager.NewShotgun();
+                    return Main.PrefabManager.NewShotgun();
                 case PrefabType.Boomer:
-                    return LoadsonAPI.PrefabManager.NewBoomer();
+                    return Main.PrefabManager.NewBoomer();
                 case PrefabType.Grappler:
-                    return LoadsonAPI.PrefabManager.NewGrappler();
+                    return Main.PrefabManager.NewGrappler();
                 case PrefabType.DummyGrappler:
-                    return LoadsonAPI.PrefabManager.NewDummyGrappler();
+                    return Main.PrefabManager.NewDummyGrappler();
                 case PrefabType.Table:
-                    return LoadsonAPI.PrefabManager.NewTable();
+                    return Main.PrefabManager.NewTable();
                 case PrefabType.Barrel:
-                    return LoadsonAPI.PrefabManager.NewBarrel();
+                    return Main.PrefabManager.NewBarrel();
                 case PrefabType.Locker:
-                    return LoadsonAPI.PrefabManager.NewLocker();
+                    return Main.PrefabManager.NewLocker();
                 case PrefabType.Screen:
-                    return LoadsonAPI.PrefabManager.NewScreen();
+                    return Main.PrefabManager.NewScreen();
                 case PrefabType.Milk:
-                    return LoadsonAPI.PrefabManager.NewMilk();
+                    return Main.PrefabManager.NewMilk();
                 case PrefabType.Enemy:
-                    return LoadsonAPI.PrefabManager.NewEnemy();
+                    return Main.PrefabManager.NewEnemy();
                 default:
                     return null;
             }

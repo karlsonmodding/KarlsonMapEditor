@@ -21,7 +21,6 @@ namespace KarlsonMapEditor
             RGBToHSV(color, out h, out s, out v);
         }
         GUIStyle previewStyle;
-        GUIStyle labelStyle;
         GUIStyle svStyle, hueStyle;
         const int kHSVPickerSize = 120, kHuePickerWidth = 16;
 
@@ -38,9 +37,6 @@ namespace KarlsonMapEditor
             previewStyle = new GUIStyle();
             previewStyle.normal.background = Texture2D.whiteTexture;
 
-            labelStyle = new GUIStyle();
-            labelStyle.fontSize = 12;
-
             hueTexture = CreateHueTexture(20, kHSVPickerSize);
             hueStyle = new GUIStyle();
             hueStyle.normal.background = hueTexture;
@@ -51,9 +47,14 @@ namespace KarlsonMapEditor
         }
         public void DrawWindow(Action close, Action<Color> changeColor)
         {
-
-            if (pos.x < 0 || pos.y < 0)
-                pos = new Rect(Screen.width - 180, Screen.height - 20, 165, 215);
+            if (pos.x < 0)
+                pos.x = 0;
+            if (pos.y < 0)
+                pos.y = 0;
+            if (pos.x + pos.width > Screen.width)
+                pos.x = Screen.width - pos.width;
+            if (pos.y + pos.height > Screen.height)
+                pos.y = Screen.height - pos.height;
 
             pos = GUI.Window(wid, pos, (_) =>
             {

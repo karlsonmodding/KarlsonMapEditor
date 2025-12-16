@@ -10,6 +10,7 @@ using KarlsonMapEditor.Scripting_API;
 using KarlsonMapEditor.Workshop_API;
 using Loadson;
 using LoadsonAPI;
+using LoadsonExtensions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,7 +18,7 @@ namespace KarlsonMapEditor
 {
     public class Main : Mod
     {
-        public const string Version = "4.1.1";
+        public const string Version = "5.0.0";
 
         public override void OnEnable()
         {
@@ -63,60 +64,56 @@ namespace KarlsonMapEditor
             {
                 ("List", () => {
                     MenuCamera cam = UnityEngine.Object.FindObjectOfType<MenuCamera>();
-                    typeof(MenuCamera).GetField("desiredPos", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, new Vector3(-1f, 15.1f, 184.06f));
-                    typeof(MenuCamera).GetField("desiredRot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, Quaternion.Euler(0f, -90f, 0f));
+                    cam.ReflectionSet("desiredPos", new Vector3(-1f, 15.1f, 184.06f));
+                    cam.ReflectionSet("desiredRot", Quaternion.Euler(0f, -90f, 0f));
 
                     GameObject.Find("/UI/Menu").SetActive(false);
                     GameObject.Find("/UI").transform.Find("Custom").gameObject.SetActive(true);
                     Hook_Lobby_Start.RenderMenuPage(1);
                 }),
                 ("Workshop", () => {
-                    if(DiscordAPI.HasDiscord && workshopToken == "") return; // wait for workshop login
+                    if(ModIO.Auth.ModioBearer == "") {
+                        ModIO.Workshop.ShowDialog("mod.io Workshop", "You need to be logged in to access the mod.io workshop.", "Ok", "", null);
+                        return;
+                    }
                     MenuCamera cam = UnityEngine.Object.FindObjectOfType<MenuCamera>();
-                    typeof(MenuCamera).GetField("desiredPos", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, new Vector3(-1f, 15.1f, 184.06f));
-                    typeof(MenuCamera).GetField("desiredRot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(cam, Quaternion.Euler(0f, -90f, 0f));
+                    cam.ReflectionSet("desiredPos", new Vector3(-1f, 15.1f, 184.06f));
+                    cam.ReflectionSet("desiredRot", Quaternion.Euler(0f, -90f, 0f));
 
                     GameObject.Find("/UI/Menu").SetActive(false);
-                    WorkshopGUI.OpenWorkshop();
+                    ModIO.Workshop.Open();
                 }),
                 ("Editor", () => LevelEditor.StartEdit()),
                 ("<size=25>Open Maps\nFolder</size>", () => Process.Start(Path.Combine(directory, "Levels"))),
-                /*("<size=25>Load MLL\nlevel</size>", () => {
-                    string file = FilePicker.PickFile("Open a MLL file", "MLL level (*.mll)\0*.mll\0All files (*.*)\0*.*\0\0");
-                    if (file == "null") return;
-                }),*/
             }, "Map Editor");
 
-            AddAPIFunction("KarlsonMapEditor.PickFile", (args) =>
-            {
-                if (args.Length == 0)
-                    return FilePicker.PickFile("Open a file..");
-                if (args.Length == 1)
-                    return FilePicker.PickFile((string)args[0]);
-                return FilePicker.PickFile((string)args[0], (string)args[1]);
-            });
             // load im assets
             ColorPicker.imRight = LoadAsset<Texture2D>("imRight");
             ColorPicker.imLeft = LoadAsset<Texture2D>("imLeft");
             ColorPicker.imCircle = LoadAsset<Texture2D>("imCircle");
 
             // load material assets
-            LevelEditor.ProceduralSkybox = LoadAsset<Material>("SkyboxProcedural");
-            LevelEditor.SixSidedSkybox = LoadAsset<Material>("SkyboxSixSided");
-            LevelEditor.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
-            MeshBuilder.gizmoShader = LoadAsset<Shader>("GizmoShader");
+            // initialize level player
+            LevelLoader.Main.Init(new LoadsonPrefabProvider(), Loadson.Console.Log, gameTex);
+            LevelLoader.Main.Skybox.Default = RenderSettings.skybox;
+            LevelLoader.Main.Skybox.Procedural = LoadAsset<Material>("SkyboxProcedural");
+            LevelLoader.Main.Skybox.SixSided = LoadAsset<Material>("SkyboxSixSided");
+            LevelLoader.MaterialManager.defaultShader = LoadAsset<Shader>("StandardVariants");
+            GizmoMeshBuilder.gizmoShader = LoadAsset<Shader>("GizmoShader");
+            LevelLoader.MaterialManager.lightBillboardShader = LoadAsset<Shader>("LightBillboardShader");
+            LevelLoader.MaterialManager.lightbulbTransparent = LoadAsset<Texture2D>("lightbulb_transparent");
+            LevelLoader.MaterialManager.lightbulbTransparentColor = LoadAsset<Texture2D>("lightbulb_transparent_color");
 
             if (!DiscordAPI.HasDiscord)
                 Loadson.Console.Log("Discord not found. You will not be able to like/upload levels to the workshop");
             else
             {
-                new Thread(() =>
+                new Thread(async () =>
                 {
                     while (DiscordAPI.User.Id == 0) Thread.Sleep(200);
                     while (DiscordAPI.Bearer == "") Thread.Sleep(200);
-                    int[] ta;
-                    (workshopToken, ta) = Core.Login(DiscordAPI.User.Id, DiscordAPI.Bearer);
-                    workshopLikes = ta.ToList();
+
+                    ModIO.Auth.Login();
                 }).Start();
             }
             loginWid = ImGUI_WID.GetWindowId();
@@ -128,48 +125,65 @@ namespace KarlsonMapEditor
         public override void OnGUI()
         {
             LevelEditor._ongui();
-            WorkshopGUI._OnGUI();
-            if(loginWid != -1 && workshopToken == "" && !noDiscordAck)
+            ModIO.Auth._ongui();
+            ModIO.Workshop._ongui();
+            if(loginWid != -1 && ModIO.Auth.ModioBearer == "" && !noDiscordAck)
                 GUI.Window(loginWid, loginRect, (_) => {
-                    if (!LoadsonAPI.DiscordAPI.HasDiscord)
+                    if (!DiscordAPI.HasDiscord)
                     {
                         GUI.Label(new Rect(5, 20, 200, 30), "Discord was not detected");
                         if (GUI.Button(new Rect(160, 20, 35, 20), "Ok")) noDiscordAck = true;
                     }
-                    else if (LoadsonAPI.DiscordAPI.User.Id == 0)
+                    else if (DiscordAPI.User.Id == 0)
                         GUI.Label(new Rect(5, 20, 200, 30), "Awaiting Discord User");
                     else if (DiscordAPI.Bearer.Length < 2)
                         GUI.Label(new Rect(5, 20, 200, 30), "Awaiting Discord Bearer");
                     else
-                        GUI.Label(new Rect(5, 20, 200, 30), "Logging into KME Workshop");
-                }, "KME Workshop Login");
+                        GUI.Label(new Rect(5, 20, 200, 30), "Logging into mod.io");
+                }, "mod.io Workshop Login");
         }
 
         public override void Update(float deltaTime)
         {
             LevelEditor._onupdate();
+            ModIO.Workshop._onupdate();
             if (runOnMain.Count > 0)
             { // once at a time, not to overload
                 Action run = runOnMain[0];
                 runOnMain.RemoveAt(0);
-                run();
+                run?.Invoke();
             }
-            if (LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
+            if (LevelLoader.LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
                 LevelPlayer.currentScript.InvokeFunction("update", deltaTime);
         }
         public override void FixedUpdate(float fixedDeltaTime)
         {
-            if (LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
+            if (LevelLoader.LevelPlayer.currentLevel != "" && LevelPlayer.currentScript != null)
                 LevelPlayer.currentScript.InvokeFunction("fixedupdate", fixedDeltaTime);
         }
 
         public static Dictionary<string, string> prefs;
         public static string directory;
         public static Texture2D[] gameTex;
-        public static readonly Material defaultSkybox = RenderSettings.skybox;
-        public static string workshopToken = "";
-        public static List<int> workshopLikes = new List<int>();
         public static List<Action> runOnMain = new List<Action>();
-        static bool noDiscordAck = false;
+        public static bool noDiscordAck = false;
+    }
+
+    public class LoadsonPrefabProvider : LevelLoader.IPrefabProvider
+    {
+        public override GameObject NewPistol() { return LoadsonAPI.PrefabManager.NewPistol(); }
+        public override GameObject NewAk47() { return LoadsonAPI.PrefabManager.NewAk47(); }
+        public override GameObject NewShotgun() { return LoadsonAPI.PrefabManager.NewShotgun(); }
+        public override GameObject NewBoomer() { return LoadsonAPI.PrefabManager.NewBoomer(); }
+        public override GameObject NewGrappler() { return LoadsonAPI.PrefabManager.NewGrappler(); }
+        public override GameObject NewDummyGrappler() { return LoadsonAPI.PrefabManager.NewDummyGrappler(); }
+        public override GameObject NewTable() { return LoadsonAPI.PrefabManager.NewTable(); }
+        public override GameObject NewBarrel() { return LoadsonAPI.PrefabManager.NewBarrel(); }
+        public override GameObject NewLocker() { return LoadsonAPI.PrefabManager.NewLocker(); }
+        public override GameObject NewScreen() { return LoadsonAPI.PrefabManager.NewScreen(); }
+        public override GameObject NewMilk() { return LoadsonAPI.PrefabManager.NewMilk(); }
+        public override GameObject NewEnemy() { return LoadsonAPI.PrefabManager.NewEnemy(); }
+        public override GameObject NewGlass() { return LoadsonAPI.PrefabManager.NewGlass(); }
+        public override PhysicMaterial BounceMaterial() { return LoadsonAPI.PrefabManager.BounceMaterial(); }
     }
 }

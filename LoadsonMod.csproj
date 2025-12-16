@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -28,29 +30,35 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>lib\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Protobuf, Version=3.30.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
-      <HintPath>packages\Google.Protobuf.3.30.1\lib\net45\Google.Protobuf.dll</HintPath>
+    <Reference Include="Google.Protobuf, Version=3.33.2.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>packages\Google.Protobuf.3.33.2\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.4.2.13, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>packages\SharpZipLib.1.4.2\lib\netstandard2.0\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Loadson">
       <HintPath>lib\LoadsonAPI.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.2\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -246,53 +254,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="7z\Common\CommandLineParser.cs" />
-    <Compile Include="7z\Common\CRC.cs" />
-    <Compile Include="7z\Common\InBuffer.cs" />
-    <Compile Include="7z\Common\OutBuffer.cs" />
-    <Compile Include="7z\Compress\LZMA\LzmaBase.cs" />
-    <Compile Include="7z\Compress\LZMA\LzmaDecoder.cs" />
-    <Compile Include="7z\Compress\LZMA\LzmaEncoder.cs" />
-    <Compile Include="7z\Compress\LZ\IMatchFinder.cs" />
-    <Compile Include="7z\Compress\LZ\LzBinTree.cs" />
-    <Compile Include="7z\Compress\LZ\LzInWindow.cs" />
-    <Compile Include="7z\Compress\LZ\LzOutWindow.cs" />
-    <Compile Include="7z\Compress\RangeCoder\RangeCoder.cs" />
-    <Compile Include="7z\Compress\RangeCoder\RangeCoderBit.cs" />
-    <Compile Include="7z\Compress\RangeCoder\RangeCoderBitTree.cs" />
-    <Compile Include="7z\ICoder.cs" />
-    <Compile Include="7z\SevenZipHelper.cs" />
-    <Compile Include="BinaryExtensions.cs" />
     <Compile Include="ColorPicker.cs" />
     <Compile Include="EnvironmentBaker.cs" />
-    <Compile Include="FilePicker.cs" />
     <Compile Include="GUIex.cs" />
-    <Compile Include="KMETextureScaling.cs" />
-    <Compile Include="KMPExporter.cs" />
-    <Compile Include="LevelData.cs" />
     <Compile Include="LevelEditor.cs" />
     <Compile Include="LevelPlayer.cs" />
-    <Compile Include="MapSerializer\LevelSerializer.cs" />
+    <Compile Include="LevelSerializer.cs" />
     <Compile Include="LevelTimeDB.cs" />
     <Compile Include="LobbyPatch.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="MapSerializer\KarlsonMapSave.cs" />
     <Compile Include="MeshBuilder.cs" />
     <Compile Include="MilkHooks.cs" />
-    <Compile Include="NavMeshComponents\NavMeshLink.cs" />
-    <Compile Include="NavMeshComponents\NavMeshModifier.cs" />
-    <Compile Include="NavMeshComponents\NavMeshModifierVolume.cs" />
-    <Compile Include="NavMeshComponents\NavMeshSurface.cs" />
+    <Compile Include="ModIO\Core.cs" />
+    <Compile Include="ModIO\ImageCache.cs" />
+    <Compile Include="ModIO\MultipartForm.cs" />
+    <Compile Include="ModIO\Workshop.cs" />
     <Compile Include="PlayerMovementPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripting API\Automata.cs" />
     <Compile Include="Scripting API\ObjectWrapper.cs" />
     <Compile Include="Scripting API\ScriptRunner.cs" />
     <Compile Include="Scripting API\UnityAPI.cs" />
-    <Compile Include="Workshop API\Core.cs" />
     <Compile Include="Workshop API\KWM_Convert.cs" />
-    <Compile Include="Workshop API\WorkshopCache.cs" />
-    <Compile Include="Workshop API\WorkshopGUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -300,7 +283,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\Placeholder.png" />
+    <EmbeddedResource Include="Assets\Branding.png" />
     <Content Include="z_file format.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="LevelLoader\LevelLoader.csproj">
+      <Project>{6cf1b68b-d0fb-4ff5-b160-9efec420e1eb}</Project>
+      <Name>LevelLoader</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

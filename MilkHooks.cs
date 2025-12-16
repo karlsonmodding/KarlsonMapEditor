@@ -11,15 +11,15 @@ namespace KarlsonMapEditor
     [HarmonyPatch(typeof(Milk), "OnTriggerEnter")]
     class Milk_OnTriggerEnter
     {
-        static bool Prefix()
+        public static bool Prefix()
         {
             return !LevelEditor.editorMode;
         }
 
-        static void Postfix()
+        public static void Postfix()
         {
             if (LevelEditor.editorMode) return;
-            if (LevelPlayer.currentLevel != "") UIManger.Instance.winUI.transform.Find("NextBtn").gameObject.GetComponent<Button>().interactable = false;
+            if (LevelLoader.LevelPlayer.currentLevel != "") UIManger.Instance.winUI.transform.Find("NextBtn").gameObject.GetComponent<Button>().interactable = false;
             else UIManger.Instance.winUI.transform.Find("NextBtn").gameObject.GetComponent<Button>().interactable = true;
         }
     }

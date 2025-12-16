@@ -53,8 +53,8 @@ namespace KarlsonMapEditor
     {
         public static bool Prefix(Game __instance)
         {
-            if (LevelPlayer.currentLevel == "") return true;
-            if(LevelPlayer.currentScript != null)
+            if (LevelLoader.LevelPlayer.currentLevel == "") return true;
+            if (LevelPlayer.currentScript != null)
             {
                 var ret = LevelPlayer.currentScript.InvokeFunction("onwin");
                 if (ret.HoldsTrue()) return false;
@@ -66,10 +66,10 @@ namespace KarlsonMapEditor
             Cursor.visible = true;
             UIManger.Instance.WinUI(true);
             float timer = Timer.Instance.GetTimer();
-            float num3 = LevelTimeDB.getForLevel(LevelPlayer.currentLevel);
+            float num3 = LevelTimeDB.getForLevel(LevelLoader.LevelPlayer.currentLevel);
             if (timer < num3 || num3 == 0f)
             {
-                LevelTimeDB.writeForLevel(LevelPlayer.currentLevel, timer);
+                LevelTimeDB.writeForLevel(LevelLoader.LevelPlayer.currentLevel, timer);
                 LevelTimeDB.Save();
             }
             MonoBehaviour.print("time has been saved as: " + Timer.Instance.GetFormattedTime(timer) + " on timetable");

@@ -7,3 +7,4 @@ exportBundle.cs
 *.klmi
 _ModBuilder
 packages
+protoc.exe

@@ -1,4 +1,3 @@
 displayname=Karlson Map Editor
 author=devilExE, Snazz
 description=Create, Play and Download custom Karlson Maps\nA whole workshop awaits you!
-deps=

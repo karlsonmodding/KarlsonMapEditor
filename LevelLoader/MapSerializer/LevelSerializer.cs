@@ -1,87 +1,15 @@
 ﻿using Google.Protobuf;
 using System;
 using System.Collections.Generic;
-using static KarlsonMapEditor.LevelEditor;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
-using TMPro;
+using static KarlsonMapEditor.LevelLoader.LevelData;
 
-namespace KarlsonMapEditor
+namespace KarlsonMapEditor.LevelLoader
 {
     public partial class Map
     {
-        public void SaveMaterials()
-        {
-            // save textures to the map
-            foreach (Texture2D texture in MaterialManager.Textures)
-            {
-                MapTexture mt = new MapTexture();
-
-                int internalTextureIndex = Array.IndexOf(Main.gameTex, texture);
-                if (internalTextureIndex == -1)
-                {
-                    mt.ImageData = ByteString.CopyFrom(texture.EncodeToPNG());
-                }
-                else
-                {
-                    mt.TextureIndex = internalTextureIndex;
-                }
-                Textures.Add(mt);
-            }
-            // save materials to the map
-            foreach (Material material in MaterialManager.Materials)
-            {
-                MapMaterial mm = new MapMaterial
-                {
-                    Mode = (MapMaterial.Types.RenderingMode)material.GetFloat("_Mode"),
-                    Albedo = material.color,
-                    Smoothness = material.GetFloat("_Glossiness"),
-                    Metallic = material.GetFloat("_Metallic"),
-                    BumpScale = material.GetFloat("_BumpScale"),
-                    SpecularHighlight = material.GetFloat("_SpecularHighlights") != 0,
-                    SpecularReflection = material.GetFloat("_GlossyReflections") != 0,
-                    AlbedoTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.mainTexture),
-                    NormalMapTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_BumpMap")),
-                    MetallicGlossTextureId = MaterialManager.Textures.IndexOf((Texture2D)material.GetTexture("_MetallicGlossMap")),
-                    Scale = material.mainTextureScale,
-                    Offset = material.mainTextureOffset,
-                };
-                Materials.Add(mm);
-            }
-
-            // save skybox material
-            Material skybox = RenderSettings.skybox;
-            if (skybox == Main.defaultSkybox)
-            {
-                ClearSkybox();
-            }
-            else if (skybox == SixSidedSkybox)
-            {
-                SixSided = new MapSixSidedSkybox()
-                {
-                    FrontTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_FrontTex")),
-                    BackTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_BackTex")),
-                    LeftTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_LeftTex")),
-                    RightTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_RightTex")),
-                    UpTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_UpTex")),
-                    DownTextureId = MaterialManager.Textures.IndexOf((Texture2D)skybox.GetTexture("_DownTex")),
-                    Rotation = skybox.GetFloat("_Rotation"),
-                    Exposure = skybox.GetFloat("_Exposure"),
-                };
-            }
-            else if (skybox == ProceduralSkybox)
-            {
-                Procedural = new MapProceduralSkybox()
-                {
-                    SunSize = skybox.GetFloat("_SunSize"),
-                    SunSizeConvergence = skybox.GetFloat("_SunSizeConvergence"),
-                    AtmosphereThickness = skybox.GetFloat("_AtmosphereThickness"),
-                    SkyTint = skybox.GetColor("_SkyTint"),
-                    Ground = skybox.GetColor("_GroundColor"),
-                    Exposure = skybox.GetFloat("_Exposure"),
-                };
-            }
-        }
         public void LoadMaterials()
         {
             MaterialManager.Clear();
@@ -90,7 +18,7 @@ namespace KarlsonMapEditor
                 switch (mt.TextureSourceCase)
                 {
                     case MapTexture.TextureSourceOneofCase.TextureIndex:
-                        MaterialManager.AddTexture(Main.gameTex[mt.TextureIndex]);
+                        MaterialManager.AddTexture(Main.GameTex[mt.TextureIndex]);
                         break;
                     case MapTexture.TextureSourceOneofCase.ImageData:
                         Texture2D texture = new Texture2D(1, 1);
@@ -145,47 +73,36 @@ namespace KarlsonMapEditor
             switch (SkyboxCase)
             {
                 case SkyboxOneofCase.None:
-                    RenderSettings.skybox = Main.defaultSkybox; break;
+                    RenderSettings.skybox = Main.Skybox.Default; break;
                 case SkyboxOneofCase.SixSided:
-                    RenderSettings.skybox = SixSidedSkybox;
-                    if (SixSided.FrontTextureId >= 0) SixSidedSkybox.SetTexture("_FrontTex", MaterialManager.Textures[SixSided.FrontTextureId]);
-                    if (SixSided.BackTextureId >= 0) SixSidedSkybox.SetTexture("_BackTex", MaterialManager.Textures[SixSided.BackTextureId]);
-                    if (SixSided.LeftTextureId >= 0) SixSidedSkybox.SetTexture("_LeftTex", MaterialManager.Textures[SixSided.LeftTextureId]);
-                    if (SixSided.RightTextureId >= 0) SixSidedSkybox.SetTexture("_RightTex", MaterialManager.Textures[SixSided.RightTextureId]);
-                    if (SixSided.UpTextureId >= 0) SixSidedSkybox.SetTexture("_UpTex", MaterialManager.Textures[SixSided.UpTextureId]);
-                    if (SixSided.DownTextureId >= 0) SixSidedSkybox.SetTexture("_DownTex", MaterialManager.Textures[SixSided.DownTextureId]);
-                    SixSidedSkybox.SetFloat("_Rotation", SixSided.Rotation);
-                    SixSidedSkybox.SetFloat("_Exposure", SixSided.Exposure);
+                    RenderSettings.skybox = Main.Skybox.SixSided;
+                    if (SixSided.FrontTextureId >= 0) Main.Skybox.SixSided.SetTexture("_FrontTex", MaterialManager.Textures[SixSided.FrontTextureId]);
+                    if (SixSided.BackTextureId >= 0) Main.Skybox.SixSided.SetTexture("_BackTex", MaterialManager.Textures[SixSided.BackTextureId]);
+                    if (SixSided.LeftTextureId >= 0) Main.Skybox.SixSided.SetTexture("_LeftTex", MaterialManager.Textures[SixSided.LeftTextureId]);
+                    if (SixSided.RightTextureId >= 0) Main.Skybox.SixSided.SetTexture("_RightTex", MaterialManager.Textures[SixSided.RightTextureId]);
+                    if (SixSided.UpTextureId >= 0) Main.Skybox.SixSided.SetTexture("_UpTex", MaterialManager.Textures[SixSided.UpTextureId]);
+                    if (SixSided.DownTextureId >= 0) Main.Skybox.SixSided.SetTexture("_DownTex", MaterialManager.Textures[SixSided.DownTextureId]);
+                    Main.Skybox.SixSided.SetFloat("_Rotation", SixSided.Rotation);
+                    Main.Skybox.SixSided.SetFloat("_Exposure", SixSided.Exposure);
                     break;
                 case SkyboxOneofCase.Procedural:
-                    RenderSettings.skybox = ProceduralSkybox;
-                    ProceduralSkybox.SetFloat("_SunSize", Procedural.SunSize);
-                    ProceduralSkybox.SetFloat("_SunSizeConvergence", Procedural.SunSizeConvergence);
-                    ProceduralSkybox.SetFloat("_AtmosphereThickness", Procedural.AtmosphereThickness);
-                    ProceduralSkybox.SetColor("_SkyTint", Procedural.SkyTint);
-                    ProceduralSkybox.SetColor("_GroundColor", Procedural.Ground);
-                    ProceduralSkybox.SetFloat("_Exposure", Procedural.Exposure);
+                    RenderSettings.skybox = Main.Skybox.Procedural;
+                    Main.Skybox.Procedural.SetFloat("_SunSize", Procedural.SunSize);
+                    Main.Skybox.Procedural.SetFloat("_SunSizeConvergence", Procedural.SunSizeConvergence);
+                    Main.Skybox.Procedural.SetFloat("_AtmosphereThickness", Procedural.AtmosphereThickness);
+                    Main.Skybox.Procedural.SetColor("_SkyTint", Procedural.SkyTint);
+                    Main.Skybox.Procedural.SetColor("_GroundColor", Procedural.Ground);
+                    Main.Skybox.Procedural.SetFloat("_Exposure", Procedural.Exposure);
                     break;
             }
         }
 
-        // saves all the KME objects in the tree that are children of the root object
-        public void SaveTree(ObjectGroup root)
-        {
-            Root = new MapObject();
-            Root.SaveObjectGroup(root);
-        }
         // generates from the tree
         public LevelData.ObjectGroup LoadTree()
         {
             return Root.LoadLevelGroup();
         }
 
-        public void SaveGlobalLight(Light light)
-        {
-            GlobalLightDirection = light.transform.forward * light.intensity;
-            GlobalLight = light.color;
-        }
         public void LoadGlobalLight(Light light)
         {
             light.color = GlobalLight;
@@ -264,85 +181,6 @@ namespace KarlsonMapEditor
 
     public partial class MapObject
     {
-        // recursive function to save all children of this object group
-        public void SaveObjectGroup(ObjectGroup group)
-        {
-            SaveBasicObject(group);
-            Group = new MapGroup();
-            foreach (ObjectGroup childGroup in group.objectGroups)
-            {
-                MapObject mo = new MapObject();
-                mo.SaveObjectGroup(childGroup);
-                Group.Children.Add(mo);
-            }
-            foreach (EditorObject childObject in group.editorObjects)
-            {
-                if (childObject.data.Type == ObjectType.Internal) continue;
-                MapObject mo = new MapObject();
-                mo.SaveEditorObject(childObject);
-                Group.Children.Add(mo);
-            }
-        }
-
-        public void SaveEditorObject(EditorObject obj)
-        {
-            SaveBasicObject(obj);
-            if (obj.data.Type == ObjectType.Prefab)
-            {
-                Prefab = new MapPrefab
-                {
-                    PrefabType = (MapPrefab.Types.PrefabType)obj.data.PrefabId,
-                    PrefabData = obj.data.PrefabData
-                };
-            }
-            else if (obj.data.Type == ObjectType.Geometry)
-            {
-                Geometry = new MapGeometry
-                {
-                    Shape = (MapGeometry.Types.Shape)obj.data.ShapeId,
-                    MaterialId = obj.data.MaterialId,
-                    UvNormalizedScale = obj.data.UVNormalizedScale,
-                    // flags
-                    Bounce = obj.data.Bounce,
-                    Glass = obj.data.Glass,
-                    Lava = obj.data.Lava,
-                    ObjectLayer = obj.data.MarkAsObject
-                };
-            }
-            else if (obj.data.Type == ObjectType.Light)
-            {
-                Light component = obj.go.GetComponent<Light>();
-                Light = new MapLight
-                {
-                    SpotLight = component.type == LightType.Spot,
-                    Tint = component.color,
-                    Intensity = component.intensity,
-                    Range = component.range,
-                    SpotAngle = component.spotAngle,
-                };
-            }
-            else if (obj.data.Type == ObjectType.Text)
-            {
-                TextMeshPro component = obj.go.GetComponent<TextMeshPro>();
-                TextDisplay = new MapText
-                {
-                    Text = component.text,
-                    Shade = component.color,
-                };
-            }
-        }
-
-        public void SaveBasicObject(IBasicProperties obj)
-        {
-            // set the name
-            Name = obj.aName;
-
-            // set the transform
-            Position = obj.aPosition;
-            Rotation = obj.aRotation;
-            Scale = obj.aScale;
-        }
-
         // recursive function to load this map object and all children
         public LevelData.ObjectGroup LoadLevelGroup()
         {

@@ -17,7 +17,7 @@ namespace KarlsonMapEditor
     [HarmonyPatch(typeof(Lobby), "Start")]
     class Hook_Lobby_Start
     {
-        static void Prefix()
+        public static void Prefix()
         {
             GameObject GO_LevelsUI = UnityEngine.Object.Instantiate(GameObject.Find("/UI").transform.Find("Play").gameObject);
             GO_LevelsUI.transform.parent = GameObject.Find("/UI").transform;
@@ -144,7 +144,7 @@ namespace KarlsonMapEditor
                 KWM_Convert.KWM level = KWM_Convert.Decode(File.ReadAllBytes(levelList[idx]));
                 go.GetComponentsInChildren<TextMeshProUGUI>()[0].text = level.Name;
                 go.GetComponentsInChildren<TextMeshProUGUI>()[1].text = LevelTimeDB.getForLevel(Path.GetFileName(levelList[idx])) == 0 ? "[NO RECORD]" : Timer.Instance.GetFormattedTime(LevelTimeDB.getForLevel(Path.GetFileName(levelList[idx])));
-                Texture2D tex = new Texture2D(1, 1);
+                Texture2D tex = new Texture2D(0, 0);
                 tex.LoadImage(level.Thumbnail);
                 go.GetComponent<Image>().sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0, 0));
                 InterceptButton(go.GetComponent<Button>(), () => LevelPlayer.LoadLevel(Path.GetFileName(levelList[idx]), level.LevelData));
